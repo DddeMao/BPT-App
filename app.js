@@ -1786,38 +1786,11 @@ document.addEventListener('DOMContentLoaded', () => {
   
   if (resetTgBtn) {
     resetTgBtn.addEventListener('click', () => {
+      const currentUrl = window.location.href;
       
-      for (let key in localStorage) {
-        if (key.includes('tg') || key.includes('telegram')) localStorage.removeItem(key);
-      }
-      for (let key in sessionStorage) {
-        if (key.includes('tg') || key.includes('telegram')) sessionStorage.removeItem(key);
-      }
+      const telegramLogoutUrl = `https://oauth.telegram.org/logout?redirect_to=${encodeURIComponent(currentUrl)}`;
       
-      sessionStorage.removeItem('tg_user');
-      
-      const wrapper = document.getElementById('tg-widget-wrapper');
-      if (wrapper) {
-        wrapper.innerHTML = '';
-        
-        const newScript = document.createElement('script');
-        newScript.async = true;
-        newScript.src = "https://telegram.org/js/telegram-widget.js?22&t=" + Date.now(); 
-        newScript.setAttribute('data-telegram-login', 'bvst_auth_bot');
-        newScript.setAttribute('data-size', 'large');
-        newScript.setAttribute('data-radius', '8');
-        newScript.setAttribute('data-onauth', 'onTelegramAuth(user)');
-        newScript.setAttribute('data-request-access', 'write');
-        
-        wrapper.appendChild(newScript);
-      }
-      
-      const img = new Image();
-      img.src = 'https://oauth.telegram.org/logout?rand=' + Date.now();
-      
-      if (typeof showNotification === 'function') {
-        showNotification('Кэш авторизации сброшен! 🔄');
-      }
+      window.location.href = telegramLogoutUrl;
     });
   }
 });
