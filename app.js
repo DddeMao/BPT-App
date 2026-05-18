@@ -924,13 +924,14 @@ async function openAlbumView(albumName) {
   document.getElementById('modalAlbumView').classList.add('active');
 }
 
-// Следующие функции идут отдельно, как и должно быть
+// ========== ВСПОМОГАТЕЛЬНЫЕ РАСЧЕТЫ РЕЙТИНГОВ АЛЬБОМОВ ==========
 function getAlbumAverageRating(album) {
   if (!album.ratings || album.ratings.length === 0) return null;
   const sum = album.ratings.reduce((acc, r) => acc + r.total, 0);
   return Math.round(sum / album.ratings.length);
 }
 
+// ========== РЕНДЕРИНГ ТОП АЛЬБОМОВ ==========
 async function renderTopAlbums() {
   const [albums, songs] = await Promise.all([dbGetAll(STORE_ALBUMS), dbGetAll(STORE_SONGS)]);
   const rated = albums
@@ -1710,14 +1711,13 @@ function closeModal(modal) {
   }, 300);
 }
 
-// Функция, которую вызывает Telegram после успешного входа владельца
+// ========== ДВУХФАКТОРНАЯ АУТЕНТИФИКАЦИЯ ЧЕРЕЗ TELEGRAM ==========
 async function onTelegramAuth(tgUser) {
-  console.log('Данные от Telegram полученны:', tgUser);
+  console.log('Данные от Telegram получены:', tgUser);
 
   const MY_TELEGRAM_USERNAME = 'DddeMao'; 
 
   if (tgUser.username === MY_TELEGRAM_USERNAME) {
-    // 1. Ищем существующего админа в локальной IndexedDB
     let adminUser = await getUserByUsername('Letluvv');
     
     if (!adminUser) {
@@ -1730,17 +1730,19 @@ async function onTelegramAuth(tgUser) {
       await dbPut(STORE_USERS, adminUser);
     }
 
-    // 2. Авторизуем сессию под админом
     currentUser = adminUser;
-    currentUser.isAdmin = true; // Гарантируем права админа
+    currentUser.isAdmin = true; 
     saveSession(currentUser.id);
     
-    // 3. Запускаем приложение
     showApp();
     refreshAll();
-    showNotification('Успешный вход через Telegram 2FA!');
+    
+    if (typeof showNotification === 'function') {
+      showNotification('Успешный вход через Telegram 2FA!');
+    } else {
+      alert('Успешный вход через Telegram 2FA!');
+    }
   } else {
-    // Если войти попытался чужой человек со своим Телеграмом
     alert('Доступ запрещен. Вы не являетесь владельцем этого проекта.');
   }
 }
