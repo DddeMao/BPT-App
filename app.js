@@ -275,7 +275,7 @@ document.querySelector('.close-settings').addEventListener('click', () => {
 });
 
 // ==========================================
-// ЛОГИКА ОТКРЫТИЯ ОКНА НАСТРОЕК (НЕ СУБМИТ!)
+// ЛОГИКА ОТКРЫТИЯ ОКНА НАСТРОЕК 
 // ==========================================
 document.getElementById('settingsBtn').addEventListener('click', () => {
   document.getElementById('newUsername').value = currentUser.username;
@@ -819,39 +819,54 @@ async function openAlbumView(albumName) {
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', item.dataset.id);
       });
+      
       item.addEventListener('dragend', () => {
         item.classList.remove('dragging');
         draggedItem = null;
         draggables.forEach(d => d.classList.remove('drag-over'));
       });
+      
       item.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
-        if (item !== draggedItem) item.classList.add('drag-over');
+        if (item !== draggedItem) {
+          item.classList.add('drag-over');
+        }
       });
-      item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+
+      item.addEventListener('dragleave', () => {
+        item.classList.remove('drag-over');
+      });
+
       item.addEventListener('drop', async (e) => {
         e.preventDefault();
-        item.classList.remove('drag-over');
-        if (draggedItem && draggedItem !== item) {
-          const fromId = draggedItem.dataset.id;
-          const toId = item.dataset.id;
-          const fromIndex = orderedTracks.findIndex(t => t.id === fromId);
-          const toIndex = orderedTracks.findIndex(t => t.id === toId);
-          if (fromIndex !== -1 && toIndex !== -1) {
-            const [moved] = orderedTracks.splice(fromIndex, 1);
-            orderedTracks.splice(toIndex, 0, moved);
-            const newOrder = orderedTracks.map(t => t.id);
-            const album = await dbGet(STORE_ALBUMS, albumName) || { name: albumName, ratings: [], trackOrder: [] };
-            album.trackOrder = newOrder;
-            await dbPut(STORE_ALBUMS, album);
-            openAlbumView(albumName);
-            onDataChanged();
-          }
+        if (item === draggedItem) return;
+
+        const allItems = Array.from(container.querySelectorAll('.draggable-song'));
+        const draggedIndex = allItems.indexOf(draggedItem);
+        const targetIndex = allItems.indexOf(item);
+
+        if (draggedIndex < targetIndex) {
+          item.parentNode.insertBefore(draggedItem, item.nextSibling);
+        } else {
+          item.parentNode.insertBefore(draggedItem, item);
         }
+
+        // Сохраняем обновленный порядок треков в базу данных
+        const newOrder = Array.from(container.querySelectorAll('.draggable-song')).map(d => d.dataset.id);
+        albumData.trackOrder = newOrder;
+        await dbPut(STORE_ALBUMS, albumData);
+        
+        // Перерисовываем вид альбома с новыми номерами треков
+        openAlbumView(albumName);
+        if (typeof onDataChanged === 'function') onDataChanged();
       });
     });
   }
+
+  // Наконец-то открываем само модальное окно просмотра альбома
+  document.getElementById('modalAlbumView').classList.add('active');
+}
   document.getElementById('rateAlbumBtn').onclick = () => {
     closeModal(document.getElementById('modalAlbumView'));
     openAlbumRatingModal(albumName);
