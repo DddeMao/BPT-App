@@ -1166,3 +1166,38 @@ input[type=range]::-webkit-slider-thumb {
   width: 100%;
   margin-bottom: 0 !important;
 }
+
+/* ========== СТИЛИЗАЦИЯ ПОЛЕЙ АВТОРИЗАЦИИ ========== */
+.auth-container input[type="text"],
+.auth-container input[type="password"],
+#modalLogin input, 
+#modalRegister input {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    background-color: #25242d;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+/* Изменяем цвет подсказок (placeholder) внутри полей */
+.auth-container input::placeholder,
+#modalLogin input::placeholder,
+#modalRegister input::placeholder {
+    color: #8e8c99;
+}
+
+/* Эффект при клике (фокусе) на поле */
+.auth-container input:focus,
+#modalLogin input:focus,
+#modalRegister input:focus {
+    outline: none;
+    border-color: #a855f7;
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+    background-color: #2a2933;
+}
