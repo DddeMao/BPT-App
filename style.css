@@ -1212,3 +1212,7 @@ input[type=range]::-webkit-slider-thumb {
 #authForm .btn:hover {
     background: #9333ea;
 }
+
+#resetTgWidgetBtn:hover {
+    color: #a855f7 !important;
+}

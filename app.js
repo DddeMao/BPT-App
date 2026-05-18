@@ -1779,3 +1779,29 @@ async function onTelegramAuth(tgUser) {
     alert('Доступ запрещен. Вы не являетесь владельцем этого проекта.');
   }
 }
+
+// ========== СБРОС СЕССИИ ВИДЖЕТА TELEGRAM ==========
+document.addEventListener('DOMContentLoaded', () => {
+  const resetTgBtn = document.getElementById('resetTgWidgetBtn');
+  
+  if (resetTgBtn) {
+    resetTgBtn.addEventListener('click', () => {
+      if (window.Telegram && window.Telegram.Login && typeof window.Telegram.Login.logout === 'function') {
+        window.Telegram.Login.logout();
+      }
+      
+      const logoutWindow = window.open('https://oauth.telegram.org/logout', '_blank', 'width=1,height=1,left=-9999,top=-9999');
+      
+      if (logoutWindow) {
+        setTimeout(() => {
+          logoutWindow.close();
+          window.location.reload();
+        }, 1000);
+      } else {
+        if (confirm('Для смены аккаунта нужно сбросить сессию на сайте Telegram. Перенаправить вас?')) {
+          window.location.href = 'https://oauth.telegram.org/logout?redirect_to=' + encodeURIComponent(window.location.href);
+        }
+      }
+    });
+  }
+});
