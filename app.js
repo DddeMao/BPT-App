@@ -906,18 +906,23 @@ async function openAlbumView(albumName) {
     });
   }
 
-  // Оценка альбома и закрытие (Теперь они СТРОГО внутри функции openAlbumView!)
-  document.getElementById('rateAlbumBtn').onclick = () => {
-    closeModal(document.getElementById('modalAlbumView'));
-    openAlbumRatingModal(albumName);
-  };
+  // Настройка кнопок внутри окна просмотра
+  const rateBtn = document.getElementById('rateAlbumBtn');
+  if (rateBtn) {
+    rateBtn.onclick = () => {
+      closeModal(document.getElementById('modalAlbumView'));
+      openAlbumRatingModal(albumName);
+    };
+  }
 
-  document.querySelector('.close-album-view').onclick = () =>
-    closeModal(document.getElementById('modalAlbumView'));
+  const closeBtn = document.querySelector('.close-album-view');
+  if (closeBtn) {
+    closeBtn.onclick = () => closeModal(document.getElementById('modalAlbumView'));
+  }
 
   // Открываем модальное окно просмотра альбома
   document.getElementById('modalAlbumView').classList.add('active');
-} // Конец функции openAlbumView
+}
 
 // Следующие функции идут отдельно, как и должно быть
 function getAlbumAverageRating(album) {
