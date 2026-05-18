@@ -141,7 +141,7 @@ function getUserByUsername(username) {
 async function initAdmin() {
   const users = await dbGetAll(STORE_USERS);
   if (users.length === 0) {
-    const adminHash = await hashPassword('kJAxUC5v~');
+    const adminHash = await hashPassword('123123');
     await dbAdd(STORE_USERS, { username: 'Letluvv', passwordHash: adminHash, isAdmin: true });
   }
 }
