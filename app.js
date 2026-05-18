@@ -247,6 +247,11 @@ toggleAuthModeLink.addEventListener('click', (e) => {
   authTitle.textContent = authMode === 'login' ? 'Вход' : 'Регистрация';
   toggleAuthModeLink.textContent = authMode === 'login' ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти';
   authUsername.readOnly = false;
+
+  const tgBlock = document.getElementById('tgAdminBlock');
+  if (tgBlock) {
+    tgBlock.style.display = authMode === 'login' ? 'block' : 'none';
+  }
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -1667,4 +1672,39 @@ function closeModal(modal) {
     modal.classList.remove('active');
     modal.classList.remove('closing');
   }, 300);
+}
+
+// Функция, которую вызывает Telegram после успешного входа владельца
+async function onTelegramAuth(tgUser) {
+  console.log('Данные от Telegram полученны:', tgUser);
+
+  const MY_TELEGRAM_USERNAME = 'DddeMao'; 
+
+  if (tgUser.username === MY_TELEGRAM_USERNAME) {
+    // 1. Ищем существующего админа в локальной IndexedDB
+    let adminUser = await getUserByUsername('Letluvv');
+    
+    if (!adminUser) {
+      adminUser = { 
+        id: 'admin_tg_' + tgUser.id, 
+        username: 'Letluvv', 
+        passwordHash: 'tg_authorized', 
+        isAdmin: true 
+      };
+      await dbPut(STORE_USERS, adminUser);
+    }
+
+    // 2. Авторизуем сессию под админом
+    currentUser = adminUser;
+    currentUser.isAdmin = true; // Гарантируем права админа
+    saveSession(currentUser.id);
+    
+    // 3. Запускаем приложение
+    showApp();
+    refreshAll();
+    showNotification('Успешный вход через Telegram 2FA!');
+  } else {
+    // Если войти попытался чужой человек со своим Телеграмом
+    alert('Доступ запрещен. Вы не являетесь владельцем этого проекта.');
+  }
 }
