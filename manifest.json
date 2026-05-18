@@ -1,0 +1,22 @@
+{
+  "short_name": "БПТ",
+  "name": "Будни против творчества",
+  "description": "Система оценки музыкальных высеров",
+  "icons": [
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#0b0b0f",
+  "theme_color": "#b366ff",
+  "display": "standalone",
+  "orientation": "portrait-primary"
+}
