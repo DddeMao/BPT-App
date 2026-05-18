@@ -274,21 +274,27 @@ document.querySelector('.close-settings').addEventListener('click', () => {
   closeModal(document.getElementById('modalSettings'));
 });
 
-document.getElementById('settingsForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
+// ==========================================
+// ЛОГИКА ОТКРЫТИЯ ОКНА НАСТРОЕК (НЕ СУБМИТ!)
+// ==========================================
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  document.getElementById('newUsername').value = currentUser.username;
+  document.getElementById('settingsPassword').value = '';
   
-  const settingsForm = document.getElementById('settingsForm'); 
+  // Автоматически подставляем ранее сохраненный токен из localStorage
+  const tokenInput = document.getElementById('settingsGithubToken');
+  if (tokenInput) {
+    tokenInput.value = localStorage.getItem('bpt_github_token') || '';
+  }
+  
+  document.getElementById('modalSettings').classList.add('active');
+  updateAdminUI();
+});
 
-if (settingsForm) {
-  document.getElementById('settingsBtn').addEventListener('click', () => {
-    const tokenInput = document.getElementById('settingsGithubToken');
-    if (tokenInput) {
-      tokenInput.value = localStorage.getItem('bpt_github_token') || '';
-    }
-  });
-
-  // Логика сохранения настроек
-  settingsForm.addEventListener('submit', async function(e) {
+// ==========================================
+// ЕДИНЫЙ И ПРАВИЛЬНЫЙ ОБРАБОТЧИК ФОРМЫ НАСТРОЕК
+// ==========================================
+document.getElementById('settingsForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   
   const newUsername = document.getElementById('newUsername').value.trim();
@@ -296,88 +302,106 @@ if (settingsForm) {
   if (!newUsername || !password) return;
 
   try {
+    // 1. Проверяем текущий пароль пользователя
     const hash = await hashPassword(password);
     if (hash !== currentUser.passwordHash) throw new Error('Неверный пароль');
     
     let userUpdated = false;
 
+    // 2. Если пользователь решил сменить никнейм
     if (newUsername !== currentUser.username) {
       const existing = await getUserByUsername(newUsername);
       if (existing) throw new Error('Этот ник уже занят');
 
+      // Создаем объект обновленного пользователя
       const updatedUser = { ...currentUser, username: newUsername };
       await dbPut(STORE_USERS, updatedUser);
+      
+      // Обновляем никнейм в истории оценок и комментариев ко ВСЕМ ПЕСНЯМ
+      const songs = await dbGetAll(STORE_SONGS);
+      for (const song of songs) {
+        let changed = false;
+        
+        if (song.ratings) {
+          for (const r of song.ratings) {
+            if (r.userId === currentUser.id) {
+              r.username = newUsername;
+              changed = true;
+            }
+          }
+        }
+        
+        if (song.comments) {
+          for (const c of song.comments) {
+            if (c.userId === currentUser.id) {
+              c.username = newUsername;
+              changed = true;
+            }
+          }
+        }
+        
+        if (changed) await dbPut(STORE_SONGS, song);
+      }
+
+      // Обновляем никнейм в оценках ко ВСЕМ АЛЬБОМАМ
+      const albums = await dbGetAll(STORE_ALBUMS);
+      for (const album of albums) {
+        if (album.ratings) {
+          let changed = false;
+          for (const r of album.ratings) {
+            if (r.userId === currentUser.id) {
+              r.username = newUsername;
+              changed = true;
+            }
+          }
+          if (changed) await dbPut(STORE_ALBUMS, album);
+        }
+      }
+
+      // Фиксируем обновленного юзера в глобальной переменной
       currentUser = updatedUser;
+      
+      // Обновляем отображение имени в шапке сайта
+      const userDisplay = document.getElementById('currentUserDisplay');
+      if (userDisplay) {
+        userDisplay.textContent = `👤 ${currentUser.username}`;
+      }
+      
       userUpdated = true;
     }
     
-    // Сохранение GitHub Token
+    // 3. Сохранение GitHub Token в localStorage (Безопасный перенос!)
     const tokenInput = document.getElementById('settingsGithubToken');
     if (tokenInput) {
       const newTokenValue = tokenInput.value.trim();
       localStorage.setItem('bpt_github_token', newTokenValue);
-      githubToken = newTokenValue;
+      githubToken = newTokenValue; // Обновляем глобальную переменную проекта
     }
     
+    // 4. Закрываем красивую модалку и уведомляем об успехе
     showNotification('Настройки успешно сохранены!');
     closeModal(document.getElementById('modalSettings'));
     
-    if (userUpdated) {
-      refreshAll();
+    // 5. Дергаем апдейты интерфейса и запускаем фоновую синхронизацию
+    refreshAll();
+    
+    if (typeof onDataChanged === 'function') {
+      onDataChanged();
     }
+    
     if (githubToken) {
       syncWithGitHub();
     }
 
   } catch (error) {
+    // Теперь блоки try/catch закрыты идеально, и браузер больше не ругается!
     console.error('Ошибка изменения настроек:', error);
-    showNotification(error.message, true); 
-  }
-});
-
-    const songs = await dbGetAll(STORE_SONGS);
-    for (const song of songs) {
-      let changed = false;
-      if (song.ratings) {
-        for (const r of song.ratings) {
-          if (r.userId === currentUser.id) {
-            r.username = newUsername;
-            changed = true;
-          }
-        }
-      }
-      if (song.comments) {
-        for (const c of song.comments) {
-          if (c.userId === currentUser.id) {
-            c.username = newUsername;
-            changed = true;
-          }
-        }
-      }
-      if (changed) await dbPut(STORE_SONGS, song);
+    // Если у тебя используется alert вместо showNotification для ошибок — можешь вернуть alert(error.message);
+    if (typeof showNotification === 'function') {
+      showNotification(error.message, true); 
+    } else {
+      alert(error.message);
     }
-
-    const albums = await dbGetAll(STORE_ALBUMS);
-    for (const album of albums) {
-      if (album.ratings) {
-        let changed = false;
-        for (const r of album.ratings) {
-          if (r.userId === currentUser.id) {
-            r.username = newUsername;
-            changed = true;
-          }
-        }
-        if (changed) await dbPut(STORE_ALBUMS, album);
-      }
-    }
-
-    currentUser = updatedUser;
-    document.getElementById('currentUserDisplay').textContent = `👤 ${currentUser.username}`;
-    closeModal(document.getElementById('modalSettings'));
-    refreshAll();
-    onDataChanged();
-  } catch (err) {
-    alert(err.message);
   }
 });
 
