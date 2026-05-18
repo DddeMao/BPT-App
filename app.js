@@ -687,11 +687,13 @@ function showAlbumsView() {
 async function renderAlbums() {
   const [songs, albums] = await Promise.all([dbGetAll(STORE_SONGS), dbGetAll(STORE_ALBUMS)]);
   const albumGroups = new Map();
+  
   songs.forEach(s => {
     if (!s.album) return;
     if (!albumGroups.has(s.album)) albumGroups.set(s.album, []);
     albumGroups.get(s.album).push(s);
   });
+  
   dynamicList.className = 'album-list';
   dynamicList.innerHTML = Array.from(albumGroups.keys()).map(albumName => {
     const tracks = albumGroups.get(albumName);
@@ -705,6 +707,7 @@ async function renderAlbums() {
       ? `<span style="color:var(--accent); font-weight:700;">★ ${totalScore}</span>`
       : 'Не оценен';
     const dateDisplay = albumData?.date ? `📅 ${albumData.date}` : '';
+    
     return `
       <div class="album-card" data-album="${escapeHtml(albumName)}">
         ${coverUrl ? `<img class="album-cover" src="${coverUrl}" alt="cover">` : '<div class="album-cover"></div>'}
@@ -716,6 +719,7 @@ async function renderAlbums() {
         </div>
       </div>`;
   }).join('');
+  
   document.querySelectorAll('.album-card').forEach(card => {
     card.addEventListener('click', () => openAlbumView(card.dataset.album));
   });
