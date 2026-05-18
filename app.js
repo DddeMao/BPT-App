@@ -1300,7 +1300,6 @@ async function syncWithGitHub(force = false) {
   const progressBar = document.getElementById('syncProgressContainer');
   const progressFill = document.getElementById('syncProgressFill');
   
-  // Безопасно включаем отображение прогресса (проверяем наличие .style)
   if (progressBar && progressBar.style) progressBar.style.display = 'flex';
   if (progressFill && progressFill.style) progressFill.style.width = '0%';
   
@@ -1330,8 +1329,9 @@ async function syncWithGitHub(force = false) {
       showNotification('Ошибка синхронизации: ' + err.message);
     }
   } finally {
-    // Безопасно скрываем прогресс-бар в таймауте
+    // Безопасно скрываем прогресс-бар
     setTimeout(() => {
+      const progressBar = document.getElementById('syncProgressContainer');
       if (progressBar && progressBar.style) {
         progressBar.style.display = 'none';
       }
