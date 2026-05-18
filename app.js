@@ -1276,52 +1276,69 @@ document.getElementById('addSongForm').addEventListener('submit', async (e) => {
 
 // ========== GITHUB SYNC (метаданные) ==========
 async function syncWithGitHub(force = false) {
-  if (isSyncing) return;
+  if (typeof isSyncing !== 'undefined' && isSyncing) return;
   
   // 1. Проверяем наличие токена ДО того, как переключить флаг загрузки
-  if (!githubToken) {
+  if (typeof githubToken === 'undefined' || !githubToken) {
     console.warn('Синхронизация пропущена: GitHub Token не указан в настройках.');
-    showNotification('Синхронизация недоступна: укажите токен в настройках ⚙️', true);
+    if (typeof showNotification === 'function') {
+      showNotification('Синхронизация недоступна: укажите токен в настройках ⚙️', true);
+    }
     return;
   }
   
   // 2. Дополнительная проверка остальных параметров
-  if (!githubUser || !githubRepo) {
+  if (typeof githubUser === 'undefined' || !githubUser || typeof githubRepo === 'undefined' || !githubRepo) {
     console.warn('Синхронизация пропущена: Не указан пользователь или репозиторий GitHub.');
     return;
   }
   
-  setSyncing(true); // Устанавливаем флаг isSyncing = true внутри вашей функции управления состоянием
+  if (typeof setSyncing === 'function') {
+    setSyncing(true);
+  }
   
   const progressBar = document.getElementById('syncProgressContainer');
   const progressFill = document.getElementById('syncProgressFill');
-  if (progressBar) progressBar.style.style.display = 'flex';
-  if (progressFill) progressFill.style.width = '0%';
+  
+  // Безопасно включаем отображение прогресса (проверяем наличие .style)
+  if (progressBar && progressBar.style) progressBar.style.display = 'flex';
+  if (progressFill && progressFill.style) progressFill.style.width = '0%';
   
   try {
-    if (progressFill) progressFill.style.width = '30%';
-    await uploadMetadataToGitHub();
+    if (progressFill && progressFill.style) progressFill.style.width = '30%';
+    if (typeof uploadMetadataToGitHub === 'function') await uploadMetadataToGitHub();
     
-    if (progressFill) progressFill.style.width = '60%';
-    const remoteData = await downloadMetadataFromGitHub();
-    
-    if (progressFill) progressFill.style.width = '80%';
-    if (remoteData) {
-      await mergeRemoteMetadata(remoteData);
-      await uploadMetadataToGitHub();
+    if (progressFill && progressFill.style) progressFill.style.width = '60%';
+    let remoteData = null;
+    if (typeof downloadMetadataFromGitHub === 'function') {
+      remoteData = await downloadMetadataFromGitHub();
     }
     
-    if (progressFill) progressFill.style.width = '100%';
-    if (force) showNotification('Синхронизация завершена');
+    if (progressFill && progressFill.style) progressFill.style.width = '80%';
+    if (remoteData) {
+      if (typeof mergeRemoteMetadata === 'function') await mergeRemoteMetadata(remoteData);
+      if (typeof uploadMetadataToGitHub === 'function') await uploadMetadataToGitHub();
+    }
+    
+    if (progressFill && progressFill.style) progressFill.style.width = '100%';
+    if (force && typeof showNotification === 'function') {
+      showNotification('Синхронизация завершена');
+    }
   } catch (err) {
     console.error('Синхронизация не удалась:', err);
-    if (force) showNotification('Ошибка синхронизации: ' + err.message);
+    if (force && typeof showNotification === 'function') {
+      showNotification('Ошибка синхронизации: ' + err.message);
+    }
   } finally {
+    // Безопасно скрываем прогресс-бар в таймауте
     setTimeout(() => {
-      if (progressBar) progressBar.style.display = 'none';
+      if (progressBar && progressBar.style) {
+        progressBar.style.display = 'none';
+      }
     }, 500);
-    setSyncing(false); // Сбрасываем флаг синхронизации
-    refreshAll();
+    
+    if (typeof setSyncing === 'function') setSyncing(false);
+    if (typeof refreshAll === 'function') refreshAll();
   }
 }
 
