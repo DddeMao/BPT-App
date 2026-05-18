@@ -832,7 +832,7 @@ async function openAlbumView(albumName) {
     })
   );
 
-  // Логика удаления всего альбома (Твой кусок кода, теперь он на своем месте!)
+  // Логика удаления всего альбома
   const deleteBtn = document.getElementById('deleteAlbumBtn');
   if (deleteBtn) {
     deleteBtn.onclick = async () => {
@@ -902,10 +902,7 @@ async function openAlbumView(albumName) {
     });
   }
 
-  // Открываем модальное окно просмотра альбома
-  document.getElementById('modalAlbumView').classList.add('active');
-}
-
+  // Оценка альбома и закрытие (Теперь они СТРОГО внутри функции openAlbumView!)
   document.getElementById('rateAlbumBtn').onclick = () => {
     closeModal(document.getElementById('modalAlbumView'));
     openAlbumRatingModal(albumName);
@@ -913,8 +910,12 @@ async function openAlbumView(albumName) {
 
   document.querySelector('.close-album-view').onclick = () =>
     closeModal(document.getElementById('modalAlbumView'));
-}
 
+  // Открываем модальное окно просмотра альбома
+  document.getElementById('modalAlbumView').classList.add('active');
+} // Конец функции openAlbumView
+
+// Следующие функции идут отдельно, как и должно быть
 function getAlbumAverageRating(album) {
   if (!album.ratings || album.ratings.length === 0) return null;
   const sum = album.ratings.reduce((acc, r) => acc + r.total, 0);
@@ -932,10 +933,12 @@ async function renderTopAlbums() {
     }))
     .sort((a, b) => b.avg - a.avg)
     .slice(0, 5);
+    
   if (rated.length === 0) {
     topAlbumsList.innerHTML = '';
     return;
   }
+  
   topAlbumsList.innerHTML = rated.map(({ album, avg, firstSong }) => {
     const coverUrl = firstSong?.coverUrl || (firstSong?.coverBlob ? URL.createObjectURL(firstSong.coverBlob) : '');
     const artistName = firstSong?.artist || 'Неизвестен';
