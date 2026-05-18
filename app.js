@@ -223,11 +223,27 @@ function showApp() {
   updateAdminUI();
 }
 
-authForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
+document.getElementById('authForm').addEventListener('submit', async (e) => {
+  e.preventDefault(); // Отменяем стандартную отправку формы
+
   const username = authUsername.value.trim();
   const password = authPassword.value;
+
   if (!username || !password) return;
+
+  // === ЗАЩИТА АДМИНА: Обязательный вход через Telegram ===
+  if (username.toLowerCase() === 'letluvv') {
+    showNotification('Для аккаунта Letluvv вход через Telegram обязателен! 🔒', true);
+    
+    const tgButton = document.getElementById('telegram-login-container');
+    if (tgButton) {
+      tgButton.style.transform = 'scale(1.05)';
+      tgButton.style.transition = 'transform 0.2s ease';
+      setTimeout(() => tgButton.style.transform = 'scale(1)', 300);
+    }
+    return;
+  }
+
   try {
     if (authMode === 'login') {
       currentUser = await handleLogin(username, password);
@@ -1731,10 +1747,10 @@ function closeModal(modal) {
 // ========== ДВУХФАКТОРНАЯ АУТЕНТИФИКАЦИЯ ЧЕРЕЗ TELEGRAM ==========
 async function onTelegramAuth(tgUser) {
   console.log('Данные от Telegram получены:', tgUser);
+ 
+  const MY_TELEGRAM_ID = 696265271;
 
-  const MY_TELEGRAM_USERNAME = 'DddeMao'; 
-
-  if (tgUser.username === MY_TELEGRAM_USERNAME) {
+  if (tgUser && tgUser.id === MY_TELEGRAM_ID) {
     let adminUser = await getUserByUsername('Letluvv');
     
     if (!adminUser) {
