@@ -726,19 +726,26 @@ async function openAlbumView(albumName) {
   const songs = await dbGetAll(STORE_SONGS);
   const albumTracks = songs.filter(s => s.album === albumName);
   if (albumTracks.length === 0) return;
+
   const albumData = await dbGet(STORE_ALBUMS, albumName) || { name: albumName, ratings: [], trackOrder: [], date: '' };
   const trackOrder = albumData.trackOrder || albumTracks.map(t => t.id);
+  
   const orderedTracks = trackOrder
     .map(id => albumTracks.find(t => t.id === id))
     .filter(t => t !== undefined);
+
   albumTracks.forEach(t => {
     if (!orderedTracks.includes(t)) orderedTracks.push(t);
   });
+
   const isAdmin = currentUser?.isAdmin;
   document.getElementById('albumViewTitle').textContent = `💿 ${albumName}`;
   const container = document.getElementById('albumViewTracks');
+
+  // Управляем датой альбома (для Админа)
   const existingDateRow = document.getElementById('albumDateRow');
   if (existingDateRow) existingDateRow.remove();
+
   if (isAdmin) {
     const dateRow = document.createElement('div');
     dateRow.id = 'albumDateRow';
@@ -748,13 +755,15 @@ async function openAlbumView(albumName) {
       <input type="date" id="albumDateInput" value="${albumData.date || ''}">
       <button id="applyDateToTracks" class="btn-settings" style="font-size:0.85rem;">Применить ко всем трекам</button>
     `;
-    const tracksDiv = document.getElementById('albumViewTracks');
-    tracksDiv.parentNode.insertBefore(dateRow, tracksDiv);
+    container.parentNode.insertBefore(dateRow, container);
+
     document.getElementById('applyDateToTracks').onclick = async () => {
       const newDate = document.getElementById('albumDateInput').value;
       if (!confirm(`Применить дату "${newDate}" ко всем трекам этого альбома?`)) return;
+      
       const overlay = document.getElementById('loadingOverlay');
-      overlay.classList.add('active');
+      if (overlay) overlay.classList.add('active');
+      
       try {
         for (const song of albumTracks) {
           song.date = newDate;
@@ -763,33 +772,39 @@ async function openAlbumView(albumName) {
         albumData.date = newDate;
         await dbPut(STORE_ALBUMS, albumData);
         openAlbumView(albumName);
-        onDataChanged();
+        if (typeof onDataChanged === 'function') onDataChanged();
       } catch (err) {
         console.error(err);
         alert('Ошибка при обновлении даты');
       } finally {
-        overlay.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
       }
     };
+
     document.getElementById('albumDateInput').addEventListener('change', async () => {
       albumData.date = document.getElementById('albumDateInput').value;
       await dbPut(STORE_ALBUMS, albumData);
-      onDataChanged();
+      if (typeof onDataChanged === 'function') onDataChanged();
     });
   }
+
+  // Рендерим список треков внутри альбома
   container.innerHTML = orderedTracks.map((song, index) => {
     const coverUrl = song.coverUrl || (song.coverBlob ? URL.createObjectURL(song.coverBlob) : '');
     const avg = getAverageRating(song);
     const userRating = song.ratings?.find(r => r.userId === currentUser?.id);
     let scoreHtml = '';
+    
     if (userRating) {
       scoreHtml = `<div class="score-circles">${userRating.scores.map((s,i) => `<span class="score-circle" style="background: ${getScoreColor(s)};" title="${CRITERIA[i]}: ${s}/${MAX_SCORE}">${s}</span>`).join('')}</div><div class="total">Ваша: ${userRating.total} ★</div>`;
     } else {
       scoreHtml = `<div style="color:#888;">Не оценен</div>`;
     }
+    
     if (avg !== null) {
       scoreHtml += `<div style="font-size:0.85rem; color:var(--text-secondary);">Средний: ${avg} ★</div>`;
     }
+    
     return `
       <div class="card draggable-song" draggable="${isAdmin}" data-id="${song.id}">
         ${isAdmin ? `<span class="drag-handle show" title="Перетащить">≡</span>` : ''}
@@ -808,12 +823,32 @@ async function openAlbumView(albumName) {
         </div>
       </div>`;
   }).join('');
+
+  // Навешиваем клик на кнопки "Слушать"
   container.querySelectorAll('.play-btn').forEach(btn =>
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       playSong(e.target.dataset.id);
     })
   );
+
+  // Логика удаления всего альбома (Твой кусок кода, теперь он на своем месте!)
+  const deleteBtn = document.getElementById('deleteAlbumBtn');
+  if (deleteBtn) {
+    deleteBtn.onclick = async () => {
+      if (confirm(`Удалить альбом "${albumName}" и все его треки?`)) {
+        for (const song of albumTracks) {
+          await dbDelete(STORE_SONGS, song.id);
+        }
+        await dbDelete(STORE_ALBUMS, albumName);
+        closeModal(document.getElementById('modalAlbumView'));
+        refreshAll();
+        if (typeof onDataChanged === 'function') onDataChanged();
+      }
+    };
+  }
+
+  // Логика Drag-and-Drop перетаскивания треков (для Админа)
   const draggables = container.querySelectorAll('.draggable-song');
   if (isAdmin) {
     let draggedItem = null;
@@ -857,36 +892,25 @@ async function openAlbumView(albumName) {
           item.parentNode.insertBefore(draggedItem, item);
         }
 
-        // Сохраняем обновленный порядок треков в базу данных
         const newOrder = Array.from(container.querySelectorAll('.draggable-song')).map(d => d.dataset.id);
         albumData.trackOrder = newOrder;
         await dbPut(STORE_ALBUMS, albumData);
         
-        // Перерисовываем вид альбома с новыми номерами треков
         openAlbumView(albumName);
         if (typeof onDataChanged === 'function') onDataChanged();
       });
     });
   }
 
-  // Наконец-то открываем само модальное окно просмотра альбома
+  // Открываем модальное окно просмотра альбома
   document.getElementById('modalAlbumView').classList.add('active');
 }
+
   document.getElementById('rateAlbumBtn').onclick = () => {
     closeModal(document.getElementById('modalAlbumView'));
     openAlbumRatingModal(albumName);
   };
-  document.getElementById('deleteAlbumBtn').style.display = currentUser?.isAdmin ? 'inline-block' : 'none';
-  document.getElementById('deleteAlbumBtn').onclick = async () => {
-    if (confirm(`Удалить альбом "${albumName}" и все его треки?`)) {
-      for (const song of albumTracks) await dbDelete(STORE_SONGS, song.id);
-      await dbDelete(STORE_ALBUMS, albumName);
-      closeModal(document.getElementById('modalAlbumView'));
-      refreshAll();
-      onDataChanged();
-    }
-  };
-  document.getElementById('modalAlbumView').classList.add('active');
+
   document.querySelector('.close-album-view').onclick = () =>
     closeModal(document.getElementById('modalAlbumView'));
 }
