@@ -214,6 +214,15 @@ function showAuthScreen() {
 }
 
 function showApp() {
+	if (!currentUser || !currentUser.isAdmin) {
+    console.error("Заблокирована попытка несанкционированного вызова showApp()!");
+    
+    if (document.getElementById('app')) document.getElementById('app').style.display = 'none';
+    if (document.getElementById('player')) document.getElementById('player').style.display = 'none';
+    if (document.getElementById('authScreen')) document.getElementById('authScreen').style.display = 'flex';
+    
+    return;
+  }
   appDiv.style.display = 'flex';
   authScreen.style.display = 'none';
   document.getElementById('currentUserDisplay').textContent = `👤 ${currentUser.username}`;
