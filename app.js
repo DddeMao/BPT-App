@@ -1750,7 +1750,29 @@ async function onTelegramAuth(tgUser) {
  
   const MY_TELEGRAM_ID = 696265271;
 
-  if (tgUser && tgUser.id === MY_TELEGRAM_ID) {
+  // 1. ПРОВЕРКА НА ОТКЛОНЕНИЕ: Если пользователь нажал "Отклонить" или закрыл окно
+  if (!tgUser || !tgUser.id) {
+    console.error('Авторизация Telegram отклонена пользователем или прервана.');
+    
+    // Принудительно разлогиниваем локально (на всякий случай)
+    currentUser = null;
+    if (typeof clearSession === 'function') clearSession();
+    else localStorage.removeItem('currentUserId');
+    
+    // Жестко возвращаем на экран авторизации
+    if (document.getElementById('app')) document.getElementById('app').style.display = 'none';
+    if (document.getElementById('authScreen')) document.getElementById('authScreen').style.display = 'flex';
+    
+    if (typeof showNotification === 'function') {
+      showNotification('Вход отменен. Доступ заблокирован', true);
+    } else {
+      alert('Вход отменен. Доступ заблокирован!');
+    }
+    return; // Мгновенно прерываем выполнение функции!
+  }
+
+  // 2. ПРОВЕРКА НА ВЛАДЕЛЬЦА: Если данные пришли, но ID чужой
+  if (tgUser.id === MY_TELEGRAM_ID) {
     let adminUser = await getUserByUsername('Letluvv');
     
     if (!adminUser) {
@@ -1771,16 +1793,28 @@ async function onTelegramAuth(tgUser) {
     refreshAll();
     
     if (typeof showNotification === 'function') {
-      showNotification('Успешный вход через Telegram 2FA!');
+      showNotification('Успешный вход через Telegram 2FA');
     } else {
       alert('Успешный вход через Telegram 2FA!');
     }
   } else {
-    alert('Доступ запрещен. Вы не являетесь владельцем этого проекта.');
+    // Если ID не совпал (чужой человек)
+    currentUser = null;
+    if (typeof clearSession === 'function') clearSession();
+    else localStorage.removeItem('currentUserId');
+    
+    if (document.getElementById('app')) document.getElementById('app').style.display = 'none';
+    if (document.getElementById('authScreen')) document.getElementById('authScreen').style.display = 'flex';
+
+    if (typeof showNotification === 'function') {
+      showNotification('Доступ запрещен. Вы не являетесь владельцем проекта', true);
+    } else {
+      alert('Доступ запрещен. Вы не являетесь владельцем этого проекта.');
+    }
   }
 }
 
-// ========== СБРОС СЕССИИ ВИДЖЕТА TELEGRAM ==========
+// ========== СБРОС СЕССИИ TELEGRAM ==========
 document.addEventListener('DOMContentLoaded', () => {
   const resetTgBtn = document.getElementById('resetTgWidgetBtn');
   
@@ -1788,19 +1822,26 @@ document.addEventListener('DOMContentLoaded', () => {
     resetTgBtn.addEventListener('click', () => {
       sessionStorage.removeItem('tg_user');
       localStorage.removeItem('currentUserId');
-
-      alert(
-        'Чтобы войти под другим аккаунтом:\n\n' +
-        '1. Сейчас откроется наш бот @bvst_auth_bot\n' +
-        '2. Нажмите на три точки вверху этого профиля -> «Остановить и блокировать»' +
-        '3. После этого вернитесь сюда и обновите страницу!'
+      
+      const width = 550;
+      const height = 550;
+      const left = (window.screen.width / 2) - (width / 2);
+      const top = (window.screen.height / 2) - (height / 2);
+      
+      const authWindow = window.open(
+        'https://oauth.telegram.org/auth?bot_id=bvst_auth_bot&origin=' + encodeURIComponent(window.location.origin), 
+        'TelegramReset', 
+        `width=${width},height=${height},left=${left},top=${top},status=no,toolbar=no,menubar=no`
       );
-
-      window.open('https://t.me/bvst_auth_bot', '_blank');
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      
+      if (authWindow) {
+        const timer = setInterval(() => {
+          if (authWindow.closed) {
+            clearInterval(timer);
+            window.location.reload(); 
+          }
+        }, 500);
+      }
     });
   }
 });
