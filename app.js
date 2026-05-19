@@ -1788,33 +1788,19 @@ document.addEventListener('DOMContentLoaded', () => {
     resetTgBtn.addEventListener('click', () => {
       sessionStorage.removeItem('tg_user');
       localStorage.removeItem('currentUserId');
-      
-      const width = 550;
-      const height = 600;
-      const left = (window.screen.width / 2) - (width / 2);
-      const top = (window.screen.height / 2) - (height / 2);
-      
-      const tgWindow = window.open(
-        'https://oauth.telegram.org/', 
-        'TelegramAuthSettings', 
-        `width=${width},height=${height},left=${left},top=${top},status=no,toolbar=no,menubar=no,scrollbars=yes`
+
+      alert(
+        'Чтобы войти под другим аккаунтом:\n\n' +
+        '1. Сейчас откроется наш бот @bvst_auth_bot\n' +
+        '2. Нажмите на три точки вверху этого профиля -> «Остановить и блокировать»' +
+        '3. После этого вернитесь сюда и обновите страницу!'
       );
-      
-      if (tgWindow) {
-        if (typeof showNotification === 'function') {
-          showNotification('Открыто окно управления сессиями Telegram. Нажмите "Disconnect" у вашего бота, затем закройте окно! ⚙️');
-        }
-        
-        const timer = setInterval(() => {
-          if (tgWindow.closed) {
-            clearInterval(timer);
-            window.location.reload();
-          }
-        }, 500);
-        
-      } else {
-        alert('Браузер заблокировал всплывающее окно. Пожалуйста, разрешите попапы для этого сайта.');
-      }
+
+      window.open('https://t.me/bvst_auth_bot', '_blank');
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     });
   }
 });
