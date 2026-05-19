@@ -1237,47 +1237,130 @@ input[type=range]::-webkit-slider-thumb {
   overflow: hidden;
 }
 
-/* ========== АДАПТАЦИЯ ДЛЯ ТЕЛЕФОНОВ (ЭКРАНЫ ДО 768px) ========== */
-@media (max-max-width: 768px) {
+/* ========== ПОЛНАЯ АДАПТАЦИЯ ДЛЯ ТЕЛЕФОНОВ (ЭКРАНЫ ДО 768px) ========== */
+@media (max-width: 768px) {
   
-  .main-container, #app, #authScreen {
-    flex-direction: column; 
-    padding: 10px;
+  #app {
+    flex-direction: column !important;
+    padding: 10px 10px 140px 10px !important; 
+    gap: 16px !important;
+  }
+
+  .top-sidebar {
     width: 100% !important;
+    max-width: 100% !important;
+    position: static !important;
+    max-height: none !important;
+    order: 0 !important;
     box-sizing: border-box;
   }
 
-  .sidebar, .album-list {
-    width: 100% !important;
-    max-width: 100%;
-    margin-bottom: 20px;
+  .top-vertical-item:hover {
+    transform: none !important;
   }
 
-  button, .btn, .control-btn {
-    padding: 12px 20px;
-    font-size: 16px;
-    min-height: 44px;
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .search-sort-bar {
+    width: 100% !important;
+    margin-left: 0 !important;
+    justify-content: space-between;
+  }
+
+  .search-input-wrapper {
+    flex: 1;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .song-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .album-list {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .album-cover {
+    height: 100px !important;
+  }
+
+  /* 5. МОБИЛЬНАЯ АДАПТАЦИЯ НИЖНЕГО ПЛЕЕРА */
+  .player-bar {
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 12px !important;
+  }
+
+  .player-info {
+    width: 100% !important;
+    justify-content: flex-start;
+  }
+
+  .player-bar audio {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+
+  #authScreen {
+    padding: 15px;
+    box-sizing: border-box;
+    width: 100% !important;
+    min-height: 100vh;
   }
 
   #authForm {
-    width: 90%;
-    max-width: 340px;
-    padding: 20px;
+    width: 100% !important;
+    max-width: 320px !important; 
+    padding: 20px !important;
+    box-sizing: border-box;
   }
 
-  h1 { font-size: 24px; }
-  h2 { font-size: 20px; }
+  .tg-wrapper {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+
+  #telegram-login-BvsT_Auth_Bot, 
+  iframe[id^="telegram-login"] {
+    max-width: 100% !important;
+    width: auto !important;
+    margin: 0 auto !important;
+    display: block !important;
+  }
 }
 
-/* ========== СБРОС ЗАЛИПАЮЩИХ ХОВЕРОВ НА СМАРТФОНАХ ========== */
 @media (hover: none) {
   button:hover, 
   .btn:hover, 
-  .track-row:hover, 
-  .album-card:hover {
+  .top-vertical-item:hover,
+  .card:hover,
+  .album-card:hover,
+  .score-circle:hover {
     background-color: initial !important;
     background: initial !important;
     transform: none !important;
-    color: initial !important;
+    box-shadow: none !important;
+    border-color: var(--border) !important;
+  }
+  
+  .card:hover, .album-card:hover {
+    background: var(--surface) !important;
+  }
+  .top-vertical-item:hover {
+    background: var(--surface-hover) !important;
+  }
+  .top-vertical-item:hover img {
+    transform: none !important;
   }
 }
