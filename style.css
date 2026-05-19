@@ -1229,3 +1229,55 @@ input[type=range]::-webkit-slider-thumb {
 #resetTgWidgetBtn:hover {
     color: #a855f7 !important;
 }
+
+.tg-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ========== АДАПТАЦИЯ ДЛЯ ТЕЛЕФОНОВ (ЭКРАНЫ ДО 768px) ========== */
+@media (max-max-width: 768px) {
+  
+  .main-container, #app, #authScreen {
+    flex-direction: column; 
+    padding: 10px;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .sidebar, .album-list {
+    width: 100% !important;
+    max-width: 100%;
+    margin-bottom: 20px;
+  }
+
+  button, .btn, .control-btn {
+    padding: 12px 20px;
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  #authForm {
+    width: 90%;
+    max-width: 340px;
+    padding: 20px;
+  }
+
+  h1 { font-size: 24px; }
+  h2 { font-size: 20px; }
+}
+
+/* ========== СБРОС ЗАЛИПАЮЩИХ ХОВЕРОВ НА СМАРТФОНАХ ========== */
+@media (hover: none) {
+  button:hover, 
+  .btn:hover, 
+  .track-row:hover, 
+  .album-card:hover {
+    background-color: initial !important;
+    background: initial !important;
+    transform: none !important;
+    color: initial !important;
+  }
+}
