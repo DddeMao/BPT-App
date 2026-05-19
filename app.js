@@ -1777,9 +1777,19 @@ async function onTelegramAuth(tgUser) {
 
   if (!tgUser || !tgUser.id) {
     alert('Авторизация отклонена. Доступ заблокирован!');
+    window.location.reload();
+    return;
+  }
+
+  const currentTime = Math.floor(Date.now() / 1000);
+  
+  if (tgUser.auth_date && (currentTime - tgUser.auth_date > 30)) {
+    console.warn('Заблокирован фоновый вход от Telegram (auth_date устарел).');
+    alert('Вход отменен. Чтобы сменить аккаунт, нажмите синюю кнопку Telegram и выберите «ВЫЙТИ» в углу попапа!');
+    
     localStorage.clear();
     sessionStorage.clear();
-    window.location.reload(); 
+    window.location.reload();
     return;
   }
 
@@ -1804,8 +1814,6 @@ async function onTelegramAuth(tgUser) {
     refreshAll();
   } else {
     alert('Доступ запрещен. Вы не являетесь владельцем проекта.');
-    localStorage.clear();
-    sessionStorage.clear();
     window.location.reload(); 
   }
 }
