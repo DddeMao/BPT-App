@@ -257,6 +257,21 @@ document.getElementById('authForm').addEventListener('submit', async (e) => {
   }
 });
 
+if (authForm) {
+  authForm.addEventListener('submit', (e) => {
+    // Получаем имя, которое вводит пользователь
+    const usernameInput = document.getElementById('username')?.value || '';
+    
+    // Если кто-то пытается войти под Letluvv через обычную форму — намертво блокируем отправку!
+    if (usernameInput.trim() === 'Letluvv') {
+      e.preventDefault(); 
+      e.stopPropagation();
+      alert('Вход для Letluvv возможен ТОЛЬКО через кнопку Telegram!');
+      return false;
+    }
+  });
+}
+
 toggleAuthModeLink.addEventListener('click', (e) => {
   e.preventDefault();
   authMode = authMode === 'login' ? 'register' : 'login';
@@ -1744,69 +1759,20 @@ function closeModal(modal) {
   }, 300);
 }
 
-// ========== СБРОС СЕССИИ TELEGRAM ==========
-document.addEventListener('DOMContentLoaded', () => {
-  const resetTgBtn = document.getElementById('resetTgWidgetBtn');
-  
-  if (resetTgBtn) {
-    resetTgBtn.addEventListener('click', () => {
-      sessionStorage.clear();
-      localStorage.removeItem('currentUserId');
-      if (typeof currentUser !== 'undefined') currentUser = null;
-      
-      const width = 550;
-      const height = 550;
-      const left = (window.screen.width / 2) - (width / 2);
-      const top = (window.screen.height / 2) - (height / 2);
-      
-      const BOT_NUMERIC_ID = '8739031814'; 
-      
-      const authWindow = window.open(
-        `https://oauth.telegram.org/auth?bot_id=${BOT_NUMERIC_ID}&origin=${encodeURIComponent(window.location.origin)}&embed=1`, 
-        'TelegramReset', 
-        `width=${width},height=${height},left=${left},top=${top},status=no,toolbar=no,menubar=no`
-      );
-      
-      if (authWindow) {
-        const timer = setInterval(() => {
-          if (authWindow.closed) {
-            clearInterval(timer);
-            window.location.reload(); 
-          }
-        }, 500);
-      }
-    });
-  }
-});
-
-// ========== АУТЕНТИФИКАЦИЯ ==========
+// ========== ДВУХФАКТОРНАЯ АУТЕНТИФИКАЦИЯ ЧЕРЕЗ TELEGRAM ==========
 async function onTelegramAuth(tgUser) {
   console.log('Данные от Telegram получены:', tgUser);
  
   const MY_TELEGRAM_ID = 696265271;
 
+  // 1. Если нажали "Отклонить", закрыли попап или пришел пустой объект
   if (!tgUser || !tgUser.id) {
-    console.log('Вход отклонен пользователем.');
-    
-    currentUser = null;
-    if (typeof clearSession === 'function') clearSession();
-    else localStorage.removeItem('currentUserId');
-    
-    if (document.getElementById('app')) document.getElementById('app').style.display = 'none';
-    if (document.getElementById('player')) document.getElementById('player').style.display = 'none';
-    if (document.getElementById('authScreen')) document.getElementById('authScreen').style.display = 'flex';
-    
-    // Сбрасываем форму авторизации
-    const authForm = document.getElementById('authForm');
-    if (authForm) authForm.reset();
-
-    if (typeof showNotification === 'function') {
-      showNotification('Вход отменен! Доступ заблокирован.', true);
-    }
-    return; // Стопим выполнение функции, дальше код не пойдет!
+    alert('Авторизация отклонена. Доступ заблокирован!');
+    window.location.reload(); // Жесткая перезагрузка сотрет все временные переменные плеера
+    return;
   }
 
-  // Если нажали "Принять" и ID совпал с твоим
+  // 2. Если зашел создатель
   if (tgUser.id === MY_TELEGRAM_ID) {
     let adminUser = await getUserByUsername('Letluvv');
     
@@ -1826,20 +1792,54 @@ async function onTelegramAuth(tgUser) {
     
     showApp();
     refreshAll();
-    
-    if (typeof showNotification === 'function') {
-      showNotification('Успешный вход через Telegram 2FA');
-    }
   } else {
-    // Если зашел чужой ID
-    currentUser = null;
-    if (typeof clearSession === 'function') clearSession();
-    else localStorage.removeItem('currentUserId');
-    
-    if (document.getElementById('app')) document.getElementById('app').style.display = 'none';
-    if (document.getElementById('player')) document.getElementById('player').style.display = 'none';
-    if (document.getElementById('authScreen')) document.getElementById('authScreen').style.display = 'flex';
-
-    alert('Доступ запрещен. Вы не являетесь владельцем этого проекта.');
+    // 3. Если зашел посторонний Telegram-аккаунт
+    alert('Доступ запрещен. Вы не являетесь владельцем проекта.');
+    window.location.reload(); 
   }
 }
+
+// ========== ЖЕСТКАЯ БЛОКИРОВКА ОБЫЧНОЙ ФОРМЫ (РЕШАЕТ ПРОБЛЕМУ "ОТКЛОНИТЬ") ==========
+document.addEventListener('DOMContentLoaded', () => {
+  const authForm = document.getElementById('authForm');
+  if (authForm) {
+    authForm.addEventListener('submit', (e) => {
+      const usernameInput = document.getElementById('username')?.value || '';
+      
+      // Если кто-то ввёл Letluvv руками в форму — запрещаем обычный вход!
+      if (usernameInput.trim() === 'Letluvv') {
+        e.preventDefault(); 
+        e.stopPropagation();
+        alert('Вход для Letluvv возможен ТОЛЬКО через синюю кнопку Telegram!');
+        return false;
+      }
+    });
+  }
+});
+
+// ========== СБРОС СЕССИИ TELEGRAM ==========
+document.addEventListener('DOMContentLoaded', () => {
+  const resetTgBtn = document.getElementById('resetTgWidgetBtn');
+  
+  if (resetTgBtn) {
+    resetTgBtn.addEventListener('click', () => {
+      // 1. Полностью очищаем все хранилища сайта
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // 2. Просим сам скрипт Telegram разлогинить пользователя (если фрейм активен)
+      try {
+        if (window.Telegram && window.Telegram.Login && typeof window.Telegram.Login.logout === 'function') {
+          window.Telegram.Login.logout();
+        }
+      } catch(e) {
+        console.log(e);
+      }
+
+      alert('Локальная сессия сброшена. Чтобы полностью сменить аккаунт, нажмите кнопку «Выйти» внутри самого всплывающего окна Telegram при следующем входе!');
+      
+      // 3. Перезагружаем страницу
+      window.location.reload();
+    });
+  }
+});
