@@ -347,12 +347,24 @@ document.getElementById('settingsForm').addEventListener('submit', async functio
   
   const newUsername = document.getElementById('newUsername').value.trim();
   const password = document.getElementById('settingsPassword').value;
-  if (!newUsername || !password) return;
+  
+  // [УЛЬТИМАТИВНОЕ РЕШЕНИЕ] Если это ты (по нику, статусу или ТГ) — пароль больше НЕ НУЖЕН
+  const skipPasswordCheck = (currentUser.username === 'Letluvv' || currentUser.isAdmin || currentUser.passwordHash === 'tg_authorized');
+
+  if (!newUsername) return;
+  
+  // Требуем пароль только от обычных пользователей, если они его не ввели
+  if (!skipPasswordCheck && !password) {
+    if (typeof showNotification === 'function') showNotification('Введите пароль для сохранения!', true);
+    return;
+  }
 
   try {
-    // 1. Проверяем текущий пароль пользователя
-    const hash = await hashPassword(password);
-    if (hash !== currentUser.passwordHash) throw new Error('Неверный пароль');
+    // Проверяем пароль ТОЛЬКО для обычных юзеров. Твой аккаунт пролетает мимо этой проверки!
+    if (!skipPasswordCheck) {
+      const hash = await hashPassword(password);
+      if (hash !== currentUser.passwordHash) throw new Error('Неверный пароль');
+    }
     
     let userUpdated = false;
 
@@ -418,7 +430,7 @@ document.getElementById('settingsForm').addEventListener('submit', async functio
       userUpdated = true;
     }
     
-    // 3. Сохранение GitHub Token в localStorage (Безопасный перенос!)
+    // 3. Сохранение GitHub Token в localStorage
     const tokenInput = document.getElementById('settingsGithubToken');
     if (tokenInput) {
       const newTokenValue = tokenInput.value.trim();
@@ -426,7 +438,7 @@ document.getElementById('settingsForm').addEventListener('submit', async functio
       githubToken = newTokenValue; // Обновляем глобальную переменную проекта
     }
     
-    // 4. Закрываем красивую модалку и уведомляем об успехе
+    // 4. Закрываем модалку и уведомляем об успехе
     showNotification('Настройки успешно сохранены!');
     closeModal(document.getElementById('modalSettings'));
     
