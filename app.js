@@ -1786,11 +1786,34 @@ document.addEventListener('DOMContentLoaded', () => {
   
   if (resetTgBtn) {
     resetTgBtn.addEventListener('click', () => {
-      const currentUrl = window.location.href;
+      const width = 450;
+      const height = 400;
+      const left = (window.screen.width / 2) - (width / 2);
+      const top = (window.screen.height / 2) - (height / 2);
       
-      const telegramLogoutUrl = `https://oauth.telegram.org/logout?redirect_to=${encodeURIComponent(currentUrl)}`;
+      const logoutWindow = window.open(
+        'https://oauth.telegram.org/logout', 
+        'TelegramLogout', 
+        `width=${width},height=${height},left=${left},top=${top},status=no,toolbar=no,menubar=no`
+      );
       
-      window.location.href = telegramLogoutUrl;
+      if (logoutWindow) {
+        if (typeof showNotification === 'function') {
+          showNotification('Сбрасываем сессию Telegram... ⏳');
+        }
+
+        setTimeout(() => {
+          try {
+            logoutWindow.close();
+          } catch (e) {
+            console.log('Окно уже закрыто');
+          }
+          window.location.reload();
+        }, 1500);
+
+      } else {
+        alert('Браузер заблокировал всплывающее окно. Пожалуйста, разрешите всплывающие окна для этого сайта, чтобы сменить аккаунт.');
+      }
     });
   }
 });
