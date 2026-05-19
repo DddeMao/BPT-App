@@ -1786,34 +1786,37 @@ document.addEventListener('DOMContentLoaded', () => {
   
   if (resetTgBtn) {
     resetTgBtn.addEventListener('click', () => {
-      const width = 450;
-      const height = 400;
-      const left = (window.screen.width / 2) - (width / 2);
-      const top = (window.screen.height / 2) - (height / 2);
-      
-      const logoutWindow = window.open(
-        'https://oauth.telegram.org/logout', 
-        'TelegramLogout', 
-        `width=${width},height=${height},left=${left},top=${top},status=no,toolbar=no,menubar=no`
-      );
-      
-      if (logoutWindow) {
-        if (typeof showNotification === 'function') {
-          showNotification('Сбрасываем сессию Telegram... ⏳');
-        }
-
-        setTimeout(() => {
-          try {
-            logoutWindow.close();
-          } catch (e) {
-            console.log('Окно уже закрыто');
-          }
-          window.location.reload();
-        }, 1500);
-
-      } else {
-        alert('Браузер заблокировал всплывающее окно. Пожалуйста, разрешите всплывающие окна для этого сайта, чтобы сменить аккаунт.');
+      if (typeof showNotification === 'function') {
+        showNotification('Очистка сессии Telegram...');
       }
+
+      // 1. Пробуем вызвать внутренний метод логаута Telegram, если он доступен
+      try {
+        if (window.Telegram && window.Telegram.Login && typeof window.Telegram.Login.logout === 'function') {
+          window.Telegram.Login.logout();
+        }
+      } catch (e) {
+        console.log('Официальный метод логаута недоступен, идем дальше...');
+      }
+
+      // 2. Стираем локальный кэш виджета на нашем сайте
+      sessionStorage.removeItem('tg_user');
+      for (let key in sessionStorage) {
+        if (key.includes('tg')) sessionStorage.removeItem(key);
+      }
+
+      // 3. Создаем СКРЫТЫЙ iframe. Браузер загрузит страницу логаута в фоне.
+      // Так как редирект произойдет ВНУТРИ невидимого фрейма, пользователь никуда не улетит!
+      const hiddenIframe = document.createElement('iframe');
+      hiddenIframe.style.display = 'none';
+      hiddenIframe.src = 'https://oauth.telegram.org/logout';
+      document.body.appendChild(hiddenIframe);
+
+      // 4. Даем фрейму 1.5 секунды, чтобы Telegram стер куки, затем обновляем страницу
+      setTimeout(() => {
+        hiddenIframe.remove();
+        window.location.reload();
+      }, 1500);
     });
   }
 });
