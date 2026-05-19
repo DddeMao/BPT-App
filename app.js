@@ -340,7 +340,7 @@ document.getElementById('settingsBtn').addEventListener('click', () => {
 });
 
 // ==========================================
-// ЕДИНЫЙ И ПРАВИЛЬНЫЙ ОБРАБОТЧИК ФОРМЫ НАСТРОЕК
+// ОБРАБОТЧИК ФОРМЫ НАСТРОЕК
 // ==========================================
 document.getElementById('settingsForm').addEventListener('submit', async function(e) {
   e.preventDefault();
