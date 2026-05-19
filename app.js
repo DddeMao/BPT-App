@@ -214,6 +214,14 @@ function showAuthScreen() {
 }
 
 function showApp() {
+	console.trace("showApp была вызвана! Текущий пользователь:", currentUser);
+
+  if (!currentUser || !currentUser.isAdmin) {
+    console.error("Заблокирована попытка несанкционированного вызова showApp()!");
+    // ... твой код очистки
+    return;
+  }
+  
 	if (!currentUser || !currentUser.isAdmin) {
     console.error("Заблокирована попытка несанкционированного вызова showApp()!");
     
@@ -439,9 +447,7 @@ document.getElementById('settingsForm').addEventListener('submit', async functio
     }
 
   } catch (error) {
-    // Теперь блоки try/catch закрыты идеально, и браузер больше не ругается!
     console.error('Ошибка изменения настроек:', error);
-    // Если у тебя используется alert вместо showNotification для ошибок — можешь вернуть alert(error.message);
     if (typeof showNotification === 'function') {
       showNotification(error.message, true); 
     } else {
