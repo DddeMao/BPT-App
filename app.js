@@ -1765,14 +1765,14 @@ async function onTelegramAuth(tgUser) {
  
   const MY_TELEGRAM_ID = 696265271;
 
-  // 1. Если нажали "Отклонить", закрыли попап или пришел пустой объект
   if (!tgUser || !tgUser.id) {
     alert('Авторизация отклонена. Доступ заблокирован!');
-    window.location.reload(); // Жесткая перезагрузка сотрет все временные переменные плеера
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload(); 
     return;
   }
 
-  // 2. Если зашел создатель
   if (tgUser.id === MY_TELEGRAM_ID) {
     let adminUser = await getUserByUsername('Letluvv');
     
@@ -1793,53 +1793,33 @@ async function onTelegramAuth(tgUser) {
     showApp();
     refreshAll();
   } else {
-    // 3. Если зашел посторонний Telegram-аккаунт
     alert('Доступ запрещен. Вы не являетесь владельцем проекта.');
+    localStorage.clear();
+    sessionStorage.clear();
     window.location.reload(); 
   }
 }
 
-// ========== ЖЕСТКАЯ БЛОКИРОВКА ОБЫЧНОЙ ФОРМЫ (РЕШАЕТ ПРОБЛЕМУ "ОТКЛОНИТЬ") ==========
 document.addEventListener('DOMContentLoaded', () => {
+  const authScreen = document.getElementById('authScreen');
   const authForm = document.getElementById('authForm');
+  
+  if (authScreen && authScreen.style.display !== 'none') {
+    localStorage.removeItem('currentUserId');
+    sessionStorage.removeItem('tg_user');
+    if (typeof currentUser !== 'undefined') currentUser = null;
+  }
+
   if (authForm) {
     authForm.addEventListener('submit', (e) => {
       const usernameInput = document.getElementById('username')?.value || '';
       
-      // Если кто-то ввёл Letluvv руками в форму — запрещаем обычный вход!
       if (usernameInput.trim() === 'Letluvv') {
         e.preventDefault(); 
         e.stopPropagation();
-        alert('Вход для Letluvv возможен ТОЛЬКО через синюю кнопку Telegram!');
+        alert('Вход для Letluvv возможен только через синюю кнопку Telegram!');
         return false;
       }
-    });
-  }
-});
-
-// ========== СБРОС СЕССИИ TELEGRAM ==========
-document.addEventListener('DOMContentLoaded', () => {
-  const resetTgBtn = document.getElementById('resetTgWidgetBtn');
-  
-  if (resetTgBtn) {
-    resetTgBtn.addEventListener('click', () => {
-      // 1. Полностью очищаем все хранилища сайта
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // 2. Просим сам скрипт Telegram разлогинить пользователя (если фрейм активен)
-      try {
-        if (window.Telegram && window.Telegram.Login && typeof window.Telegram.Login.logout === 'function') {
-          window.Telegram.Login.logout();
-        }
-      } catch(e) {
-        console.log(e);
-      }
-
-      alert('Локальная сессия сброшена. Чтобы полностью сменить аккаунт, нажмите кнопку «Выйти» внутри самого всплывающего окна Telegram при следующем входе!');
-      
-      // 3. Перезагружаем страницу
-      window.location.reload();
     });
   }
 });
