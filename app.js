@@ -497,9 +497,9 @@ function renderTop12(songs) {
 function getScoreColor(score) {
   const maxScore = 12;
   const ratio = score / maxScore;
-  const startColor = { r: 60, g: 50, b: 70 };
-  const midColor = { r: 179, g: 102, b: 255 };
-  const endColor = { r: 255, g: 77, b: 109 };
+  const startColor = { r: 30, g: 30, b: 45 };
+  const midColor = { r: 0, g: 240, b: 255 };
+  const endColor = { r: 255, g: 0, b: 170 };
   let r, g, b;
   if (ratio <= 0.5) {
     const t = ratio * 2;
@@ -556,7 +556,7 @@ function renderFeed(songs) {
   if (!dynamicList) return; // Защита на случай, если мы не на той странице
 
   if (!songs || songs.length === 0) {
-    dynamicList.innerHTML = '<div style="color:#888; text-align:center; padding:40px;">Треки не найдены</div>';
+    dynamicList.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:40px;">Треки не найдены</div>';
     return;
   }
 
@@ -580,11 +580,11 @@ function renderFeed(songs) {
       ).join('');
       scoreHtml = `<div class="score-circles">${circles}</div><div class="total">Ваша: ${userRating.total} ★</div>`;
     } else {
-      scoreHtml = `<div style="color:#888; font-style:italic;">Вы не оценили</div>`;
+      scoreHtml = `<div style="color:var(--text-muted); font-style:italic;">Вы не оценили</div>`;
     }
 
     if (avg !== null) {
-      scoreHtml += `<div style="font-size:0.85rem; color:var(--text-secondary); text-align:right;">Средний балл: ${avg} ★ (${song.ratings.length} оценок)</div>`;
+      scoreHtml += `<div style="font-size:0.85rem; color:var(--text-dim); text-align:center;">Средний: ${avg} ★ (${song.ratings.length})</div>`;
     }
 
     const albumLine = song.album ? `<span>💿 ${escapeHtml(song.album)}</span>` : '';
@@ -595,39 +595,20 @@ function renderFeed(songs) {
     return `
       <div class="card" data-id="${song.id}">
         <div class="card-top">
-          ${coverUrl ? `<img class="card-cover" src="${coverUrl}" alt="cover">` : '<div class="card-cover"></div>'}
-          <div class="card-info">
-            <div class="card-title">${escapeHtml(song.title)}</div>
-            <div class="card-artist">${escapeHtml(song.artist)}</div>
-            <div class="card-meta">${albumLine} ${dateLine}</div>
-          </div>
+          ${coverUrl ? `<img class="card-cover" src="${coverUrl}" alt="cover">` : '<div class="card-cover" style="background:linear-gradient(135deg,var(--surface-active),var(--surface-hover));"></div>'}
+        </div>
+        <div class="card-info">
+          <div class="card-title">${escapeHtml(song.title)}</div>
+          <div class="card-artist">${escapeHtml(song.artist)}</div>
+          <div class="card-meta">${albumLine} ${dateLine}</div>
         </div>
         ${scoreHtml}
         <div class="card-actions">
-          <div class="card-actions-left">
-            <button class="play-btn" data-id="${song.id}">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            </button>
-          </div>
-          <div class="card-actions-right">
-            <button class="rate-btn" data-id="${song.id}">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">${hasUserRating ? '<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>' : '<path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>'}</svg>
-            </button>
-            <button class="comment-btn ${commentClass}" data-id="${song.id}">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-              ${commentCount ? `<span class="comment-count">${commentCount}</span>` : ''}
-            </button>
-            <button class="favorite-btn ${isFavorite ? 'is-favorite' : ''}" data-id="${song.id}">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="${isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
-            </button>
-            ${canDelete ? `
-              <button class="delete-btn" data-id="${song.id}">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-              </button>
-            ` : ''}
-          </div>
+          <button class="play-btn" data-id="${song.id}">▶</button>
+          <button class="rate-btn" data-id="${song.id}" title="Оценить">⭐</button>
+          <button class="favorite-btn ${isFavorite ? 'is-favorite' : ''}" data-id="${song.id}" title="Избранное">♥</button>
+          <button class="comment-btn ${commentClass}" data-id="${song.id}" title="Комментарии">💬${commentCount ? commentCount : ''}</button>
+          ${canDelete ? `<button class="delete-btn" data-id="${song.id}" title="Удалить">🗑</button>` : ''}
         </div>
       </div>`;
   }).join('');
@@ -687,8 +668,16 @@ function playSong(id) {
       return;
     }
     const miniTitle = document.getElementById('miniTitle');
+    const miniArtist = document.getElementById('miniArtist');
+    const miniCover = document.getElementById('miniCover');
     const floatingPlayer = document.getElementById('floatingPlayer');
-    if (miniTitle) miniTitle.textContent = `${song.artist} — ${song.title}`;
+    if (miniTitle) miniTitle.textContent = song.title;
+    if (miniArtist) miniArtist.textContent = song.artist;
+    if (miniCover) {
+      const coverSrc = song.coverUrl || (song.coverBlob ? URL.createObjectURL(song.coverBlob) : '');
+      miniCover.src = coverSrc;
+      miniCover.style.display = coverSrc ? 'block' : 'none';
+    }
     if (floatingPlayer) floatingPlayer.style.display = 'flex';
     audioPlayer.play().catch(console.log);
   });
@@ -705,43 +694,48 @@ function togglePlay() {
 
 audioPlayer.addEventListener('play', () => {
   const playPauseBtn = document.getElementById('playPauseBtn');
+  const miniCover = document.getElementById('miniCover');
   if (playPauseBtn) playPauseBtn.textContent = '⏸';
+  if (miniCover) miniCover.classList.add('spinning');
 });
 
 audioPlayer.addEventListener('pause', () => {
   const playPauseBtn = document.getElementById('playPauseBtn');
+  const miniCover = document.getElementById('miniCover');
   if (playPauseBtn) playPauseBtn.textContent = '▶';
+  if (miniCover) miniCover.classList.remove('spinning');
 });
 
 audioPlayer.addEventListener('ended', () => {
   const playPauseBtn = document.getElementById('playPauseBtn');
   const miniTitle = document.getElementById('miniTitle');
+  const miniArtist = document.getElementById('miniArtist');
+  const miniCover = document.getElementById('miniCover');
   if (playPauseBtn) playPauseBtn.textContent = '▶';
   if (miniTitle) miniTitle.textContent = 'Ничего не играет';
+  if (miniArtist) miniArtist.textContent = '';
+  if (miniCover) {
+    miniCover.classList.remove('spinning');
+    miniCover.style.display = 'none';
+  }
 });
 
 // ========== РЕЖИМЫ ПРОСМОТРА ==========
 function showSongsView() {
   currentView = 'songs';
-  topSidebar.style.display = 'block';
-  topAlbumsSidebar.style.display = 'none';
   const searchBar = document.querySelector('.search-sort-bar');
   if (searchBar) searchBar.style.display = 'flex';
   dbGetAll(STORE_SONGS).then(songs => {
     const filtered = getFilteredAndSortedSongs(songs);
     renderFeed(filtered);
-    renderTop12(songs);
   });
 }
 
 function showAlbumsView() {
   currentView = 'albums';
-  topSidebar.style.display = 'none';
-  topAlbumsSidebar.style.display = 'block';
   const searchBar = document.querySelector('.search-sort-bar');
   if (searchBar) searchBar.style.display = 'none';
   renderAlbums();
-  renderTopAlbums();
 }
 
 // ========== ОТОБРАЖЕНИЕ АЛЬБОМОВ ==========
@@ -766,7 +760,7 @@ async function renderAlbums() {
       ? Math.round(albumData.ratings.reduce((sum, r) => sum + r.total, 0) / albumData.ratings.length)
       : null;
     const scoreDisplay = totalScore !== null
-      ? `<span style="color:var(--accent); font-weight:700;">★ ${totalScore}</span>`
+      ? `<span style="color:var(--neon-cyan); font-weight:700;">★ ${totalScore}</span>`
       : 'Не оценен';
     const dateDisplay = albumData?.date ? `📅 ${escapeHtml(albumData.date)}` : '';
     
@@ -864,11 +858,11 @@ async function openAlbumView(albumName) {
     if (userRating) {
       scoreHtml = `<div class="score-circles">${userRating.scores.map((s,i) => `<span class="score-circle" style="background: ${getScoreColor(s)};" title="${CRITERIA[i]}: ${s}/${MAX_SCORE}">${s}</span>`).join('')}</div><div class="total">Ваша: ${userRating.total} ★</div>`;
     } else {
-      scoreHtml = `<div style="color:#888;">Не оценен</div>`;
+      scoreHtml = `<div style="color:var(--text-muted);">Не оценен</div>`;
     }
     
     if (avg !== null) {
-      scoreHtml += `<div style="font-size:0.85rem; color:var(--text-secondary);">Средний: ${avg} ★</div>`;
+      scoreHtml += `<div style="font-size:0.85rem; color:var(--text-dim);">Средний: ${avg} ★</div>`;
     }
     
     return `
@@ -1070,7 +1064,7 @@ function openRatingModal(songId) {
     const otherContainer = document.getElementById('otherRatings');
     const others = song.ratings?.filter(r => r.userId !== currentUser.id) || [];
     otherContainer.innerHTML = others.length === 0
-      ? '<div style="color:#888;">Нет оценок</div>'
+      ? '<div style="color:var(--text-muted);">Нет оценок</div>'
       : others.map(r => `<div><strong>${escapeHtml(r.username)}</strong>: ${r.total} ★ (${r.scores.map((s,i)=>`${CRITERIA[i]}:${s}`).join(', ')})</div>`).join('');
     document.getElementById('modalRating').classList.add('active');
   });
@@ -1119,7 +1113,7 @@ function openAlbumRatingModal(albumName) {
     const otherContainer = document.getElementById('otherAlbumRatings');
     const others = album?.ratings?.filter(r => r.userId !== currentUser.id) || [];
     otherContainer.innerHTML = others.length === 0
-      ? '<div style="color:#888;">Нет оценок</div>'
+      ? '<div style="color:var(--text-muted);">Нет оценок</div>'
       : others.map(r => `<div><strong>${escapeHtml(r.username)}</strong>: ${r.total} ★</div>`).join('');
     document.getElementById('modalAlbumRating').classList.add('active');
   });
@@ -1166,7 +1160,7 @@ function openCommentModal(songId) {
 function renderCommentsList(comments) {
   const container = document.getElementById('commentsContainer');
   if (comments.length === 0) {
-    container.innerHTML = '<div style="color:#888; text-align:center;">Пока нет комментариев</div>';
+    container.innerHTML = '<div style="color:var(--text-muted); text-align:center;">Пока нет комментариев</div>';
     return;
   }
   container.innerHTML = comments.map((c, idx) => {
@@ -1767,7 +1761,7 @@ function refreshAll() {
     dbGetAll(STORE_SONGS).then(songs => {
       const feed = document.getElementById('feed');
       if (!songs || songs.length === 0) {
-        if (feed) feed.innerHTML = '<div style="color:#888; text-align:center; padding:40px;">Нет треков</div>';
+        if (feed) feed.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:60px 20px; font-size:0.9rem;">Треки не найдены</div>';
         topList.innerHTML = '';
         return;
       }
