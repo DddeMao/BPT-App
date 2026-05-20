@@ -472,6 +472,7 @@ function getAverageRating(song) {
 }
 
 function renderTop12(songs) {
+  if (!topList) return;
   const rated = songs.filter(s => s.ratings && s.ratings.length > 0)
                      .map(s => ({ song: s, avg: getAverageRating(s) }))
                      .sort((a, b) => b.avg - a.avg)
@@ -484,7 +485,7 @@ function renderTop12(songs) {
     const coverUrl = song.coverUrl || (song.coverBlob ? URL.createObjectURL(song.coverBlob) : '');
     return `
       <div class="top-vertical-item">
-        ${coverUrl ? `<img src="${coverUrl}" alt="cover">` : '<div style="width:44px;height:44px;background:#333;border-radius:8px;"></div>'}
+        ${coverUrl ? `<img src="${coverUrl}" alt="cover">` : '<div style="width:44px;height:44px;background:var(--surface-active);border-radius:8px;"></div>'}
         <div class="tvi-info">
           <div class="tvi-title">${escapeHtml(song.title)}</div>
           <div class="tvi-artist">${escapeHtml(song.artist)}</div>
@@ -989,6 +990,7 @@ function getAlbumAverageRating(album) {
 
 // ========== РЕНДЕРИНГ ТОП АЛЬБОМОВ ==========
 async function renderTopAlbums() {
+  if (!topAlbumsList) return;
   const [albums, songs] = await Promise.all([dbGetAll(STORE_ALBUMS), dbGetAll(STORE_SONGS)]);
   const rated = albums
     .filter(a => a.ratings && a.ratings.length > 0)
@@ -999,12 +1001,12 @@ async function renderTopAlbums() {
     }))
     .sort((a, b) => b.avg - a.avg)
     .slice(0, 5);
-    
+
   if (rated.length === 0) {
     topAlbumsList.innerHTML = '';
     return;
   }
-  
+
   topAlbumsList.innerHTML = rated.map(({ album, avg, firstSong }) => {
     const coverUrl = firstSong?.coverUrl || (firstSong?.coverBlob ? URL.createObjectURL(firstSong.coverBlob) : '');
     const artistName = firstSong?.artist || 'Неизвестен';
@@ -1767,11 +1769,9 @@ function refreshAll() {
       }
       const filtered = getFilteredAndSortedSongs(songs);
       renderFeed(filtered);
-      renderTop12(songs);
     });
   } else {
     renderAlbums();
-    renderTopAlbums();
   }
 }
 
