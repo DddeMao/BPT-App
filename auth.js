@@ -83,8 +83,18 @@ function showApp() {
   console.log('showApp called');
   const auth = document.getElementById('authScreen');
   const app = document.getElementById('app');
-  if (auth) auth.style.display = 'none';
-  if (app) app.style.display = 'block';
+  
+  if (auth) {
+    auth.style.display = 'none';
+    // Force override the CSS !important rule
+    auth.style.setProperty('display', 'none', 'important');
+    console.log('authScreen set to none, computed:', getComputedStyle(auth).display);
+  }
+  if (app) {
+    app.style.display = 'block';
+    console.log('app set to block, computed:', getComputedStyle(app).display);
+  }
+  
   updateAdminUI();
   console.log('showApp done');
 }
