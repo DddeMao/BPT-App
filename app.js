@@ -1764,7 +1764,7 @@ function refreshAll() {
       const feed = document.getElementById('feed');
       if (!songs || songs.length === 0) {
         if (feed) feed.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:60px 20px; font-size:0.9rem;">Треки не найдены</div>';
-        topList.innerHTML = '';
+        if (topList) topList.innerHTML = '';
         return;
       }
       const filtered = getFilteredAndSortedSongs(songs);
