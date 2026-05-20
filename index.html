@@ -146,6 +146,7 @@
     <div class="modal-content">
       <span class="close-rating close">&times;</span>
       <div id="ratingHeader" class="rating-header"></div>
+      <canvas id="ratingRadar" width="200" height="200" style="display:block;margin:10px auto;"></canvas>
       <div id="ratingSliders"></div>
       <div id="liveTotal" class="live-total">0</div>
       <h4 style="margin:16px 0 8px; color:var(--text-dim); font-size:0.85rem;">Оценки других</h4>
@@ -153,6 +154,33 @@
       <form id="ratingForm">
         <button type="submit" class="btn" style="width:100%;">Сохранить оценку</button>
       </form>
+    </div>
+  </div>
+
+  <!-- Окно трека (новое) -->
+  <div id="modalTrack" class="modal">
+    <div class="modal-content" style="max-width:500px;">
+      <span class="close close-track" onclick="closeModal(document.getElementById('modalTrack'))">&times;</span>
+      <div class="track-modal-header">
+        <img id="trackModalCover" class="track-modal-cover" src="" alt="" style="display:none;">
+        <div class="track-modal-info">
+          <h2 id="trackModalTitle"></h2>
+          <p id="trackModalArtist"></p>
+        </div>
+      </div>
+      <div class="track-modal-actions">
+        <button id="trackModalPlayBtn" class="btn btn-primary">▶ Слушать</button>
+        <button id="trackModalRateBtn" class="btn">⭐ Оценить</button>
+        <button id="trackModalCommentsBtn" class="btn">💬 <span id="trackModalCommentCount">0</span></button>
+        <button id="trackModalFavBtn" class="btn">♥</button>
+      </div>
+      <canvas id="trackModalRadar" width="180" height="180" style="display:block;margin:15px auto;"></canvas>
+      <div class="track-modal-stats">
+        <span>Альбом: <b id="trackModalAlbum">—</b></span>
+        <span>Дата: <b id="trackModalDate">—</b></span>
+        <span>Прослушиваний: <b id="trackModalPlays">0</b></span>
+        <span>Средний балл: <b id="trackModalAvg">—</b></span>
+      </div>
     </div>
   </div>
 
@@ -308,6 +336,11 @@
   </div>
 
   <script src="router.js"></script>
+  <script src="db.js"></script>
+  <script src="auth.js"></script>
+  <script src="player.js"></script>
+  <script src="ratings.js"></script>
+  <script src="ui.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

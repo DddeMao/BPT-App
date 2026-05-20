@@ -1,9 +1,15 @@
-const CACHE_NAME = 'bpt-assets-v1'; // При обновлении дизайна меняй v1 на v2, v3 и т.д.
+const CACHE_NAME = 'bpt-assets-v2'; // При обновлении дизайна меняй v2 на v3, v4 и т.д.
 
 const ASSETS = [
   './',
   './index.html',
   './style.css',
+  './router.js',
+  './db.js',
+  './auth.js',
+  './player.js',
+  './ratings.js',
+  './ui.js',
   './app.js',
   './manifest.json'
 ];
