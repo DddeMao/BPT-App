@@ -1967,26 +1967,40 @@ async function onTelegramAuth(tgUser) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const authScreen = document.getElementById('authScreen');
   const authForm = document.getElementById('authForm');
   
-  if (authScreen && authScreen.style.display !== 'none') {
-    localStorage.removeItem('currentUserId');
-    sessionStorage.removeItem('tg_user');
-    if (typeof currentUser !== 'undefined') currentUser = null;
-  }
-
   if (authForm) {
-    authForm.addEventListener('submit', (e) => {
-      const usernameInput = document.getElementById('username')?.value || '';
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
       
-      if (usernameInput.trim() === 'Letluvv') {
-        e.preventDefault(); 
-        e.stopPropagation();
-        alert('Вход для Letluvv возможен только через синюю кнопку Telegram!');
-        return false;
+      const authUsername = document.getElementById('authUsername'); // Убедись, что ID верные
+      const authPassword = document.getElementById('authPassword');
+      
+      const username = authUsername.value.trim();
+      const password = authPassword.value;
+
+      if (!username || !password) return;
+
+      // === ЗАЩИТА АДМИНА ===
+      if (username.toLowerCase() === 'letluvv') {
+        alert('Для аккаунта Letluvv вход через Telegram обязателен! 🔒');
+        return;
+      }
+
+      try {
+        if (typeof authMode !== 'undefined' && authMode === 'login') {
+            currentUser = await handleLogin(username, password);
+        } else {
+            currentUser = await handleRegister(username, password);
+        }
+        showApp();
+        refreshAll();
+      } catch (err) {
+        alert(err.message);
       }
     });
+  } else {
+    console.warn("Форма авторизации не найдена (возможно, вы уже вошли)");
   }
 });
 
