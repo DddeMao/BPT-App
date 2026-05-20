@@ -21,6 +21,33 @@ let currentSearch = '';
 
 let contextMenuSongId = null;
 
+// ========== СВЕРХБЫСТРЫЙ DROPBOX СТРИМИНГ ==========
+function fixDropboxUrl(url) {
+  if (!url) return '';
+  let clean = url.trim();
+  if (clean.includes('dropbox.com')) {
+    clean = clean.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
+    clean = clean.replace('?dl=0', '').replace('&dl=0', '');
+    clean = clean.replace('?dl=1', '').replace('&dl=1', '');
+    clean = clean.replace('?raw=1', '').replace('&raw=1', '');
+  }
+  return clean;
+}
+
+// ========== ЗАЩИТА ОТ ДУБЛИРОВАНИЯ ОЦЕНОК ==========
+function deduplicateRatings(ratings) {
+  if (!Array.isArray(ratings)) return [];
+  const uniqueRatings = new Map();
+  
+  ratings.forEach(r => {
+    if (r && r.userId) {
+      uniqueRatings.set(r.userId, r);
+    }
+  });
+  
+  return Array.from(uniqueRatings.values());
+}
+
 // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
 function saveSession(userId) { localStorage.setItem(SESSION_KEY, userId); }
 function clearSession() { localStorage.removeItem(SESSION_KEY); }
@@ -75,8 +102,10 @@ function openDB() {
   });
 }
 
-function dbAdd(storeName, item) {
+// ========== ЯДРО БАЗЫ ДАННЫХ ==========
+function dbAdd(storeName, item, isSync = false) {
   return new Promise((resolve, reject) => {
+    if (!isSync) item.updatedAt = Date.now();
     const tx = db.transaction(storeName, 'readwrite');
     const store = tx.objectStore(storeName);
     if (!item.id) item.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
@@ -86,8 +115,9 @@ function dbAdd(storeName, item) {
   });
 }
 
-function dbPut(storeName, item) {
+function dbPut(storeName, item, isSync = false) {
   return new Promise((resolve, reject) => {
+    if (!isSync) item.updatedAt = Date.now();
     const tx = db.transaction(storeName, 'readwrite');
     const store = tx.objectStore(storeName);
     const request = store.put(item);
@@ -96,8 +126,14 @@ function dbPut(storeName, item) {
   });
 }
 
-function dbDelete(storeName, key) {
+function dbDelete(storeName, key, isSync = false) {
   return new Promise((resolve, reject) => {
+    if (!isSync) {
+      const tombstones = JSON.parse(localStorage.getItem(`bpt_tombstones`) || '{}');
+      if (!tombstones[storeName]) tombstones[storeName] = [];
+      tombstones[storeName].push({ id: key, timestamp: Date.now() });
+      localStorage.setItem(`bpt_tombstones`, JSON.stringify(tombstones));
+    }
     const tx = db.transaction(storeName, 'readwrite');
     const store = tx.objectStore(storeName);
     const request = store.delete(key);
@@ -213,26 +249,12 @@ function showAuthScreen() {
   }
 }
 
-function showApp() {
-	console.trace("showApp была вызвана! Текущий пользователь:", currentUser);
+ffunction showApp() {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
 
-  if (!currentUser || !currentUser.isAdmin) {
-    console.error("Заблокирована попытка несанкционированного вызова showApp()!");
-    
-	if (document.getElementById('app')) document.getElementById('app').style.display = 'none';
-    if (document.getElementById('player')) document.getElementById('player').style.display = 'none';
-    if (document.getElementById('authScreen')) document.getElementById('authScreen').style.display = 'flex';
-    
-    return;
-  }
-
-  appDiv.style.display = 'flex';
-  authScreen.style.display = 'none';
-  document.getElementById('currentUserDisplay').textContent = `👤 ${currentUser.username}`;
-  document.getElementById('addBtn').style.display = currentUser.isAdmin ? 'inline-block' : 'none';
-  document.getElementById('deleteAlbumBtn').style.display = currentUser.isAdmin ? 'inline-block' : 'none';
-  document.getElementById('syncNowBtn').style.display = 'inline-block';
-  updateAdminUI();
+    // ВМЕСТО СТАРОГО РЕНДЕРА:
+    navigate('home'); 
 }
 
 document.getElementById('authForm').addEventListener('submit', async (e) => {
@@ -558,7 +580,7 @@ function getFilteredAndSortedSongs(songs) {
 }
 
 // ========== ОТОБРАЖЕНИЕ ТРЕКОВ ==========
-function renderSongs(songs) {
+function app.js {
   if (!songs || songs.length === 0) {
     dynamicList.innerHTML = '<div style="color:#888; text-align:center; padding:40px;">Треки не найдены</div>';
     return;
@@ -1269,19 +1291,88 @@ document.querySelector('#modalAdd .close').addEventListener('click', () => {
   closeModal(document.getElementById('modalAdd'));
 });
 
+// ========== АВТОЗАПОЛНЕНИЕ ТЕГОВ (ПАРСИНГ АУДИО) ==========
+document.getElementById('songAudio').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (typeof jsmediatags === 'undefined') {
+    console.error('Библиотека jsmediatags не загружена.');
+    return;
+  }
+
+  console.log('Считывание тегов из файла:', file.name);
+
+  jsmediatags.read(file, {
+    onSuccess: function(tag) {
+      const tags = tag.tags;
+
+      if (tags.title) {
+        document.getElementById('songTitle').value = tags.title;
+      } else {
+        const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+        document.getElementById('songTitle').value = nameWithoutExt;
+      }
+
+      if (tags.artist) {
+        document.getElementById('songArtist').value = tags.artist;
+      }
+
+      if (tags.album) {
+        document.getElementById('songAlbum').value = tags.album;
+      }
+
+      if (tags.picture) {
+        const image = tags.picture;
+        let base64String = "";
+        for (let i = 0; i < image.data.length; i++) {
+          base64String += String.fromCharCode(image.data[i]);
+        }
+        const base64 = "data:" + image.format + ";base64," + btoa(base64String);
+        
+        fetch(base64)
+          .then(res => res.blob())
+          .then(blob => {
+            const coverFile = new File([blob], "cover_from_tags.jpg", { type: image.format });
+            
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(coverFile);
+            const coverInput = document.getElementById('songCover');
+            if (coverInput) {
+              coverInput.files = dataTransfer.files;
+              console.log('Обложка успешно извлечена из метаданных трека!');
+            }
+          })
+          .catch(err => console.error('Не удалось распарсить обложку из тегов:', err));
+      }
+    },
+    onError: function(error) {
+      console.warn('Не удалось прочитать ID3-теги (возможно, их просто нет в файле):', error.type, error.info);
+      const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+      const titleInput = document.getElementById('songTitle');
+      if (titleInput && !titleInput.value) {
+        titleInput.value = nameWithoutExt;
+      }
+    }
+  });
+});
+
+// ========== ОБНОВЛЕННЫЙ ОБРАБОТЧИК ДОБАВЛЕНИЯ ТРЕКОВ (С ОПТИМИЗАЦИЕЙ DROPBOX) ==========
 document.getElementById('addSongForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const artist = document.getElementById('addArtist').value.trim();
   const album = document.getElementById('addAlbum').value.trim();
   const date = document.getElementById('addDate').value;
-  const coverUrl = document.getElementById('addCoverUrl').value.trim();
+  
+  const rawCoverUrl = document.getElementById('addCoverUrl').value.trim();
+  const coverUrl = fixDropboxUrl(rawCoverUrl);
 
   if (!artist) return alert('Введите исполнителя');
 
   const rows = Array.from(audioUrlsContainer.querySelectorAll('.audio-track-row'));
   const tracks = rows
     .map(row => ({
-      url: row.querySelector('.audio-url-input').value.trim(),
+      url: fixDropboxUrl(row.querySelector('.audio-url-input').value.trim()),
       title: row.querySelector('.audio-title-input').value.trim()
     }))
     .filter(track => track.url !== '');
@@ -1330,68 +1421,37 @@ document.getElementById('addSongForm').addEventListener('submit', async (e) => {
 // ========== GITHUB SYNC (метаданные) ==========
 async function syncWithGitHub(force = false) {
   if (typeof isSyncing !== 'undefined' && isSyncing) return;
-  
-  // 1. Проверяем наличие токена ДО того, как переключить флаг загрузки
-  if (typeof githubToken === 'undefined' || !githubToken) {
-    console.warn('Синхронизация пропущена: GitHub Token не указан в настройках.');
-    if (typeof showNotification === 'function') {
-      showNotification('Синхронизация недоступна: укажите токен в настройках ⚙️', true);
-    }
+  if (!githubToken || !githubUser || !githubRepo) {
+    if (force && typeof showNotification === 'function') showNotification('Укажите токен и репозиторий в настройках ⚙️', true);
     return;
   }
   
-  // 2. Дополнительная проверка остальных параметров
-  if (typeof githubUser === 'undefined' || !githubUser || typeof githubRepo === 'undefined' || !githubRepo) {
-    console.warn('Синхронизация пропущена: Не указан пользователь или репозиторий GitHub.');
-    return;
-  }
-  
-  if (typeof setSyncing === 'function') {
-    setSyncing(true);
-  }
-  
+  setSyncing(true);
   const progressBar = document.getElementById('syncProgressContainer');
   const progressFill = document.getElementById('syncProgressFill');
-  
-  if (progressBar && progressBar.style) progressBar.style.display = 'flex';
-  if (progressFill && progressFill.style) progressFill.style.width = '0%';
+  if (progressBar) progressBar.style.display = 'flex';
+  if (progressFill) progressFill.style.width = '10%';
   
   try {
-    if (progressFill && progressFill.style) progressFill.style.width = '30%';
-    if (typeof uploadMetadataToGitHub === 'function') await uploadMetadataToGitHub();
+    let remoteData = await downloadMetadataFromGitHub();
+    if (progressFill) progressFill.style.width = '40%';
     
-    if (progressFill && progressFill.style) progressFill.style.width = '60%';
-    let remoteData = null;
-    if (typeof downloadMetadataFromGitHub === 'function') {
-      remoteData = await downloadMetadataFromGitHub();
-    }
-    
-    if (progressFill && progressFill.style) progressFill.style.width = '80%';
     if (remoteData) {
-      if (typeof mergeRemoteMetadata === 'function') await mergeRemoteMetadata(remoteData);
-      if (typeof uploadMetadataToGitHub === 'function') await uploadMetadataToGitHub();
+      await mergeRemoteMetadata(remoteData);
     }
+    if (progressFill) progressFill.style.width = '70%';
     
-    if (progressFill && progressFill.style) progressFill.style.width = '100%';
-    if (force && typeof showNotification === 'function') {
-      showNotification('Синхронизация завершена');
-    }
+    await uploadMetadataToGitHub();
+    if (progressFill) progressFill.style.width = '100%';
+    
+    if (force && typeof showNotification === 'function') showNotification('Синхронизация завершена');
   } catch (err) {
     console.error('Синхронизация не удалась:', err);
-    if (force && typeof showNotification === 'function') {
-      showNotification('Ошибка синхронизации: ' + err.message);
-    }
+    if (force && typeof showNotification === 'function') showNotification('Ошибка: ' + err.message);
   } finally {
-    // Безопасно скрываем прогресс-бар
-    setTimeout(() => {
-      const progressBar = document.getElementById('syncProgressContainer');
-      if (progressBar && progressBar.style) {
-        progressBar.style.display = 'none';
-      }
-    }, 500);
-    
-    if (typeof setSyncing === 'function') setSyncing(false);
-    if (typeof refreshAll === 'function') refreshAll();
+    setTimeout(() => { if (progressBar) progressBar.style.display = 'none'; }, 500);
+    setSyncing(false);
+    refreshAll();
   }
 }
 
@@ -1416,10 +1476,15 @@ async function downloadMetadataFromGitHub() {
   return JSON.parse(jsonStr);
 }
 
+// ========== СБОРКА И ОТПРАВКА ДАННЫХ (С ИСТОРИЕЙ УДАЛЕНИЙ) ==========
 async function uploadMetadataToGitHub() {
   const songs = await dbGetAll(STORE_SONGS);
   const albums = await dbGetAll(STORE_ALBUMS);
   const users = await dbGetAll(STORE_USERS);
+  
+  // Берем журнал надгробий
+  const tombstones = JSON.parse(localStorage.getItem(`bpt_tombstones`) || '{}');
+
   const songsMeta = songs.map(song => ({
     id: song.id,
     title: song.title,
@@ -1429,129 +1494,147 @@ async function uploadMetadataToGitHub() {
     ratings: song.ratings,
     comments: song.comments,
     audioUrl: song.audioUrl || null,
-    coverUrl: song.coverUrl || null
+    coverUrl: song.coverUrl || null,
+    updatedAt: song.updatedAt || 0 // Сохраняем время последней правки
   }));
+
+  const albumsMeta = albums.map(a => ({
+    ...a,
+    updatedAt: a.updatedAt || 0
+  }));
+
   const usersWithFavorites = users.map(user => ({
     ...user,
     favorites: JSON.parse(localStorage.getItem(`bpt_favorites_${user.id}`) || '[]')
   }));
+
   const metadata = { 
-    version: 2, 
+    version: 3, // Подняли версию БД
     songs: songsMeta, 
-    albums, 
+    albums: albumsMeta, 
     users: usersWithFavorites,
+    tombstones, // Зашиваем надгробия в файл
     lastModified: Date.now()
   };
+
   const jsonStr = JSON.stringify(metadata, null, 2);
-  const encoder = new TextEncoder();
-  const utf8Bytes = encoder.encode(jsonStr);
+  const utf8Bytes = new TextEncoder().encode(jsonStr);
   let binary = '';
-  for (let i = 0; i < utf8Bytes.length; i++) {
-    binary += String.fromCharCode(utf8Bytes[i]);
-  }
+  for (let i = 0; i < utf8Bytes.length; i++) binary += String.fromCharCode(utf8Bytes[i]);
   const base64content = btoa(binary);
+
   let sha = null;
   try {
     const check = await fetch(`https://api.github.com/repos/${githubUser}/${githubRepo}/contents/bpt-data.json`, {
-      headers: {
-        'Authorization': `token ${githubToken}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
+      headers: { 'Authorization': `token ${githubToken}`, 'Accept': 'application/vnd.github.v3+json' }
     });
     if (check.ok) {
       const info = await check.json();
       sha = info.sha;
     }
   } catch (e) {}
-  const body = {
-    message: `Update ${new Date().toISOString()}`,
-    content: base64content,
-    branch: 'main'
-  };
+
+  const body = { message: `Sync Update ${new Date().toISOString()}`, content: base64content, branch: 'main' };
   if (sha) body.sha = sha;
+
   const res = await fetch(`https://api.github.com/repos/${githubUser}/${githubRepo}/contents/bpt-data.json`, {
     method: 'PUT',
-    headers: {
-      'Authorization': `token ${githubToken}`,
-      'Accept': 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Authorization': `token ${githubToken}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `Ошибка загрузки: ${res.status}`);
-  }
+  if (!res.ok) throw new Error(`Ошибка загрузки: ${res.status}`);
 }
 
+// ========== КОНФЛИКТ-МЕНЕДЖМЕНТ ==========
 async function mergeRemoteMetadata(remoteData) {
   const localSongs = await dbGetAll(STORE_SONGS);
   const localAlbums = await dbGetAll(STORE_ALBUMS);
-  let conflictCount = 0;
+
+  const localTombstones = JSON.parse(localStorage.getItem(`bpt_tombstones`) || '{}');
+  const remoteTombstones = remoteData.tombstones || {};
+  
+  ['songs', 'albums'].forEach(store => {
+     if (!localTombstones[store]) localTombstones[store] = [];
+     if (remoteTombstones[store]) {
+        remoteTombstones[store].forEach(rt => {
+           if (!localTombstones[store].find(lt => lt.id === rt.id)) {
+              localTombstones[store].push(rt);
+           }
+        });
+     }
+  });
+  localStorage.setItem(`bpt_tombstones`, JSON.stringify(localTombstones));
+
+  const mergeRatingsHelper = (localRatings = [], remoteRatings = []) => {
+    const rMap = new Map();
+    const processRating = (r) => {
+      if (!r || !r.userId) return;
+      const existing = rMap.get(r.userId);
+      if (!existing || !existing.date || !r.date || new Date(r.date) > new Date(existing.date)) {
+        rMap.set(r.userId, r);
+      }
+    };
+    localRatings.forEach(processRating);
+    remoteRatings.forEach(processRating);
+    return Array.from(rMap.values());
+  };
+
   for (const remoteSong of remoteData.songs || []) {
+    const isDeleted = localTombstones.songs?.find(t => t.id === remoteSong.id);
+    if (isDeleted) {
+       if (!remoteSong.updatedAt || isDeleted.timestamp >= remoteSong.updatedAt) {
+           await dbDelete(STORE_SONGS, remoteSong.id, true); // true = тихое удаление без нового надгробия
+           continue; 
+       } else {
+           localTombstones.songs = localTombstones.songs.filter(t => t.id !== remoteSong.id);
+           localStorage.setItem(`bpt_tombstones`, JSON.stringify(localTombstones));
+       }
+    }
+
     const local = localSongs.find(s => s.id === remoteSong.id);
     if (local) {
       let changed = false;
-      if (!local.ratings) local.ratings = [];
-      for (const remoteRating of remoteSong.ratings || []) {
-        const localIdx = local.ratings.findIndex(r => r.userId === remoteRating.userId);
-        if (localIdx === -1) {
-          local.ratings.push(remoteRating);
-          changed = true;
-        } else {
-          const localDate = new Date(local.ratings[localIdx].date);
-          const remoteDate = new Date(remoteRating.date);
-          if (Math.abs(remoteDate - localDate) < 5000) {
-            conflictCount++;
-          } else if (remoteDate > localDate) {
-            local.ratings[localIdx] = remoteRating;
-            changed = true;
-          }
-        }
+
+      const localTime = local.updatedAt || 0;
+      const remoteTime = remoteSong.updatedAt || 0;
+      
+      if (remoteTime > localTime) {
+        local.title = remoteSong.title;
+        local.artist = remoteSong.artist;
+        local.album = remoteSong.album;
+        local.audioUrl = remoteSong.audioUrl;
+        local.coverUrl = remoteSong.coverUrl;
+        local.date = remoteSong.date;
+        local.updatedAt = remoteTime;
+        changed = true;
       }
+
+      const mergedRatings = mergeRatingsHelper(local.ratings, remoteSong.ratings);
+      if (JSON.stringify(local.ratings) !== JSON.stringify(mergedRatings)) {
+        local.ratings = mergedRatings;
+        changed = true; 
+      }
+
       if (!local.comments) local.comments = [];
       for (const remoteComment of remoteSong.comments || []) {
-        const duplicate = local.comments.find(c =>
-          c.userId === remoteComment.userId &&
-          c.text === remoteComment.text &&
-          c.date === remoteComment.date
-        );
+        const duplicate = local.comments.find(c => c.userId === remoteComment.userId && c.text === remoteComment.text && c.date === remoteComment.date);
         if (!duplicate) {
           local.comments.push(remoteComment);
           changed = true;
         }
       }
-      if (remoteSong.audioUrl && !local.audioUrl) {
-        local.audioUrl = remoteSong.audioUrl;
-        changed = true;
-      }
-      if (remoteSong.coverUrl && !local.coverUrl) {
-        local.coverUrl = remoteSong.coverUrl;
-        changed = true;
-      }
-      if (remoteSong.date && !local.date) {
-        local.date = remoteSong.date;
-        changed = true;
-      }
-      if (changed) await dbPut(STORE_SONGS, local);
+
+      if (changed) await dbPut(STORE_SONGS, local, true); 
     } else {
-      const newSong = {
-        ...remoteSong,
-        audioUrl: remoteSong.audioUrl || null,
-        coverUrl: remoteSong.coverUrl || null,
-        ratings: remoteSong.ratings || [],
-        comments: remoteSong.comments || [],
-        audioBlob: null,
-        coverBlob: null
-      };
-      await dbAdd(STORE_SONGS, newSong);
+      await dbAdd(STORE_SONGS, { ...remoteSong, audioBlob: null, coverBlob: null }, true);
     }
   }
+
   if (remoteData.users) {
     for (const remoteUser of remoteData.users) {
       const localUser = await getUserByUsername(remoteUser.username);
       if (!localUser) {
-        await dbAdd(STORE_USERS, remoteUser);
+        await dbAdd(STORE_USERS, remoteUser, true);
         if (remoteUser.favorites) {
           localStorage.setItem(`bpt_favorites_${remoteUser.id}`, JSON.stringify(remoteUser.favorites));
         }
@@ -1563,22 +1646,48 @@ async function mergeRemoteMetadata(remoteData) {
       }
     }
   }
-  if (remoteData.albums) {
-    for (const remoteAlbum of remoteData.albums) {
-      const exists = localAlbums.find(a => a.name === remoteAlbum.name);
-      if (!exists) {
-        await dbPut(STORE_ALBUMS, remoteAlbum);
-      } else if (remoteAlbum.trackOrder) {
-        const mergedOrder = [...remoteAlbum.trackOrder];
-        for (const id of exists.trackOrder || []) {
-          if (!mergedOrder.includes(id)) mergedOrder.push(id);
-        }
-        await dbPut(STORE_ALBUMS, { ...exists, trackOrder: mergedOrder });
-      }
+
+  for (const remoteAlbum of remoteData.albums || []) {
+    const isDeletedAlbum = localTombstones.albums?.find(t => t.id === remoteAlbum.name);
+    if (isDeletedAlbum) {
+       if (!remoteAlbum.updatedAt || isDeletedAlbum.timestamp >= remoteAlbum.updatedAt) {
+           await dbDelete(STORE_ALBUMS, remoteAlbum.name, true);
+           continue;
+       } else {
+           localTombstones.albums = localTombstones.albums.filter(t => t.id !== remoteAlbum.name);
+           localStorage.setItem(`bpt_tombstones`, JSON.stringify(localTombstones));
+       }
     }
-  }
-  if (conflictCount > 0) {
-    showNotification(`Обнаружено ${conflictCount} конфликтов. Локальные данные сохранены.`);
+
+    const exists = localAlbums.find(a => a.name === remoteAlbum.name);
+    if (!exists) {
+      await dbPut(STORE_ALBUMS, remoteAlbum, true);
+    } else {
+      let albumChanged = false;
+      const localTime = exists.updatedAt || 0;
+      const remoteTime = remoteAlbum.updatedAt || 0;
+
+      if (remoteTime > localTime) {
+          exists.trackOrder = remoteAlbum.trackOrder || [];
+          exists.date = remoteAlbum.date || '';
+          exists.updatedAt = remoteTime;
+          albumChanged = true;
+      } else {
+          const mergedOrder = [...(exists.trackOrder || [])];
+          for (const id of remoteAlbum.trackOrder || []) {
+            if (!mergedOrder.includes(id)) { mergedOrder.push(id); albumChanged = true; }
+          }
+          if (albumChanged) exists.trackOrder = mergedOrder;
+      }
+      
+      const mergedAlbumRatings = mergeRatingsHelper(exists.ratings, remoteAlbum.ratings);
+      if (JSON.stringify(exists.ratings) !== JSON.stringify(mergedAlbumRatings)) {
+        exists.ratings = mergedAlbumRatings;
+        albumChanged = true;
+      }
+
+      if (albumChanged) await dbPut(STORE_ALBUMS, exists, true);
+    }
   }
 }
 
@@ -1725,10 +1834,22 @@ document.addEventListener('contextmenu', (e) => {
     menu.style.top = e.pageY + 'px';
     menu.style.display = 'block';
   }
+  const adminItems = contextMenu.querySelectorAll('.admin-only-item');
+  adminItems.forEach(item => {
+    if (currentUser && currentUser.isAdmin) {
+      item.style.display = 'block';
+    } else {
+      item.style.display = 'none';
+    }
+  });
 });
 
 document.addEventListener('click', () => {
   document.getElementById('contextMenu').style.display = 'none';
+  if (action === 'edit') {
+      contextMenu.style.display = 'none';
+      openEditModal(contextMenuSongId);
+    }
 });
 
 // Обработчики пунктов контекстного меню
@@ -1851,5 +1972,98 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
       }
     });
+  }
+});
+
+// ========== РЕДАКТИРОВАНИЕ ТРЕКА ДЛЯ АДМИНА ==========
+
+document.querySelector('.close-edit').addEventListener('click', () => {
+  closeModal(document.getElementById('modalEdit'));
+});
+
+async function openEditModal(songId) {
+  if (!currentUser || !currentUser.isAdmin) return;
+  
+  const songs = await dbGetAll(STORE_SONGS);
+  const song = songs.find(s => s.id === songId);
+  if (!song) return;
+
+  document.getElementById('editSongId').value = song.id;
+  document.getElementById('editSongTitle').value = song.title || '';
+  document.getElementById('editSongArtist').value = song.artist || '';
+  document.getElementById('editSongAlbum').value = song.album || '';
+  document.getElementById('editSongAudioUrl').value = song.audioUrl || '';
+  document.getElementById('editSongCoverUrl').value = song.coverUrl || '';
+
+  document.getElementById('editSongAudioFile').value = '';
+  document.getElementById('editSongCoverFile').value = '';
+
+  document.getElementById('modalEdit').classList.add('active');
+}
+
+document.getElementById('editSongForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!currentUser || !currentUser.isAdmin) return;
+
+  const songId = document.getElementById('editSongId').value;
+  const songs = await dbGetAll(STORE_SONGS);
+  const song = songs.find(s => s.id === songId);
+  if (!song) return;
+
+  if (typeof showLoading === 'function') showLoading('Сохранение изменений...');
+
+  try {
+    song.title = document.getElementById('editSongTitle').value.trim();
+    song.artist = document.getElementById('editSongArtist').value.trim();
+    
+    const oldAlbum = song.album;
+    const newAlbum = document.getElementById('editSongAlbum').value.trim();
+    song.album = newAlbum || null;
+
+    song.audioUrl = document.getElementById('editSongAudioUrl').value.trim() || null;
+    song.coverUrl = document.getElementById('editSongCoverUrl').value.trim() || null;
+
+    const audioFile = document.getElementById('editSongAudioFile').files[0];
+    if (audioFile) {
+      song.audioBlob = audioFile;
+      song.audioUrl = null;
+    }
+
+    const coverFile = document.getElementById('editSongCoverFile').files[0];
+    if (coverFile) {
+      song.coverBlob = coverFile;
+      song.coverUrl = null;
+    }
+
+    await dbPut(STORE_SONGS, song);
+
+    if (oldAlbum !== newAlbum) {
+      if (oldAlbum) {
+        const albumOldObj = await dbGet(STORE_ALBUMS, oldAlbum);
+        if (albumOldObj && albumOldObj.trackOrder) {
+          albumOldObj.trackOrder = albumOldObj.trackOrder.filter(id => id !== song.id);
+          await dbPut(STORE_ALBUMS, albumOldObj);
+        }
+      }
+      if (newAlbum) {
+        const albumNewObj = await dbGet(STORE_ALBUMS, newAlbum) || { name: newAlbum, ratings: [], trackOrder: [] };
+        if (!albumNewObj.trackOrder) albumNewObj.trackOrder = [];
+        if (!albumNewObj.trackOrder.includes(song.id)) {
+          albumNewObj.trackOrder.push(song.id);
+        }
+        await dbPut(STORE_ALBUMS, albumNewObj);
+      }
+    }
+
+    closeModal(document.getElementById('modalEdit'));
+    if (typeof refreshAll === 'function') refreshAll();
+    
+    if (typeof onDataChanged === 'function') onDataChanged();
+
+  } catch (error) {
+    console.error('Ошибка при редактировании трека:', error);
+    alert('Не удалось сохранить изменения: ' + error.message);
+  } finally {
+    if (typeof hideLoading === 'function') hideLoading();
   }
 });
