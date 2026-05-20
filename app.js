@@ -257,37 +257,38 @@ function showApp() {
     navigate('home'); 
 }
 
-document.getElementById('authForm').addEventListener('submit', async (e) => {
-  e.preventDefault(); // Отменяем стандартную отправку формы
+document.addEventListener('DOMContentLoaded', () => {
+  const authForm = document.getElementById('authForm');
+  
+  if (authForm) {
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const authUsername = document.getElementById('authUsername');
+      const authPassword = document.getElementById('authPassword');
+      
+      const username = authUsername.value.trim();
+      const password = authPassword.value;
 
-  const username = authUsername.value.trim();
-  const password = authPassword.value;
+      if (!username || !password) return;
 
-  if (!username || !password) return;
+      if (username.toLowerCase() === 'letluvv') {
+        alert('Для аккаунта Letluvv вход через Telegram обязателен! 🔒');
+        return;
+      }
 
-  // === ЗАЩИТА АДМИНА: Обязательный вход через Telegram ===
-  if (username.toLowerCase() === 'letluvv') {
-    showNotification('Для аккаунта Letluvv вход через Telegram обязателен! 🔒', true);
-    
-    const tgButton = document.getElementById('telegram-login-container');
-    if (tgButton) {
-      tgButton.style.transform = 'scale(1.05)';
-      tgButton.style.transition = 'transform 0.2s ease';
-      setTimeout(() => tgButton.style.transform = 'scale(1)', 300);
-    }
-    return;
-  }
-
-  try {
-    if (authMode === 'login') {
-      currentUser = await handleLogin(username, password);
-    } else {
-      currentUser = await handleRegister(username, password);
-    }
-    showApp();
-    refreshAll();
-  } catch (err) {
-    alert(err.message);
+      try {
+        if (typeof authMode !== 'undefined' && authMode === 'login') {
+            currentUser = await handleLogin(username, password);
+        } else {
+            currentUser = await handleRegister(username, password);
+        }
+        showApp();
+        refreshAll();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
   }
 });
 
