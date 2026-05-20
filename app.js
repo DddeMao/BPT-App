@@ -5,12 +5,6 @@ let githubToken = localStorage.getItem('bpt_github_token') || '';
 let isSyncing = false;
 let syncTimeout = null;
 
-// --- DOM elements (app section, initialized after showApp) ---
-function initAppElements() {
-  // All app-level elements are queried on demand via document.getElementById
-  // No global const references to avoid null errors before showApp()
-}
-
 // --- Event listeners (safe null-checked) ---
 function initEventListeners() {
   // Settings

@@ -33,31 +33,37 @@ async function handleRegister(username, password) {
 
 async function onTelegramAuth(tgUser) {
   console.log('TG auth:', tgUser);
-  if (!tgUser?.id) { alert('Авторизация отклонена.'); return; }
-  const MY_TG_ID = 696265271;
-  const isAdmin = (tgUser.id === MY_TG_ID);
-  const userId = 'tg_' + tgUser.id;
-  let user = await dbGet(STORE_USERS, userId);
-  if (!user) {
-    user = {
-      id: userId,
-      username: tgUser.username || tgUser.first_name || 'user_' + tgUser.id,
-      passwordHash: 'tg_authorized',
-      isAdmin,
-      tgId: tgUser.id,
-      photoUrl: tgUser.photo_url || ''
-    };
-    await dbAdd(STORE_USERS, user);
-  } else {
-    user.username = tgUser.username || tgUser.first_name || user.username;
-    user.photoUrl = tgUser.photo_url || '';
-    user.isAdmin = isAdmin;
-    await dbPut(STORE_USERS, user);
+  try {
+    if (!tgUser?.id) { alert('Авторизация отклонена.'); return; }
+    const MY_TG_ID = 696265271;
+    const isAdmin = (tgUser.id === MY_TG_ID);
+    const userId = 'tg_' + tgUser.id;
+    let user = await dbGet(STORE_USERS, userId);
+    if (!user) {
+      user = {
+        id: userId,
+        username: tgUser.username || tgUser.first_name || 'user_' + tgUser.id,
+        passwordHash: 'tg_authorized',
+        isAdmin,
+        tgId: tgUser.id,
+        photoUrl: tgUser.photo_url || ''
+      };
+      await dbAdd(STORE_USERS, user);
+    } else {
+      user.username = tgUser.username || tgUser.first_name || user.username;
+      user.photoUrl = tgUser.photo_url || '';
+      user.isAdmin = isAdmin;
+      await dbPut(STORE_USERS, user);
+    }
+    currentUser = user;
+    saveSession(currentUser.id);
+    showApp();
+    navigate('home');
+    console.log('TG auth success, app shown');
+  } catch (err) {
+    console.error('TG auth error:', err);
+    alert('Ошибка: ' + err.message);
   }
-  currentUser = user;
-  saveSession(currentUser.id);
-  showApp();
-  navigate('home');
 }
 
 function showAuthScreen() {
@@ -72,12 +78,13 @@ function showAuthScreen() {
 }
 
 function showApp() {
+  console.log('showApp called');
   const auth = document.getElementById('authScreen');
   const app = document.getElementById('app');
   if (auth) auth.style.display = 'none';
   if (app) app.style.display = 'block';
-  initAppElements();
   updateAdminUI();
+  console.log('showApp done');
 }
 
 function updateAdminUI() {
