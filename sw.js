@@ -1,17 +1,17 @@
-const CACHE_NAME = 'bpt-assets-v2'; // При обновлении дизайна меняй v2 на v3, v4 и т.д.
+const CACHE_NAME = 'bpt-assets-v2';
 
 const ASSETS = [
   './',
   './index.html',
   './style.css',
-  './router.js',
-  './db.js',
-  './auth.js',
-  './player.js',
-  './ratings.js',
-  './ui.js',
-  './app.js',
-  './manifest.json'
+  './manifest.json',
+  './js/config.js',
+  './js/db.js',
+  './js/auth.js',
+  './js/sync.js',
+  './js/player.js',
+  './js/ui.js',
+  './js/main.js',
 ];
 
 // Установка: кэшируем оболочку сайта
@@ -21,7 +21,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// Активация: чистим старый кэш приложений
+// Активация: чистим старый кэш
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -39,11 +39,11 @@ self.addEventListener('message', (e) => {
   if (e.data === 'skipWaiting') self.skipWaiting();
 });
 
-// Перехват запросов: кэшируем обложки, интерфейс берем из кэша
+// Перехват запросов
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
-  // Игнорируем аудиофайлы с Dropbox (чтобы не ломать перемотку Range-запросов)
+  // Игнорируем аудиофайлы с Dropbox
   if (url.href.includes('dropbox.com') && (url.pathname.endsWith('.mp3') || url.search.includes('raw=1'))) {
     return;
   }
@@ -53,7 +53,6 @@ self.addEventListener('fetch', (e) => {
       if (cachedResponse) return cachedResponse;
 
       return fetch(e.request).then((networkResponse) => {
-        // Кэшируем на лету картинки и обложки альбомов
         if (networkResponse && networkResponse.status === 200 && (url.href.includes('dropbox.com') || e.request.destination === 'image')) {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseToCache));

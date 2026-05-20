@@ -2,20 +2,9 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#06060c">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="БПТ">
-  <meta name="description" content="Система оценки музыкальных треков">
-  <meta name="mobile-web-app-capable" content="yes">
-  <title>БПТ — Будни против творчества</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>БПТ (Будни против творчества)</title>
   <link rel="icon" href="logo.png" type="image/png">
-  <link rel="apple-touch-icon" href="logo.png">
-  <link rel="manifest" href="manifest.json">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
   <link rel="stylesheet" href="style.css">
@@ -27,328 +16,327 @@
     <div id="loadingText"></div>
   </div>
 
+  <!-- Основное приложение (скрыто до входа) -->
   <div id="app" style="display:none;">
-    <header class="top-nav">
-      <div class="logo">БПТ</div>
-      <div class="top-nav-right">
-        <button id="addBtn" class="btn-icon" style="display:none;" title="Добавить">➕</button>
-        <button id="logoutBtn" class="btn-icon" title="Выйти">🚪</button>
-        <button id="settingsBtn" class="btn-settings" title="Настройки">⚙️</button>
-      </div>
-    </header>
-
-    <div id="searchSortBar" class="search-sort-bar" style="display:none;">
-      <div class="search-input-wrapper">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" class="search-input" placeholder="Поиск треков...">
-        <button id="clearSearchBtn" class="clear-search-btn" style="display:none;">✕</button>
-      </div>
-      <div class="sort-buttons">
-        <button id="sortDateBtn" class="sort-btn active" title="По дате">📅</button>
-        <button id="sortNameBtn" class="sort-btn" title="По имени">🔤</button>
-        <button id="sortRatingBtn" class="sort-btn" title="По рейтингу">⭐</button>
-        <button id="sortFavoritesBtn" class="sort-btn" title="Избранное">❤️</button>
-      </div>
-      <button id="syncNowBtn" class="btn-ghost">🔄 Синхронизировать</button>
-      <span id="syncingDot" class="syncing-dot"></span>
-    </div>
-
-    <main id="content"></main>
-
-    <div id="floatingPlayer" class="player-island" style="display:none;">
-      <div class="mini-player-info">
-        <img id="miniCover" class="mini-cover" src="" alt="" style="display:none;">
-        <div class="mini-text">
-          <span id="miniTitle">Ничего не играет</span>
-          <span id="miniArtist" class="mini-artist"></span>
+    <div class="main-area">
+      <div class="site-header">
+        <img class="logo-icon" src="logo.png" alt="БПТ">
+        <h1>БПТ <span style="font-size:1rem; color: var(--text-secondary);">(Будни против творчества)</span></h1>
+        <div class="user-panel">
+          <span id="currentUserDisplay"></span>
+          <button id="settingsBtn" class="btn-settings">⚙️ Настройки</button>
+          <button id="logoutBtn">Выйти</button>
         </div>
       </div>
-      <div class="player-controls">
-        <button id="playPauseBtn">▶</button>
+
+<div class="controls" id="mainControls">
+  <button id="viewSongsBtn" class="btn-active">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 6px;"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+    Треки
+  </button>
+  <button id="viewAlbumsBtn">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 6px;">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+  </svg>
+  Альбомы
+</button>
+  <button id="addBtn" style="display:none;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 6px;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+    Добавить трек
+  </button>
+  <button id="syncNowBtn" class="btn-settings">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 6px;"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    Синхр.
+  </button>
+  <span class="syncing-dot" id="syncingDot"></span>
+  
+  <div class="search-sort-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input type="text" id="searchInput" class="search-input" placeholder="Поиск...">
+      <button id="clearSearchBtn" class="clear-search-btn" style="display:none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <div class="sort-buttons">
+      <button id="sortDateBtn" class="sort-btn active" title="По дате">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+      </button>
+      <button id="sortNameBtn" class="sort-btn" title="По алфавиту">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z"/></svg>
+      </button>
+      <button id="sortRatingBtn" class="sort-btn" title="По рейтингу">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+      </button>
+      <button id="sortFavoritesBtn" class="sort-btn" title="Избранное">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+      <div class="sync-progress-container" id="syncProgressContainer" style="display:none;">
+        <div class="sync-progress-bar">
+          <div class="sync-progress-fill" id="syncProgressFill"></div>
+        </div>
+        <span class="sync-progress-text" id="syncProgressText">Синхронизация...</span>
       </div>
+
+      <div id="dynamicList" class="song-grid"></div>
     </div>
 
-    <nav class="bottom-nav">
-      <button onclick="navigate('home')" id="navHome">
-        <span class="nav-icon">🏠</span>
-        <span>Главная</span>
-      </button>
-      <button onclick="navigate('albums')" id="navAlbums">
-        <span class="nav-icon">💿</span>
-        <span>Альбомы</span>
-      </button>
-      <button onclick="navigate('favorites')" id="navFavorites">
-        <span class="nav-icon">❤️</span>
-        <span>Избранное</span>
-      </button>
-    </nav>
-
-    <!-- Прогресс синхронизации -->
-    <div id="syncProgressContainer" class="sync-progress-container" style="display:none;">
-      <div class="sync-progress-bar">
-        <div id="syncProgressFill" class="sync-progress-fill"></div>
-      </div>
-      <span class="sync-progress-text">Синхронизация...</span>
+    <!-- Боковые панели (НА ОДНОМ УРОВНЕ с main-area) -->
+    <div class="top-sidebar" id="topSidebar">
+      <div class="top-title">🏆 Топ-12 треков</div>
+      <div class="top-vertical-list" id="topList"></div>
+    </div>
+    
+    <div class="top-sidebar" id="topAlbumsSidebar" style="display:none;">
+      <div class="top-title">🏆 Топ-5 альбомов</div>
+      <div class="top-vertical-list" id="topAlbumsList"></div>
     </div>
   </div>
 
-  <!-- Скрытый аудиоплеер -->
-  <audio id="audioPlayer" preload="none"></audio>
-
-  <!-- ========== ЭКРАН АВТОРИЗАЦИИ ========== -->
-  <div id="authScreen" style="display:none; position:fixed; inset:0; background:var(--bg); z-index:500; justify-content:center; align-items:center; flex-direction:column;">
-    <h2 id="authTitle">Вход</h2>
-    <form id="authForm">
-      <div class="input-group">
-        <input type="text" id="authUsername" placeholder="Никнейм" autocomplete="username">
+  <!-- Экран входа / регистрации -->
+<div id="authScreen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;">
+  <div style="background:var(--surface); padding:30px; border-radius:20px; width:90%; max-width:400px; border:1px solid var(--border);">
+    
+    <form id="authForm" style="display: flex; flex-direction: column; gap: 15px;">
+      <h2 id="authTitle" style="margin-bottom: 10px;">Вход</h2>
+      
+      <div class="input-group" style="width: 100%;">
+        <input type="text" id="authUsername" placeholder="Никнейм" required style="width: 100%;">
       </div>
-      <div class="input-group">
-        <input type="password" id="authPassword" placeholder="Пароль" autocomplete="current-password">
+      
+      <div class="input-group" style="width: 100%;">
+        <input type="password" id="authPassword" placeholder="Пароль" required style="width: 100%;">
       </div>
-      <button type="submit" class="btn">Войти</button>
+      
+      <button type="submit" class="btn" style="margin-top: 10px;">Войти</button>
     </form>
-    <a href="#" id="toggleAuthMode">Нет аккаунта? Зарегистрироваться</a>
-    <div id="tgAdminBlock">
-      <p>Вход для администратора:</p>
-      <div class="tg-wrapper">
-        <script>
-          // Global handler for Telegram widget (must be defined before widget loads)
-          function onTelegramAuth(tgUser) {
-            console.log('TG widget callback:', tgUser);
-            // Dispatch custom event for auth.js to handle
-            window.dispatchEvent(new CustomEvent('telegram-auth', { detail: tgUser }));
-          }
-        </script>
-        <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login="BvsT_Auth_Bot" data-size="large" data-onauth="onTelegramAuth(user)" data-request-access="write"></script>
+    
+    <div id="tgAdminBlock" style="display: block;">
+  <div style="margin: 20px 0; color: var(--text-secondary, #555); text-align: center; font-size: 0.9rem;">или</div>
+  
+  <div id="tg-widget-wrapper" style="text-align: center; min-height: 40px;">
+    <script async src="https://telegram.org/js/telegram-widget.js?22" 
+            data-telegram-login="bvst_auth_bot" 
+            data-size="large" 
+            data-radius="8" 
+            data-onauth="onTelegramAuth(user)" 
+            data-request-access="write"></script>
+  </div>
+</div>
+
+    <div style="margin-top: 20px; text-align: center;">
+      <a href="#" id="toggleAuthMode" style="color: var(--accent); text-decoration: none; font-size: 0.95rem;">Нет аккаунта? Зарегистрироваться</a>
+    </div>
+
+  </div>
+</div>
+
+  <!-- Плеер -->
+  <div id="player" class="player-bar" style="display:none;">
+    <div class="player-info">
+      <img id="playerCover" src="" alt="обложка">
+      <div>
+        <div id="playerTitle"></div>
+        <div id="playerArtist"></div>
       </div>
     </div>
+    <audio id="audioPlayer" controls></audio>
   </div>
 
-  <!-- ========== МОДАЛЬНЫЕ ОКНА ========== -->
-
-  <!-- Настройки -->
-  <div id="modalSettings" class="modal">
-    <div class="modal-content" style="max-width:450px;">
-      <span class="close-settings close">&times;</span>
-      <h3 style="margin-bottom:20px; font-size:1.2rem;">⚙️ Настройки</h3>
-      <form id="settingsForm">
-        <div class="form-group">
-          <label>Никнейм</label>
-          <input type="text" id="newUsername">
-        </div>
-        <div class="form-group">
-          <label>Пароль (для подтверждения)</label>
-          <input type="password" id="settingsPassword" placeholder="Введите пароль">
-        </div>
-        <div class="form-group">
-          <label>GitHub Token</label>
-          <input type="password" id="settingsGithubToken" placeholder="ghp_...">
-        </div>
-        <button type="submit" class="btn" style="width:100%;">Сохранить</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Оценка трека -->
-  <div id="modalRating" class="modal">
-    <div class="modal-content">
-      <span class="close-rating close">&times;</span>
-      <div id="ratingHeader" class="rating-header"></div>
-      <canvas id="ratingRadar" width="200" height="200" style="display:block;margin:10px auto;"></canvas>
-      <div id="ratingSliders"></div>
-      <div id="liveTotal" class="live-total">0</div>
-      <h4 style="margin:16px 0 8px; color:var(--text-dim); font-size:0.85rem;">Оценки других</h4>
-      <div id="otherRatings" style="margin-bottom:16px;"></div>
-      <form id="ratingForm">
-        <button type="submit" class="btn" style="width:100%;">Сохранить оценку</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Окно трека (новое) -->
-  <div id="modalTrack" class="modal">
-    <div class="modal-content" style="max-width:500px;">
-      <span class="close close-track" onclick="closeModal(document.getElementById('modalTrack'))">&times;</span>
-      <div class="track-modal-header">
-        <img id="trackModalCover" class="track-modal-cover" src="" alt="" style="display:none;">
-        <div class="track-modal-info">
-          <h2 id="trackModalTitle"></h2>
-          <p id="trackModalArtist"></p>
-        </div>
-      </div>
-      <div class="track-modal-actions">
-        <button id="trackModalPlayBtn" class="btn btn-primary">▶ Слушать</button>
-        <button id="trackModalRateBtn" class="btn">⭐ Оценить</button>
-        <button id="trackModalCommentsBtn" class="btn">💬 <span id="trackModalCommentCount">0</span></button>
-        <button id="trackModalFavBtn" class="btn">♥</button>
-      </div>
-      <canvas id="trackModalRadar" width="180" height="180" style="display:block;margin:15px auto;"></canvas>
-      <div class="track-modal-stats">
-        <span>Альбом: <b id="trackModalAlbum">—</b></span>
-        <span>Дата: <b id="trackModalDate">—</b></span>
-        <span>Прослушиваний: <b id="trackModalPlays">0</b></span>
-        <span>Средний балл: <b id="trackModalAvg">—</b></span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Оценка альбома -->
-  <div id="modalAlbumRating" class="modal">
-    <div class="modal-content">
-      <span class="close-album-rating close">&times;</span>
-      <h3 style="margin-bottom:8px; font-size:1.1rem;">Оценка альбома</h3>
-      <p id="albumRatingInfo" style="color:var(--text-dim); margin-bottom:16px; font-size:0.9rem;"></p>
-      <div id="albumRatingSliders"></div>
-      <div id="albumLiveTotal" class="live-total">0</div>
-      <h4 style="margin:16px 0 8px; color:var(--text-dim); font-size:0.85rem;">Оценки других</h4>
-      <div id="otherAlbumRatings" style="margin-bottom:16px;"></div>
-      <form id="albumRatingForm">
-        <button type="submit" class="btn" style="width:100%;">Сохранить оценку</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Комментарии -->
-  <div id="modalComment" class="modal">
-    <div class="modal-content">
-      <span class="close-comment close">&times;</span>
-      <h3 style="margin-bottom:8px; font-size:1.1rem;">Комментарии</h3>
-      <p id="commentSongInfo" style="color:var(--text-dim); margin-bottom:14px; font-size:0.85rem;"></p>
-      <div id="commentsContainer" class="comments-list"></div>
-      <div style="display:flex; gap:8px; margin-top:14px;">
-        <input type="text" id="commentText" placeholder="Ваш комментарий..." style="flex:1;">
-        <button type="button" id="addCommentBtn" class="btn">Отправить</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Добавление трека -->
+  <!-- Модальное окно добавления трека -->
   <div id="modalAdd" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <h3 style="margin-bottom:20px; font-size:1.2rem;">➕ Добавить трек(и)</h3>
+      <h2>Добавить трек</h2>
       <form id="addSongForm">
+        <div class="form-group"><label>Исполнитель</label><input type="text" id="addArtist" required></div>
+        <div class="form-group"><label>Альбом</label><input type="text" id="addAlbum" list="albumList"><datalist id="albumList"></datalist></div>
+        <div class="form-group"><label>Дата</label><input type="date" id="addDate"></div>
         <div class="form-group">
-          <label>Исполнитель *</label>
-          <input type="text" id="addArtist" required>
+          <label>Ссылка на обложку (Dropbox)</label>
+          <input type="text" id="addCoverUrl" placeholder="https://www.dropbox.com/scl/fi/...&raw=1">
         </div>
         <div class="form-group">
-          <label>Альбом</label>
-          <input type="text" id="addAlbum" list="albumList">
-          <datalist id="albumList"></datalist>
-        </div>
-        <div class="form-group">
-          <label>Дата</label>
-          <input type="date" id="addDate">
-        </div>
-        <div class="form-group">
-          <label>URL обложки</label>
-          <input type="text" id="addCoverUrl" placeholder="https://...">
-        </div>
-        <div class="form-group">
-          <label>Аудиофайл (для автопарсинга тегов)</label>
-          <input type="file" id="songAudio" accept="audio/*">
-        </div>
-        <div class="form-group">
-          <label>Название (из файла)</label>
-          <input type="text" id="songTitle">
-        </div>
-        <div class="form-group">
-          <label>Артист (из файла)</label>
-          <input type="text" id="songArtist">
-        </div>
-        <div class="form-group">
-          <label>Альбом (из файла)</label>
-          <input type="text" id="songAlbum">
-        </div>
-        <div class="form-group">
-          <label>Обложка (из файла)</label>
-          <input type="file" id="songCover" accept="image/*">
-        </div>
-        <div class="form-group">
-          <label>Ссылки на треки</label>
+          <label>Треки (ссылка + название для каждого)</label>
           <div id="audioUrlsContainer">
-            <div class="audio-track-row" style="margin-bottom:12px;">
-              <input type="text" class="audio-url-input" placeholder="Ссылка на трек" style="width:100%;">
-              <input type="text" class="audio-title-input" placeholder="Название трека" style="width:100%; margin-top:4px;">
+            <div class="audio-track-row" style="margin-bottom: 12px;">
+              <input type="text" class="audio-url-input" placeholder="Ссылка на трек" style="width: 100%;">
+              <input type="text" class="audio-title-input" placeholder="Название трека" style="width: 100%; margin-top: 4px;">
             </div>
           </div>
         </div>
-        <button type="submit" class="btn" style="width:100%;">Добавить</button>
+        <button type="submit" style="width:100%; margin-top:10px;">Сохранить</button>
+      </form>
+    </div>
+  </div>
+  
+  <div id="modalEdit" class="modal">
+    <div class="modal-content">
+      <span class="close-edit">&times;</span>
+      <h2>Редактировать трек</h2>
+      <form id="editSongForm">
+        <input type="hidden" id="editSongId">
+        
+        <div class="form-group">
+          <label for="editSongTitle">Название трека *</label>
+          <input type="text" id="editSongTitle" required autocomplete="off">
+        </div>
+        
+        <div class="form-group">
+          <label for="editSongArtist">Исполнитель *</label>
+          <input type="text" id="editSongArtist" required autocomplete="off">
+        </div>
+        
+        <div class="form-group">
+          <label for="editSongAlbum">Альбом</label>
+          <input type="text" id="editSongAlbum" autocomplete="off">
+        </div>
+        
+        <div class="form-group">
+          <label for="editSongAudioUrl">Ссылка на аудио (Dropbox / Direct URL)</label>
+          <input type="url" id="editSongAudioUrl" placeholder="https://...">
+        </div>
+        
+        <div class="form-group">
+          <label for="editSongAudioFile">Заменить аудиофайл</label>
+          <input type="file" id="editSongAudioFile" accept="audio/*">
+        </div>
+        
+        <div class="form-group">
+          <label for="editSongCoverUrl">Ссылка на обложку</label>
+          <input type="url" id="editSongCoverUrl" placeholder="https://...">
+        </div>
+        
+        <div class="form-group">
+          <label for="editSongCoverFile">Заменить файл обложки</label>
+          <input type="file" id="editSongCoverFile" accept="image/*">
+        </div>
+        
+        <button type="submit" style="width:100%; margin-top:10px;">Сохранить изменения</button>
       </form>
     </div>
   </div>
 
-  <!-- Просмотр альбома -->
-  <div id="modalAlbumView" class="modal">
+  <!-- Остальные модальные окна без изменений -->
+  <div id="modalRating" class="modal">
+    <div class="modal-content" style="max-width:550px;">
+	<div class="modal-inner">
+      <span class="close-rating">&times;</span>
+      <h2>Оценка трека</h2>
+      <div class="rating-header" id="ratingHeader"></div>
+      <form id="ratingForm">
+        <div id="ratingSliders"></div>
+        <div class="live-total">Ваш общий балл: <span id="liveTotal">0</span></div>
+        <button type="submit" style="width:100%; margin-top:16px;">Сохранить оценку</button>
+      </form>
+      <div style="margin-top:20px;"><h4>Оценки других пользователей</h4><div id="otherRatings" style="max-height:150px; overflow-y:auto; background:#2c2c3a; border-radius:8px; padding:8px;"></div></div>
+    </div>
+	</div>
+  </div>
+
+  <div id="modalComment" class="modal">
+    <div class="modal-content" style="max-width:600px;">
+      <span class="close-comment">&times;</span>
+      <h2>Комментарии</h2>
+      <p id="commentSongInfo" style="color: var(--text-secondary); margin-bottom:12px;"></p>
+      <div class="comments-list" id="commentsContainer"></div>
+      <div class="form-group">
+        <label>Ваш ник</label>
+        <input type="text" id="commentAuthor" readonly>
+      </div>
+      <div class="form-group">
+        <label>Комментарий</label>
+        <textarea id="commentText" rows="3" placeholder="Введите текст..."></textarea>
+      </div>
+      <button id="addCommentBtn" style="width:100%;">Отправить</button>
+    </div>
+  </div>
+
+  <div id="modalAlbumRating" class="modal">
     <div class="modal-content">
-      <span class="close-album-view close">&times;</span>
-      <h3 id="albumViewTitle" class="album-view-title"></h3>
-      <div id="albumViewTracks"></div>
-      <div style="display:flex; gap:8px; margin-top:16px;">
-        <button id="rateAlbumBtn" class="btn">⭐ Оценить альбом</button>
-        <button id="deleteAlbumBtn" class="btn" style="background:rgba(207,102,121,0.2); color:#cf6679; border:1px solid rgba(207,102,121,0.3); display:none;">🗑 Удалить альбом</button>
+      <span class="close-album-rating">&times;</span>
+      <h2>Оценка альбома</h2>
+      <p id="albumRatingInfo" style="color: var(--text-secondary);"></p>
+      <form id="albumRatingForm">
+        <div id="albumRatingSliders"></div>
+        <div class="live-total">Ваш общий балл: <span id="albumLiveTotal">0</span></div>
+        <button type="submit" style="width:100%; margin-top:16px;">Сохранить оценку</button>
+      </form>
+      <div style="margin-top:20px;"><h4>Оценки других пользователей</h4><div id="otherAlbumRatings" style="max-height:150px; overflow-y:auto; background:#2c2c3a; border-radius:8px; padding:8px;"></div></div>
+    </div>
+  </div>
+
+  <div id="modalAlbumView" class="modal">
+    <div class="modal-content" style="max-width:700px;">
+      <span class="close-album-view">&times;</span>
+      <h2 id="albumViewTitle" class="album-view-title"></h2>
+      <div id="albumViewTracks" class="song-grid"></div>
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <button id="rateAlbumBtn">⭐ Оценить альбом</button>
+        <button id="deleteAlbumBtn" style="background:#cf6679;">🗑 Удалить альбом</button>
       </div>
     </div>
   </div>
 
-  <!-- Редактирование трека -->
-  <div id="modalEdit" class="modal">
-    <div class="modal-content">
-      <span class="close-edit close">&times;</span>
-      <h3 style="margin-bottom:20px; font-size:1.2rem;">✏️ Редактировать трек</h3>
-      <form id="editSongForm">
-        <input type="hidden" id="editSongId">
-        <div class="form-group">
-          <label>Название</label>
-          <input type="text" id="editSongTitle">
-        </div>
-        <div class="form-group">
-          <label>Артист</label>
-          <input type="text" id="editSongArtist">
-        </div>
-        <div class="form-group">
-          <label>Альбом</label>
-          <input type="text" id="editSongAlbum">
-        </div>
-        <div class="form-group">
-          <label>URL аудио</label>
-          <input type="text" id="editSongAudioUrl">
-        </div>
-        <div class="form-group">
-          <label>URL обложки</label>
-          <input type="text" id="editSongCoverUrl">
-        </div>
-        <div class="form-group">
-          <label>Аудиофайл (заменить)</label>
-          <input type="file" id="editSongAudioFile" accept="audio/*">
-        </div>
-        <div class="form-group">
-          <label>Обложка (заменить)</label>
-          <input type="file" id="editSongCoverFile" accept="image/*">
-        </div>
-        <button type="submit" class="btn" style="width:100%;">Сохранить</button>
-      </form>
+  <div id="modalSettings" class="modal">
+  <div class="modal-content" style="max-width:400px;">
+    <span class="close-settings">&times;</span>
+    <h2>Настройки профиля</h2>
+    <form id="settingsForm">
+      <div class="form-group">
+        <label>Новый никнейм</label>
+        <input type="text" id="newUsername" required>
+      </div>
+      <div class="form-group">
+        <label>Текущий пароль</label>
+        <input type="password" id="settingsPassword">
+      </div>
+
+      <div class="form-group">
+        <label>GitHub PAT (Токен синхронизации)</label>
+        <input type="password" id="settingsGithubToken" placeholder="ghp_..." autocomplete="off">
+        <small style="color: var(--text-secondary); font-size: 0.75rem; display: block; margin-top: 4px;">
+          Токен сохраняется только локально в вашем браузере.
+        </small>
+      </div>
+
+      <button type="submit" style="width:100%;">Сохранить</button>
+    </form>
+  </div>
+</div>
+  
+  <div id="modalConfirm" class="modal">
+    <div class="modal-content" style="max-width:400px;">
+      <span class="close-confirm">&times;</span>
+      <h2 id="confirmTitle">Подтверждение</h2>
+      <p id="confirmMessage"></p>
+      <div style="display:flex; gap:10px; margin-top:16px;">
+        <button id="confirmYes" class="delete-btn" style="flex:1;">Да</button>
+        <button id="confirmNo" class="btn-settings" style="flex:1;">Нет</button>
+      </div>
     </div>
   </div>
 
-  <!-- Контекстное меню -->
   <div id="contextMenu" class="context-menu" style="display:none;">
-    <div class="context-menu-item" data-action="play">▶ Воспроизвести</div>
+    <div class="context-menu-item" data-action="play">▶ Слушать</div>
     <div class="context-menu-item" data-action="rate">⭐ Оценить</div>
-    <div class="context-menu-item" data-action="comment">💬 Комментарии</div>
+    <div class="context-menu-item" data-action="comment">💬 Комментировать</div>
     <div class="context-menu-item context-menu-favorite" data-action="favorite">❤️ В избранное</div>
     <div class="context-menu-separator"></div>
-    <div class="context-menu-item" data-action="edit">✏️ Редактировать</div>
-    <div class="context-menu-item context-menu-delete admin-only-item" data-action="delete" style="display:none;">🗑 Удалить</div>
+	<div class="context-menu-item admin-only-item" data-action="edit" style="display:none; color: #b366ff; font-weight: bold;">✏️ Редактировать</div>
+    <div class="context-menu-item context-menu-delete" data-action="delete">🗑 Удалить</div>
   </div>
 
-  <script src="router.js"></script>
-  <script src="db.js"></script>
-  <script src="auth.js"></script>
-  <script src="player.js"></script>
-  <script src="ratings.js"></script>
-  <script src="ui.js"></script>
-  <script src="app.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
