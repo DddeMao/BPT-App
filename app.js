@@ -1892,52 +1892,56 @@ function closeModal(modal) {
   }, 300);
 }
 
-// ========== ДВУХФАКТОРНАЯ АУТЕНТИФИКАЦИЯ ЧЕРЕЗ TELEGRAM ==========
+// ========== АВТОРИЗАЦИЯ ЧЕРЕЗ TELEGRAM ==========
 async function onTelegramAuth(tgUser) {
   console.log('Данные от Telegram получены:', tgUser);
- 
-  const MY_TELEGRAM_ID = 696265271;
 
   if (!tgUser || !tgUser.id) {
-    alert('Авторизация отклонена. Доступ заблокирован!');
+    alert('Авторизация отклонена.');
     window.location.reload();
     return;
   }
 
   const currentTime = Math.floor(Date.now() / 1000);
-  
-  if (tgUser.auth_date && (currentTime - tgUser.auth_date > 30)) {
-    console.warn('Заблокирован фоновый вход от Telegram (auth_date устарел).');
-    alert('Вход отменен. Чтобы сменить аккаунт, нажмите синюю кнопку Telegram и выберите «ВЫЙТИ» в углу попапа!');
-    
-    localStorage.clear();
-    sessionStorage.clear();
+
+  if (tgUser.auth_date && (currentTime - tgUser.auth_date > 86400)) {
+    alert('Вход отменен. Попробуйте снова.');
     window.location.reload();
     return;
   }
 
-  if (tgUser.id === MY_TELEGRAM_ID) {
-    let adminUser = await getUserByUsername('Letluvv');
-    
-    if (!adminUser) {
-      adminUser = {
-        id: 'admin_tg_' + tgUser.id,
-        username: 'Letluvv',
-        passwordHash: 'tg_authorized',
-        isAdmin: true
-      };
-      await dbPut(STORE_USERS, adminUser);
-    }
+  const MY_TELEGRAM_ID = 696265271;
+  const isAdmin = (tgUser.id === MY_TELEGRAM_ID);
 
-    currentUser = adminUser;
-    currentUser.isAdmin = true;
-    saveSession(currentUser.id);
-    
-    showApp();
+  // Ищем или создаём пользователя по Telegram ID
+  let user = await getUserByUsername('tg_' + tgUser.id);
+
+  if (!user) {
+    user = {
+      id: 'tg_' + tgUser.id,
+      username: tgUser.username || tgUser.first_name || 'user_' + tgUser.id,
+      passwordHash: 'tg_authorized',
+      isAdmin: isAdmin,
+      tgId: tgUser.id,
+      tgUsername: tgUser.username || '',
+      tgFirstName: tgUser.first_name || '',
+      photoUrl: tgUser.photo_url || ''
+    };
+    await dbAdd(STORE_USERS, user);
   } else {
-    alert('Доступ запрещен. Вы не являетесь владельцем проекта.');
-    window.location.reload(); 
+    // Обновляем данные при каждом входе
+    user.username = tgUser.username || tgUser.first_name || user.username;
+    user.tgUsername = tgUser.username || '';
+    user.tgFirstName = tgUser.first_name || '';
+    user.photoUrl = tgUser.photo_url || '';
+    user.isAdmin = isAdmin;
+    await dbPut(STORE_USERS, user);
   }
+
+  currentUser = user;
+  saveSession(currentUser.id);
+
+  showApp();
 }
 
 // ========== РЕДАКТИРОВАНИЕ ТРЕКА ДЛЯ АДМИНА ==========
