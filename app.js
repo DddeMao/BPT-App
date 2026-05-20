@@ -724,12 +724,17 @@ audioPlayer.addEventListener('ended', () => {
 
 // ========== РЕЖИМЫ ПРОСМОТРА ==========
 function showSongsView() {
+  console.log('showSongsView called');
   currentView = 'songs';
   const searchBar = document.querySelector('.search-sort-bar');
   if (searchBar) searchBar.style.display = 'flex';
   dbGetAll(STORE_SONGS).then(songs => {
+    console.log('songs loaded:', songs.length);
     const filtered = getFilteredAndSortedSongs(songs);
     renderFeed(filtered);
+    console.log('feed rendered');
+  }).catch(err => {
+    console.error('showSongsView error:', err);
   });
 }
 

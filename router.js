@@ -20,7 +20,6 @@ const routes = {
         init: () => {
             document.getElementById('content').innerHTML = `<div id="feed" class="grid-container"></div>`;
             if (typeof showSongsView === 'function') showSongsView();
-            // Override sort to favorites
             currentSort = 'favorites';
             if (typeof refreshAll === 'function') refreshAll();
             setActiveNav('navFavorites');
@@ -29,13 +28,14 @@ const routes = {
 };
 
 function navigate(page) {
+    console.log('navigate to:', page);
     const content = document.getElementById('content');
     if (!routes[page]) return;
-
     content.style.opacity = 0;
     setTimeout(() => {
         routes[page].init();
         content.style.opacity = 1;
+        console.log('navigate done:', page);
     }, 150);
 }
 
