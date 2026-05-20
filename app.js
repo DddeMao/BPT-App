@@ -1894,55 +1894,49 @@ function closeModal(modal) {
 
 // ========== АВТОРИЗАЦИЯ ЧЕРЕЗ TELEGRAM ==========
 async function onTelegramAuth(tgUser) {
-  console.log('Данные от Telegram получены:', tgUser);
-
-  if (!tgUser || !tgUser.id) {
-    alert('Авторизация отклонена.');
-    window.location.reload();
-    return;
+  console.log('TG auth start:', tgUser);
+  try {
+    if (!tgUser || !tgUser.id) {
+      alert('Авторизация отклонена.');
+      return;
+    }
+    const MY_TELEGRAM_ID = 696265271;
+    const isAdmin = (tgUser.id === MY_TELEGRAM_ID);
+    const userId = 'tg_' + tgUser.id;
+    console.log('Looking for user:', userId);
+    let user = await dbGet(STORE_USERS, userId);
+    console.log('Found user:', user);
+    if (!user) {
+      user = {
+        id: userId,
+        username: tgUser.username || tgUser.first_name || 'user_' + tgUser.id,
+        passwordHash: 'tg_authorized',
+        isAdmin: isAdmin,
+        tgId: tgUser.id,
+        tgUsername: tgUser.username || '',
+        tgFirstName: tgUser.first_name || '',
+        photoUrl: tgUser.photo_url || ''
+      };
+      await dbAdd(STORE_USERS, user);
+      console.log('Created new user');
+    } else {
+      user.username = tgUser.username || tgUser.first_name || user.username;
+      user.tgUsername = tgUser.username || '';
+      user.tgFirstName = tgUser.first_name || '';
+      user.photoUrl = tgUser.photo_url || '';
+      user.isAdmin = isAdmin;
+      await dbPut(STORE_USERS, user);
+      console.log('Updated existing user');
+    }
+    currentUser = user;
+    saveSession(currentUser.id);
+    console.log('Session saved, showing app');
+    showApp();
+    console.log('App shown!');
+  } catch (err) {
+    console.error('TG auth error:', err);
+    alert('Ошибка: ' + err.message);
   }
-
-  const currentTime = Math.floor(Date.now() / 1000);
-
-  if (tgUser.auth_date && (currentTime - tgUser.auth_date > 86400)) {
-    alert('Вход отменен. Попробуйте снова.');
-    window.location.reload();
-    return;
-  }
-
-  const MY_TELEGRAM_ID = 696265271;
-  const isAdmin = (tgUser.id === MY_TELEGRAM_ID);
-
-  // Ищем пользователя по ID
-  const userId = 'tg_' + tgUser.id;
-  let user = await dbGet(STORE_USERS, userId);
-
-  if (!user) {
-    user = {
-      id: userId,
-      username: tgUser.username || tgUser.first_name || 'user_' + tgUser.id,
-      passwordHash: 'tg_authorized',
-      isAdmin: isAdmin,
-      tgId: tgUser.id,
-      tgUsername: tgUser.username || '',
-      tgFirstName: tgUser.first_name || '',
-      photoUrl: tgUser.photo_url || ''
-    };
-    await dbAdd(STORE_USERS, user);
-  } else {
-    // Обновляем данные при каждом входе
-    user.username = tgUser.username || tgUser.first_name || user.username;
-    user.tgUsername = tgUser.username || '';
-    user.tgFirstName = tgUser.first_name || '';
-    user.photoUrl = tgUser.photo_url || '';
-    user.isAdmin = isAdmin;
-    await dbPut(STORE_USERS, user);
-  }
-
-  currentUser = user;
-  saveSession(currentUser.id);
-
-  showApp();
 }
 
 // ========== РЕДАКТИРОВАНИЕ ТРЕКА ДЛЯ АДМИНА ==========
