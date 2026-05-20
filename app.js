@@ -250,11 +250,12 @@ function showAuthScreen() {
 }
 
 function showApp() {
+    console.log('showApp called');
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
-
-    // ВМЕСТО СТАРОГО РЕНДЕРА:
-    navigate('home'); 
+    console.log('app shown, navigating to home');
+    navigate('home');
+    console.log('navigation done');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
