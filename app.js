@@ -346,23 +346,6 @@ document.querySelector('.close-settings').addEventListener('click', () => {
 });
 
 // ==========================================
-// ЛОГИКА ОТКРЫТИЯ ОКНА НАСТРОЕК 
-// ==========================================
-document.getElementById('settingsBtn').addEventListener('click', () => {
-  document.getElementById('newUsername').value = currentUser.username;
-  document.getElementById('settingsPassword').value = '';
-  
-  // Автоматически подставляем ранее сохраненный токен из localStorage
-  const tokenInput = document.getElementById('settingsGithubToken');
-  if (tokenInput) {
-    tokenInput.value = localStorage.getItem('bpt_github_token') || '';
-  }
-  
-  document.getElementById('modalSettings').classList.add('active');
-  updateAdminUI();
-});
-
-// ==========================================
 // ОБРАБОТЧИК ФОРМЫ НАСТРОЕК
 // ==========================================
 document.getElementById('settingsForm').addEventListener('submit', async function(e) {
@@ -581,8 +564,7 @@ function getFilteredAndSortedSongs(songs) {
 }
 
 // ========== ОТОБРАЖЕНИЕ ТРЕКОВ ==========
-// ========== ОТОБРАЖЕНИЕ ТРЕКОВ ==========
-function renderFeed() {
+function renderFeed(songs) {
   // Находим контейнер. ID 'feed' должен быть в том HTML, который вставляет router.js
   const dynamicList = document.getElementById('feed');
   
@@ -758,7 +740,7 @@ function showSongsView() {
   if (searchBar) searchBar.style.display = 'flex';
   dbGetAll(STORE_SONGS).then(songs => {
     const filtered = getFilteredAndSortedSongs(songs);
-    renderSongs(filtered);
+    renderFeed(filtered);
     renderTop12(songs);
   });
 }
@@ -797,7 +779,7 @@ async function renderAlbums() {
     const scoreDisplay = totalScore !== null
       ? `<span style="color:var(--accent); font-weight:700;">★ ${totalScore}</span>`
       : 'Не оценен';
-    const dateDisplay = albumData?.date ? `📅 ${albumData.date}` : '';
+    const dateDisplay = albumData?.date ? `📅 ${escapeHtml(albumData.date)}` : '';
     
     return `
       <div class="album-card" data-album="${escapeHtml(albumName)}">
@@ -847,7 +829,7 @@ async function openAlbumView(albumName) {
     dateRow.className = 'album-date-row';
     dateRow.innerHTML = `
       <label>📅 Дата альбома:</label>
-      <input type="date" id="albumDateInput" value="${albumData.date || ''}">
+      <input type="date" id="albumDateInput" value="${escapeHtml(albumData.date || '')}">
       <button id="applyDateToTracks" class="btn-settings" style="font-size:0.85rem;">Применить ко всем трекам</button>
     `;
     container.parentNode.insertBefore(dateRow, container);
@@ -1788,7 +1770,7 @@ function refreshAll() {
         return;
       }
       const filtered = getFilteredAndSortedSongs(songs);
-      renderSongs(filtered);
+      renderFeed(filtered);
       renderTop12(songs);
     });
   } else {
@@ -1862,10 +1844,6 @@ document.addEventListener('contextmenu', (e) => {
 
 document.addEventListener('click', () => {
   document.getElementById('contextMenu').style.display = 'none';
-  if (action === 'edit') {
-      contextMenu.style.display = 'none';
-      openEditModal(contextMenuSongId);
-    }
 });
 
 // Обработчики пунктов контекстного меню
@@ -1966,44 +1944,6 @@ async function onTelegramAuth(tgUser) {
     window.location.reload(); 
   }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  const authForm = document.getElementById('authForm');
-  
-  if (authForm) {
-    authForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const authUsername = document.getElementById('authUsername'); // Убедись, что ID верные
-      const authPassword = document.getElementById('authPassword');
-      
-      const username = authUsername.value.trim();
-      const password = authPassword.value;
-
-      if (!username || !password) return;
-
-      // === ЗАЩИТА АДМИНА ===
-      if (username.toLowerCase() === 'letluvv') {
-        alert('Для аккаунта Letluvv вход через Telegram обязателен! 🔒');
-        return;
-      }
-
-      try {
-        if (typeof authMode !== 'undefined' && authMode === 'login') {
-            currentUser = await handleLogin(username, password);
-        } else {
-            currentUser = await handleRegister(username, password);
-        }
-        showApp();
-        refreshAll();
-      } catch (err) {
-        alert(err.message);
-      }
-    });
-  } else {
-    console.warn("Форма авторизации не найдена (возможно, вы уже вошли)");
-  }
-});
 
 // ========== РЕДАКТИРОВАНИЕ ТРЕКА ДЛЯ АДМИНА ==========
 
