@@ -1913,12 +1913,13 @@ async function onTelegramAuth(tgUser) {
   const MY_TELEGRAM_ID = 696265271;
   const isAdmin = (tgUser.id === MY_TELEGRAM_ID);
 
-  // Ищем или создаём пользователя по Telegram ID
-  let user = await getUserByUsername('tg_' + tgUser.id);
+  // Ищем пользователя по ID
+  const userId = 'tg_' + tgUser.id;
+  let user = await dbGet(STORE_USERS, userId);
 
   if (!user) {
     user = {
-      id: 'tg_' + tgUser.id,
+      id: userId,
       username: tgUser.username || tgUser.first_name || 'user_' + tgUser.id,
       passwordHash: 'tg_authorized',
       isAdmin: isAdmin,
