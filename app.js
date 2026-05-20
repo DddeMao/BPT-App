@@ -580,20 +580,31 @@ function getFilteredAndSortedSongs(songs) {
 }
 
 // ========== ОТОБРАЖЕНИЕ ТРЕКОВ ==========
-function app.js {
+// ========== ОТОБРАЖЕНИЕ ТРЕКОВ ==========
+function renderFeed() {
+  // Находим контейнер. ID 'feed' должен быть в том HTML, который вставляет router.js
+  const dynamicList = document.getElementById('feed');
+  
+  if (!dynamicList) return; // Защита на случай, если мы не на той странице
+
   if (!songs || songs.length === 0) {
     dynamicList.innerHTML = '<div style="color:#888; text-align:center; padding:40px;">Треки не найдены</div>';
     return;
   }
-  dynamicList.className = 'song-grid';
+
+  dynamicList.className = 'grid-container'; // Используем наш новый класс для сетки
   const favs = getFavorites();
+
+  // Формируем HTML всех карточек
   dynamicList.innerHTML = songs.map(song => {
     const coverUrl = song.coverUrl || (song.coverBlob ? URL.createObjectURL(song.coverBlob) : '');
     const avg = getAverageRating(song);
-    const userRating = song.ratings?.find(r => r.userId === currentUser.id);
+    // Проверка текущего пользователя (currentUser может быть null, если не авторизован)
+    const userRating = song.ratings?.find(r => r.userId === currentUser?.id);
     const hasUserRating = !!userRating;
     const isFavorite = favs.includes(song.id);
     const canDelete = currentUser?.isAdmin;
+    
     let scoreHtml = '';
     if (hasUserRating) {
       const circles = userRating.scores.map((s, i) =>
@@ -603,13 +614,16 @@ function app.js {
     } else {
       scoreHtml = `<div style="color:#888; font-style:italic;">Вы не оценили</div>`;
     }
+
     if (avg !== null) {
       scoreHtml += `<div style="font-size:0.85rem; color:var(--text-secondary); text-align:right;">Средний балл: ${avg} ★ (${song.ratings.length} оценок)</div>`;
     }
+
     const albumLine = song.album ? `<span>💿 ${escapeHtml(song.album)}</span>` : '';
     const dateLine = song.date ? `<span>📅 ${song.date}</span>` : '';
     const commentCount = (song.comments && song.comments.length) || 0;
     const commentClass = commentCount ? 'comment-btn has-comments' : 'comment-btn';
+
     return `
       <div class="card" data-id="${song.id}">
         <div class="card-top">
@@ -650,25 +664,26 @@ function app.js {
       </div>`;
   }).join('');
 
-  document.querySelectorAll('.play-btn').forEach(btn =>
+  // Навешивание обработчиков событий
+  dynamicList.querySelectorAll('.play-btn').forEach(btn =>
     btn.addEventListener('click', (e) => {
       const id = e.currentTarget.closest('.card')?.dataset.id;
       if (id) playSong(id);
     })
   );
-  document.querySelectorAll('.rate-btn').forEach(btn =>
+  dynamicList.querySelectorAll('.rate-btn').forEach(btn =>
     btn.addEventListener('click', (e) => {
       const id = e.currentTarget.closest('.card')?.dataset.id;
       if (id) openRatingModal(id);
     })
   );
-  document.querySelectorAll('.comment-btn').forEach(btn =>
+  dynamicList.querySelectorAll('.comment-btn').forEach(btn =>
     btn.addEventListener('click', (e) => {
       const id = e.currentTarget.closest('.card')?.dataset.id;
       if (id) openCommentModal(id);
     })
   );
-  document.querySelectorAll('.favorite-btn').forEach(btn =>
+  dynamicList.querySelectorAll('.favorite-btn').forEach(btn =>
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const id = e.currentTarget.closest('.card')?.dataset.id;
@@ -678,7 +693,7 @@ function app.js {
       }
     })
   );
-  document.querySelectorAll('.delete-btn').forEach(btn =>
+  dynamicList.querySelectorAll('.delete-btn').forEach(btn =>
     btn.addEventListener('click', (e) => {
       const id = e.currentTarget.closest('.card')?.dataset.id;
       if (id && confirm('Удалить этот трек и все его данные?')) {
