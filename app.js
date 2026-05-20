@@ -292,21 +292,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-if (authForm) {
-  authForm.addEventListener('submit', (e) => {
-    // Получаем имя, которое вводит пользователь
-    const usernameInput = document.getElementById('username')?.value || '';
-    
-    // Если кто-то пытается войти под Letluvv через обычную форму — намертво блокируем отправку!
-    if (usernameInput.trim() === 'Letluvv') {
-      e.preventDefault(); 
-      e.stopPropagation();
-      alert('Вход для Letluvv возможен ТОЛЬКО через кнопку Telegram!');
-      return false;
-    }
-  });
-}
-
 toggleAuthModeLink.addEventListener('click', (e) => {
   e.preventDefault();
   authMode = authMode === 'login' ? 'register' : 'login';
@@ -701,39 +686,43 @@ function playSong(id) {
       alert('Нет доступного аудио для этого трека');
       return;
     }
-    playerCover.src = song.coverUrl || (song.coverBlob ? URL.createObjectURL(song.coverBlob) : '');
-    playerTitle.textContent = song.title;
-    playerArtist.textContent = song.artist;
-    playerBar.style.display = 'flex';
+    const miniTitle = document.getElementById('miniTitle');
+    const floatingPlayer = document.getElementById('floatingPlayer');
+    if (miniTitle) miniTitle.textContent = `${song.artist} — ${song.title}`;
+    if (floatingPlayer) floatingPlayer.style.display = 'flex';
     audioPlayer.play().catch(console.log);
   });
 }
 
-// Обработчики пульсации для плеера
+// ========== МИНИ-ПЛЕЕР (player-island) ==========
+function togglePlay() {
+  if (audioPlayer.paused) {
+    audioPlayer.play().catch(console.log);
+  } else {
+    audioPlayer.pause();
+  }
+}
+
 audioPlayer.addEventListener('play', () => {
-  setTimeout(() => {
-    if (!audioPlayer.paused) {
-      playerCover.classList.add('playing');
-    }
-  }, 50);
+  const playPauseBtn = document.getElementById('playPauseBtn');
+  if (playPauseBtn) playPauseBtn.textContent = '⏸';
 });
 
 audioPlayer.addEventListener('pause', () => {
-  playerCover.style.animation = 'none';
-  playerCover.offsetHeight;
-  playerCover.style.animation = '';
-  playerCover.classList.remove('playing');
+  const playPauseBtn = document.getElementById('playPauseBtn');
+  if (playPauseBtn) playPauseBtn.textContent = '▶';
 });
 
 audioPlayer.addEventListener('ended', () => {
-  playerCover.classList.remove('playing');
+  const playPauseBtn = document.getElementById('playPauseBtn');
+  const miniTitle = document.getElementById('miniTitle');
+  if (playPauseBtn) playPauseBtn.textContent = '▶';
+  if (miniTitle) miniTitle.textContent = 'Ничего не играет';
 });
 
 // ========== РЕЖИМЫ ПРОСМОТРА ==========
 function showSongsView() {
   currentView = 'songs';
-  viewSongsBtn.classList.add('btn-active');
-  viewAlbumsBtn.classList.remove('btn-active');
   topSidebar.style.display = 'block';
   topAlbumsSidebar.style.display = 'none';
   const searchBar = document.querySelector('.search-sort-bar');
@@ -747,11 +736,10 @@ function showSongsView() {
 
 function showAlbumsView() {
   currentView = 'albums';
-  viewAlbumsBtn.classList.add('btn-active');
-  viewSongsBtn.classList.remove('btn-active');
   topSidebar.style.display = 'none';
   topAlbumsSidebar.style.display = 'block';
-  document.querySelector('.search-sort-bar').style.display = 'none';
+  const searchBar = document.querySelector('.search-sort-bar');
+  if (searchBar) searchBar.style.display = 'none';
   renderAlbums();
   renderTopAlbums();
 }
@@ -767,8 +755,9 @@ async function renderAlbums() {
     albumGroups.get(s.album).push(s);
   });
   
-  dynamicList.className = 'album-list';
-  dynamicList.innerHTML = Array.from(albumGroups.keys()).map(albumName => {
+  const container = document.getElementById('album-grid') || document.getElementById('content');
+  container.className = 'album-list';
+  container.innerHTML = Array.from(albumGroups.keys()).map(albumName => {
     const tracks = albumGroups.get(albumName);
     const firstTrack = tracks[0];
     const coverUrl = firstTrack.coverUrl || (firstTrack.coverBlob ? URL.createObjectURL(firstTrack.coverBlob) : '');
@@ -1746,6 +1735,18 @@ function toggleFavorite(songId) {
   }
 }
 
+function showLoading(text = 'Загрузка...') {
+  const overlay = document.getElementById('loadingOverlay');
+  const loadingText = document.getElementById('loadingText');
+  if (loadingText) loadingText.textContent = text;
+  if (overlay) overlay.classList.add('active');
+}
+
+function hideLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) overlay.classList.remove('active');
+}
+
 function showNotification(message) {
   const notification = document.createElement('div');
   notification.className = 'notification';
@@ -1764,8 +1765,9 @@ function showNotification(message) {
 function refreshAll() {
   if (currentView === 'songs') {
     dbGetAll(STORE_SONGS).then(songs => {
+      const feed = document.getElementById('feed');
       if (!songs || songs.length === 0) {
-        dynamicList.innerHTML = '<div style="color:#888; text-align:center; padding:40px;">Нет треков</div>';
+        if (feed) feed.innerHTML = '<div style="color:#888; text-align:center; padding:40px;">Нет треков</div>';
         topList.innerHTML = '';
         return;
       }
@@ -1778,9 +1780,6 @@ function refreshAll() {
     renderTopAlbums();
   }
 }
-
-viewSongsBtn.addEventListener('click', showSongsView);
-viewAlbumsBtn.addEventListener('click', showAlbumsView);
 
 window.addEventListener('click', (e) => {
   document.querySelectorAll('.modal').forEach(m => {
@@ -1859,13 +1858,16 @@ document.querySelectorAll('.context-menu-item').forEach(item => {
       const isFav = getFavorites().includes(contextMenuSongId);
       showNotification(isFav ? 'Добавлено в избранное' : 'Удалено из избранного');
     }
+    if (action === 'edit' && currentUser?.isAdmin) {
+      openEditModal(contextMenuSongId);
+    }
     if (action === 'delete' && currentUser?.isAdmin) {
-      showConfirm('Удалить трек?', () => {
+      if (confirm('Удалить трек?')) {
         dbDelete(STORE_SONGS, contextMenuSongId).then(() => {
           refreshAll();
           syncWithGitHub();
         });
-      });
+      }
     }
     document.getElementById('contextMenu').style.display = 'none';
   });

@@ -2,15 +2,15 @@ const routes = {
     'home': {
         title: 'Главная',
         init: () => {
-            document.getElementById('content').innerHTML = `<h2>Новинки</h2><div id="feed" class="grid-container"></div>`;
-            renderFeed();
+            document.getElementById('content').innerHTML = `<div id="feed" class="grid-container"></div>`;
+            if (typeof showSongsView === 'function') showSongsView();
         }
     },
     'albums': {
         title: 'Альбомы',
         init: () => {
-            document.getElementById('content').innerHTML = `<h2>Альбомы</h2><div id="album-grid" class="album-grid"></div>`;
-            renderAlbums();
+            document.getElementById('content').innerHTML = `<div id="album-grid" class="album-grid"></div>`;
+            if (typeof showAlbumsView === 'function') showAlbumsView();
         }
     }
 };
