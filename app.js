@@ -251,11 +251,11 @@ function showAuthScreen() {
 
 function showApp() {
     console.log('showApp called');
-    document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    console.log('app shown, navigating to home');
-    navigate('home');
-    console.log('navigation done');
+    var authScreen = document.getElementById('authScreen');
+    var appDiv = document.getElementById('app');
+    if (authScreen) authScreen.style.display = 'none';
+    if (appDiv) appDiv.style.display = 'block';
+    console.log('app shown');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1933,6 +1933,7 @@ async function onTelegramAuth(tgUser) {
     saveSession(currentUser.id);
     console.log('Session saved, showing app');
     showApp();
+    navigate('home');
     console.log('App shown!');
   } catch (err) {
     console.error('TG auth error:', err);
