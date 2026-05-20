@@ -249,7 +249,7 @@ function showAuthScreen() {
   }
 }
 
-ffunction showApp() {
+function showApp() {
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
 
