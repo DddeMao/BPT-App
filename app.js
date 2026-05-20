@@ -1920,21 +1920,20 @@ async function onTelegramAuth(tgUser) {
     let adminUser = await getUserByUsername('Letluvv');
     
     if (!adminUser) {
-      adminUser = { 
-        id: 'admin_tg_' + tgUser.id, 
-        username: 'Letluvv', 
-        passwordHash: 'tg_authorized', 
-        isAdmin: true 
+      adminUser = {
+        id: 'admin_tg_' + tgUser.id,
+        username: 'Letluvv',
+        passwordHash: 'tg_authorized',
+        isAdmin: true
       };
       await dbPut(STORE_USERS, adminUser);
     }
 
     currentUser = adminUser;
-    currentUser.isAdmin = true; 
+    currentUser.isAdmin = true;
     saveSession(currentUser.id);
     
     showApp();
-    refreshAll();
   } else {
     alert('Доступ запрещен. Вы не являетесь владельцем проекта.');
     window.location.reload(); 
