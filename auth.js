@@ -31,8 +31,10 @@ async function handleRegister(username, password) {
   return user;
 }
 
-async function onTelegramAuth(tgUser) {
-  console.log('TG auth:', tgUser);
+// Listen for Telegram auth event from inline script in index.html
+window.addEventListener('telegram-auth', async (e) => {
+  const tgUser = e.detail;
+  console.log('TG auth event received:', tgUser);
   try {
     if (!tgUser?.id) { alert('Авторизация отклонена.'); return; }
     const MY_TG_ID = 696265271;
@@ -64,7 +66,7 @@ async function onTelegramAuth(tgUser) {
     console.error('TG auth error:', err);
     alert('Ошибка: ' + err.message);
   }
-}
+});
 
 function showAuthScreen() {
   const app = document.getElementById('app');
