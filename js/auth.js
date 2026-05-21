@@ -52,6 +52,11 @@ const Auth = {
   },
 
   async onTelegramAuth(tgUser) {
+    console.log('[TG Auth] Данные от Telegram:', tgUser);
+    console.log('[TG Auth] Ожидаемый ID:', CONFIG.MY_TELEGRAM_ID);
+    console.log('[TG Auth] Полученный ID:', tgUser?.id);
+    console.log('[TG Auth] Совпадение:', tgUser?.id === CONFIG.MY_TELEGRAM_ID);
+
     if (!tgUser || !tgUser.id) {
       alert('Авторизация отклонена. Доступ заблокирован!');
       window.location.reload();
@@ -77,6 +82,9 @@ const Auth = {
           isAdmin: true,
         };
         await DB.put(CONFIG.STORE_USERS, adminUser);
+        console.log('[TG Auth] Создан админ аккаунт:', adminUser);
+      } else {
+        console.log('[TG Auth] Найден существующий админ:', adminUser);
       }
       this.currentUser = adminUser;
       this.currentUser.isAdmin = true;
@@ -84,7 +92,7 @@ const Auth = {
       App.showApp();
       App.refreshAll();
     } else {
-      alert('Доступ запрещен. Вы не являетесь владельцем проекта.');
+      alert('Доступ запрещен. Ваш Telegram ID: ' + tgUser.id + ' не совпадает с ожидаемым.');
       window.location.reload();
     }
   },

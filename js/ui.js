@@ -537,9 +537,31 @@ const UI = {
       });
       const otherContainer = document.getElementById('otherRatings');
       const others = song.ratings?.filter(r => r.userId !== Auth.currentUser.id) || [];
+      const isAdmin = Auth.currentUser?.isAdmin;
       otherContainer.innerHTML = others.length === 0
         ? '<div style="color:#888;">Нет оценок</div>'
-        : others.map(r => `<div><strong>${this.escapeHtml(r.username)}</strong>: ${r.total} ★ (${r.scores.map((s, i) => `${CONFIG.CRITERIA[i]}:${s}`).join(', ')})</div>`).join('');
+        : others.map((r, idx) => `
+          <div class="other-rating-item" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
+            <span><strong>${this.escapeHtml(r.username)}</strong>: ${r.total} ★ (${r.scores.map((s, i) => `${CONFIG.CRITERIA[i]}:${s}`).join(', ')})</span>
+            ${isAdmin ? `<button class="delete-rating-btn" data-userid="${r.userId}" style="background:#cf6679;border:none;color:white;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">✕</button>` : ''}
+          </div>`).join('');
+
+      if (isAdmin) {
+        otherContainer.querySelectorAll('.delete-rating-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const targetUserId = e.target.dataset.userid;
+            if (!confirm('Удалить эту оценку?')) return;
+            const songs = await DB.getAll(CONFIG.STORE_SONGS);
+            const s = songs.find(s => s.id === songId);
+            if (!s || !s.ratings) return;
+            s.ratings = s.ratings.filter(r => r.userId !== targetUserId);
+            await DB.put(CONFIG.STORE_SONGS, s);
+            this.openRatingModal(songId);
+            Sync.onDataChanged();
+          });
+        });
+      }
+
       document.getElementById('modalRating').classList.add('active');
     });
   },
@@ -561,9 +583,30 @@ const UI = {
       });
       const otherContainer = document.getElementById('otherAlbumRatings');
       const others = album?.ratings?.filter(r => r.userId !== Auth.currentUser.id) || [];
+      const isAdmin = Auth.currentUser?.isAdmin;
       otherContainer.innerHTML = others.length === 0
         ? '<div style="color:#888;">Нет оценок</div>'
-        : others.map(r => `<div><strong>${this.escapeHtml(r.username)}</strong>: ${r.total} ★</div>`).join('');
+        : others.map(r => `
+          <div class="other-rating-item" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
+            <span><strong>${this.escapeHtml(r.username)}</strong>: ${r.total} ★</span>
+            ${isAdmin ? `<button class="delete-album-rating-btn" data-userid="${r.userId}" style="background:#cf6679;border:none;color:white;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">✕</button>` : ''}
+          </div>`).join('');
+
+      if (isAdmin) {
+        otherContainer.querySelectorAll('.delete-album-rating-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const targetUserId = e.target.dataset.userid;
+            if (!confirm('Удалить эту оценку альбома?')) return;
+            const alb = await DB.get(CONFIG.STORE_ALBUMS, albumName);
+            if (!alb || !alb.ratings) return;
+            alb.ratings = alb.ratings.filter(r => r.userId !== targetUserId);
+            await DB.put(CONFIG.STORE_ALBUMS, alb);
+            this.openAlbumRatingModal(albumName);
+            Sync.onDataChanged();
+          });
+        });
+      }
+
       document.getElementById('modalAlbumRating').classList.add('active');
     });
   },
