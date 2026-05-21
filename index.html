@@ -18,62 +18,98 @@
 
   <!-- Основное приложение (скрыто до входа) -->
   <div id="app" style="display:none;">
+
+    <!-- ВЕРХНЯЯ НАВИГАЦИЯ (десктоп) -->
+    <nav class="top-nav" id="topNav">
+      <button class="nav-item active" data-view="home">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span class="nav-label">Главная</span>
+      </button>
+      <button class="nav-item" data-view="albums">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>
+        <span class="nav-label">Альбомы</span>
+      </button>
+      <button class="nav-item" data-view="favorites">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <span class="nav-label">Избранное</span>
+      </button>
+      <button class="nav-item" data-view="top">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+        <span class="nav-label">Топ</span>
+      </button>
+      <button class="nav-item" data-view="search">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <span class="nav-label">Поиск</span>
+      </button>
+    </nav>
+
+    <!-- НИЖНЯЯ НАВИГАЦИЯ (мобилка) -->
+    <nav class="bottom-nav" id="bottomNav" style="display:none;">
+      <button class="nav-item active" data-view="home">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span class="nav-label">Главная</span>
+      </button>
+      <button class="nav-item" data-view="albums">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+        <span class="nav-label">Альбомы</span>
+      </button>
+      <button class="nav-item" data-view="favorites">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <span class="nav-label">Избранное</span>
+      </button>
+      <button class="nav-item" data-view="top">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+        <span class="nav-label">Топ</span>
+      </button>
+      <button class="nav-item" data-view="search">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <span class="nav-label">Поиск</span>
+      </button>
+    </nav>
+
     <div class="main-area">
       <div class="site-header">
         <img class="logo-icon" src="logo.png" alt="БПТ">
-        <h1>БПТ <span style="font-size:1rem; color: var(--text-secondary);">(Будни против творчества)</span></h1>
+        <h1>БПТ</h1>
         <div class="user-panel">
           <span id="currentUserDisplay"></span>
-          <button id="settingsBtn" class="btn-settings">⚙️ Настройки</button>
-          <button id="logoutBtn">Выйти</button>
+          <button id="settingsBtn" class="btn-icon" title="Настройки">⚙️</button>
+          <button id="logoutBtn" class="btn-icon" title="Выйти">🚪</button>
         </div>
       </div>
 
-<div class="controls" id="mainControls">
-  <button id="viewSongsBtn" class="btn-active">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 6px;"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-    Треки
-  </button>
-  <button id="viewAlbumsBtn">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 6px;">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-  </svg>
-  Альбомы
-</button>
-  <button id="addBtn" style="display:none;">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 6px;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-    Добавить трек
-  </button>
-  <button id="syncNowBtn" class="btn-settings">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 6px;"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-    Синхр.
-  </button>
-  <span class="syncing-dot" id="syncingDot"></span>
-  
-  <div class="search-sort-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-      <input type="text" id="searchInput" class="search-input" placeholder="Поиск...">
-      <button id="clearSearchBtn" class="clear-search-btn" style="display:none;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>
-    <div class="sort-buttons">
-      <button id="sortDateBtn" class="sort-btn active" title="По дате">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
-      </button>
-      <button id="sortNameBtn" class="sort-btn" title="По алфавиту">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z"/></svg>
-      </button>
-      <button id="sortRatingBtn" class="sort-btn" title="По рейтингу">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-      </button>
-      <button id="sortFavoritesBtn" class="sort-btn" title="Избранное">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-      </button>
-    </div>
-  </div>
-</div>
+      <!-- Панель управления (скрытая, для совместимости) -->
+      <div class="controls" id="mainControls" style="display:none;">
+        <button id="addBtn" style="display:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          Добавить трек
+        </button>
+        <button id="syncNowBtn" class="btn-settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+          Синхр.
+        </button>
+        <span class="syncing-dot" id="syncingDot"></span>
+      </div>
+
+      <!-- Поиск (видимый) -->
+      <div class="search-sort-bar" id="searchBar" style="display:none;">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          <input type="text" id="searchInput" class="search-input" placeholder="Поиск треков...">
+          <button id="clearSearchBtn" class="clear-search-btn" style="display:none;">✕</button>
+        </div>
+        <div class="sort-buttons">
+          <button id="sortDateBtn" class="sort-btn active" title="По дате">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+          </button>
+          <button id="sortNameBtn" class="sort-btn" title="По алфавиту">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z"/></svg>
+          </button>
+          <button id="sortRatingBtn" class="sort-btn" title="По рейтингу">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          </button>
+        </div>
+      </div>
 
       <div class="sync-progress-container" id="syncProgressContainer" style="display:none;">
         <div class="sync-progress-bar">
@@ -85,17 +121,41 @@
       <div id="dynamicList" class="song-grid"></div>
     </div>
 
-    <!-- Боковые панели (НА ОДНОМ УРОВНЕ с main-area) -->
+    <!-- Боковые панели -->
     <div class="top-sidebar" id="topSidebar">
       <div class="top-title">🏆 Топ-12 треков</div>
       <div class="top-vertical-list" id="topList"></div>
     </div>
-    
+
     <div class="top-sidebar" id="topAlbumsSidebar" style="display:none;">
       <div class="top-title">🏆 Топ-5 альбомов</div>
       <div class="top-vertical-list" id="topAlbumsList"></div>
     </div>
   </div>
+
+  <!-- НИЖНЯЯ НАВИГАЦИЯ (мобилка) -->
+  <nav class="bottom-nav" id="bottomNav" style="display:none;">
+    <button class="nav-item active" data-view="home">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span class="nav-label">Главная</span>
+    </button>
+    <button class="nav-item" data-view="albums">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+      <span class="nav-label">Альбомы</span>
+    </button>
+    <button class="nav-item" data-view="favorites">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <span class="nav-label">Избранное</span>
+    </button>
+    <button class="nav-item" data-view="top">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+      <span class="nav-label">Топ</span>
+    </button>
+    <button class="nav-item" data-view="search">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <span class="nav-label">Поиск</span>
+    </button>
+  </nav>
 
   <!-- Экран входа / регистрации -->
 <div id="authScreen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;">
@@ -143,6 +203,10 @@
         <div id="playerTitle"></div>
         <div id="playerArtist"></div>
       </div>
+    </div>
+    <canvas id="visualizerCanvas" width="200" height="50" style="flex:0 0 200px;"></canvas>
+    <div class="player-controls">
+      <button id="visualizerModeBtn" class="btn-icon" title="Сменить режим визуализации">📊</button>
     </div>
     <audio id="audioPlayer" controls></audio>
   </div>
@@ -221,38 +285,64 @@
     </div>
   </div>
 
-  <!-- Остальные модальные окна без изменений -->
-  <div id="modalRating" class="modal">
-    <div class="modal-content" style="max-width:550px;">
-	<div class="modal-inner">
-      <span class="close-rating">&times;</span>
-      <h2>Оценка трека</h2>
-      <div class="rating-header" id="ratingHeader"></div>
-      <form id="ratingForm">
-        <div id="ratingSliders"></div>
-        <div class="live-total">Ваш общий балл: <span id="liveTotal">0</span></div>
-        <button type="submit" style="width:100%; margin-top:16px;">Сохранить оценку</button>
-      </form>
-      <div style="margin-top:20px;"><h4>Оценки других пользователей</h4><div id="otherRatings" style="max-height:150px; overflow-y:auto; background:#2c2c3a; border-radius:8px; padding:8px;"></div></div>
-    </div>
-	</div>
-  </div>
-
-  <div id="modalComment" class="modal">
-    <div class="modal-content" style="max-width:600px;">
-      <span class="close-comment">&times;</span>
-      <h2>Комментарии</h2>
-      <p id="commentSongInfo" style="color: var(--text-secondary); margin-bottom:12px;"></p>
-      <div class="comments-list" id="commentsContainer"></div>
-      <div class="form-group">
-        <label>Ваш ник</label>
-        <input type="text" id="commentAuthor" readonly>
+  <!-- ОКНО ТРЕКА С ВКЛАДКАМИ -->
+  <div id="trackView" class="track-view-overlay">
+    <div class="track-view-container">
+      <div class="track-view-header">
+        <img class="track-view-cover" id="trackViewCover" src="" alt="cover">
+        <div class="track-view-info">
+          <div class="track-view-title" id="trackViewTitle"></div>
+          <div class="track-view-artist" id="trackViewArtist"></div>
+          <div class="track-view-meta" id="trackViewMeta"></div>
+        </div>
+        <button class="track-view-close" id="trackViewClose">&times;</button>
       </div>
-      <div class="form-group">
-        <label>Комментарий</label>
-        <textarea id="commentText" rows="3" placeholder="Введите текст..."></textarea>
+      <div class="track-view-tabs">
+        <button class="track-view-tab active" data-tab="ratings">⭐ Оценки</button>
+        <button class="track-view-tab" data-tab="lyrics">📝 Текст</button>
+        <button class="track-view-tab" data-tab="comments">💬 Комментарии</button>
+        <button class="track-view-tab" data-tab="info">📊 Инфо</button>
       </div>
-      <button id="addCommentBtn" style="width:100%;">Отправить</button>
+      <div class="track-view-body">
+        <!-- Вкладка: Оценки -->
+        <div class="track-view-tab-content active" id="tabRatings">
+          <div class="track-rating-layout">
+            <div class="track-rating-radar">
+              <canvas id="trackRatingRadar" width="220" height="220"></canvas>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Радиарная диаграмма</div>
+            </div>
+            <div class="track-rating-sliders">
+              <form id="ratingForm">
+                <div id="ratingSliders"></div>
+                <div class="live-total">Ваш общий балл: <span id="liveTotal">0</span></div>
+                <button type="submit" style="width:100%;margin-top:16px;">Сохранить оценку</button>
+              </form>
+            </div>
+          </div>
+          <div class="track-rating-other">
+            <h4>Оценки других пользователей</h4>
+            <div id="otherRatings" style="max-height:150px;overflow-y:auto;background:var(--surface);border-radius:8px;padding:8px;"></div>
+          </div>
+        </div>
+        <!-- Вкладка: Текст -->
+        <div class="track-view-tab-content" id="tabLyrics">
+          <div class="track-lyrics" id="trackLyrics"></div>
+        </div>
+        <!-- Вкладка: Комментарии -->
+        <div class="track-view-tab-content" id="tabComments">
+          <div class="track-comments-list" id="commentsContainer"></div>
+          <div class="track-comments-form">
+            <div class="form-group">
+              <textarea id="commentText" rows="2" placeholder="Написать комментарий..."></textarea>
+            </div>
+            <button id="addCommentBtn">Отправить</button>
+          </div>
+        </div>
+        <!-- Вкладка: Инфо -->
+        <div class="track-view-tab-content" id="tabInfo">
+          <div class="track-info-grid" id="trackInfoGrid"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -336,6 +426,8 @@
   <script src="js/auth.js"></script>
   <script src="js/sync.js"></script>
   <script src="js/player.js"></script>
+  <script src="js/radar.js"></script>
+  <script src="js/visualizer.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/main.js"></script>
 </body>

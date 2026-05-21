@@ -4,14 +4,19 @@
 const App = {
   init() {
     this.bindGlobalEvents();
+    this.bindTrackViewEvents();
   },
 
   // ========== ОБРАБОТЧИКИ СОБЫТИЙ ==========
 
   bindGlobalEvents() {
-    // Кнопки навигации
-    document.getElementById('viewSongsBtn').addEventListener('click', () => this.showSongsView());
-    document.getElementById('viewAlbumsBtn').addEventListener('click', () => this.showAlbumsView());
+    // Навигация (верхняя + нижняя)
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        const view = e.currentTarget.dataset.view;
+        if (view) this.navigateTo(view);
+      });
+    });
 
     // Аутентификация
     document.getElementById('authForm').addEventListener('submit', (e) => this.handleAuthSubmit(e));
@@ -32,17 +37,9 @@ const App = {
     document.querySelector('.close-edit').addEventListener('click', () => UI.closeModal(document.getElementById('modalEdit')));
     document.getElementById('editSongForm').addEventListener('submit', (e) => this.handleEditSong(e));
 
-    // Оценка трека
-    document.querySelector('.close-rating').addEventListener('click', () => UI.closeModal(document.getElementById('modalRating')));
-    document.getElementById('ratingForm').addEventListener('submit', (e) => this.handleRatingSubmit(e));
-
     // Оценка альбома
     document.querySelector('.close-album-rating').addEventListener('click', () => UI.closeModal(document.getElementById('modalAlbumRating')));
     document.getElementById('albumRatingForm').addEventListener('submit', (e) => this.handleAlbumRatingSubmit(e));
-
-    // Комментарии
-    document.querySelector('.close-comment').addEventListener('click', () => UI.closeModal(document.getElementById('modalComment')));
-    document.getElementById('addCommentBtn').addEventListener('click', () => this.handleAddComment());
 
     // Синхронизация
     document.getElementById('syncNowBtn').addEventListener('click', () => Sync.sync(true));
@@ -64,13 +61,16 @@ const App = {
     document.getElementById('sortDateBtn').addEventListener('click', () => this.setSort('date'));
     document.getElementById('sortNameBtn').addEventListener('click', () => this.setSort('name'));
     document.getElementById('sortRatingBtn').addEventListener('click', () => this.setSort('rating'));
-    document.getElementById('sortFavoritesBtn').addEventListener('click', () => this.setSort('favorites'));
 
     // Закрытие модалок по клику на фон
     window.addEventListener('click', (e) => {
       document.querySelectorAll('.modal').forEach(m => {
         if (e.target === m) UI.closeModal(m);
       });
+      // Закрытие окна трека
+      if (e.target.id === 'trackView') {
+        document.getElementById('trackView').classList.remove('active');
+      }
     });
 
     // Горячие клавиши
@@ -79,7 +79,10 @@ const App = {
       if (e.key === ' ') { e.preventDefault(); Player.audio.paused ? Player.audio.play() : Player.audio.pause(); }
       if (e.key === 'ArrowLeft') Player.audio.currentTime -= 5;
       if (e.key === 'ArrowRight') Player.audio.currentTime += 5;
-      if (e.key === 'Escape') document.querySelectorAll('.modal.active').forEach(m => UI.closeModal(m));
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal.active').forEach(m => UI.closeModal(m));
+        document.getElementById('trackView').classList.remove('active');
+      }
     });
 
     // Контекстное меню
@@ -91,6 +94,79 @@ const App = {
     // Автозаполнение тегов
     this.bindTagReader();
   },
+
+  // ========== ОБРАБОТЧИКИ ОКНА ТРЕКА ==========
+
+  bindTrackViewEvents() {
+    // Закрытие окна трека
+    document.getElementById('trackViewClose').addEventListener('click', () => {
+      document.getElementById('trackView').classList.remove('active');
+    });
+
+    // Переключение вкладок
+    document.querySelectorAll('.track-view-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        const tabName = e.currentTarget.dataset.tab;
+        if (tabName) UI.switchTrackTab(tabName);
+      });
+    });
+
+    // Форма оценки внутри окна трека
+    document.getElementById('ratingForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.handleTrackRatingSubmit();
+    });
+
+    // Форма комментариев внутри окна трека
+    document.getElementById('addCommentBtn').addEventListener('click', () => {
+      this.handleTrackCommentSubmit();
+    });
+  },
+
+  async handleTrackRatingSubmit() {
+    const songId = UI.currentTrackSongId;
+    if (!songId) return;
+    const scores = CONFIG.CRITERIA.map((_, i) => {
+      const slider = document.getElementById(`ratingSlidersRange${i}`);
+      return slider ? parseInt(slider.value, 10) : 0;
+    });
+    const total = scores.reduce((a, b) => a + b, 0);
+    const songs = await DB.getAll(CONFIG.STORE_SONGS);
+    const song = songs.find(s => s.id === songId);
+    if (!song) return;
+    if (!song.ratings) song.ratings = [];
+    const myIndex = song.ratings.findIndex(r => r.userId === Auth.currentUser.id);
+    const ratingObj = { userId: Auth.currentUser.id, username: Auth.currentUser.username, scores, total, date: new Date().toISOString() };
+    if (myIndex >= 0) song.ratings[myIndex] = ratingObj;
+    else song.ratings.push(ratingObj);
+    await DB.put(CONFIG.STORE_SONGS, song);
+    UI.showNotification('Оценка сохранена!');
+    UI.loadTrackRatings();
+    Sync.onDataChanged();
+  },
+
+  async handleTrackCommentSubmit() {
+    const songId = UI.currentTrackSongId;
+    if (!songId) return;
+    const text = document.getElementById('commentText').value.trim();
+    if (!text) return alert('Введите текст комментария');
+    const songs = await DB.getAll(CONFIG.STORE_SONGS);
+    const song = songs.find(s => s.id === songId);
+    if (!song) return;
+    if (!song.comments) song.comments = [];
+    song.comments.push({
+      userId: Auth.currentUser.id,
+      username: Auth.currentUser.username,
+      text,
+      date: new Date().toLocaleString('ru-RU'),
+    });
+    await DB.put(CONFIG.STORE_SONGS, song);
+    document.getElementById('commentText').value = '';
+    UI.loadTrackComments();
+    Sync.onDataChanged();
+  },
+
+  // ========== КОНТЕКСТНОЕ МЕНЮ ==========
 
   bindContextMenu() {
     document.addEventListener('contextmenu', (e) => {
@@ -122,8 +198,8 @@ const App = {
         const action = item.dataset.action;
         if (!UI.contextMenuSongId) return;
         if (action === 'play') Player.play(UI.contextMenuSongId);
-        if (action === 'rate') UI.openRatingModal(UI.contextMenuSongId);
-        if (action === 'comment') UI.openCommentModal(UI.contextMenuSongId);
+        if (action === 'rate') UI.openTrackView(UI.contextMenuSongId, 'ratings');
+        if (action === 'comment') UI.openTrackView(UI.contextMenuSongId, 'comments');
         if (action === 'favorite') {
           UI.toggleFavorite(UI.contextMenuSongId);
           const isFav = UI.getFavorites().includes(UI.contextMenuSongId);
@@ -180,7 +256,6 @@ const App = {
       const file = e.target.files[0];
       if (!file) return;
       if (typeof jsmediatags === 'undefined') { console.error('jsmediatags не загружена'); return; }
-
       jsmediatags.read(file, {
         onSuccess: function(tag) {
           const tags = tag.tags;
@@ -260,8 +335,6 @@ const App = {
     this.showAuthScreen();
   },
 
-  // ========== ЭКРАНЫ ==========
-
   showAuthScreen() {
     document.getElementById('app').style.display = 'none';
     document.getElementById('authScreen').style.display = 'flex';
@@ -292,58 +365,80 @@ const App = {
     document.getElementById('deleteAlbumBtn').style.display = isAdmin ? 'inline-block' : 'none';
   },
 
-  // ========== ВИДЫ ==========
+  // ========== НАВИГАЦИЯ МЕЖДУ РАЗДЕЛАМИ ==========
 
-  showSongsView() {
-    UI.currentView = 'songs';
-    document.getElementById('viewSongsBtn').classList.add('btn-active');
-    document.getElementById('viewAlbumsBtn').classList.remove('btn-active');
-    document.getElementById('topSidebar').style.display = 'block';
-    document.getElementById('topAlbumsSidebar').style.display = 'none';
-    const searchBar = document.querySelector('.search-sort-bar');
-    if (searchBar) searchBar.style.display = 'flex';
-    DB.getAll(CONFIG.STORE_SONGS).then(songs => {
-      const filtered = UI.getFilteredAndSortedSongs(songs);
-      UI.renderSongs(filtered);
-      UI.renderTop12(songs);
+  navigateTo(view) {
+    UI.currentView = view;
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.classList.toggle('active', item.dataset.view === view);
     });
-  },
-
-  showAlbumsView() {
-    UI.currentView = 'albums';
-    document.getElementById('viewAlbumsBtn').classList.add('btn-active');
-    document.getElementById('viewSongsBtn').classList.remove('btn-active');
     document.getElementById('topSidebar').style.display = 'none';
-    document.getElementById('topAlbumsSidebar').style.display = 'block';
-    document.querySelector('.search-sort-bar').style.display = 'none';
-    UI.renderAlbums();
-    UI.renderTopAlbums();
-  },
+    document.getElementById('topAlbumsSidebar').style.display = 'none';
+    const searchBar = document.getElementById('searchBar');
+    if (searchBar) searchBar.style.display = 'none';
+    const container = document.getElementById('dynamicList');
 
-  refreshAll() {
-    if (UI.currentView === 'songs') {
-      DB.getAll(CONFIG.STORE_SONGS).then(songs => {
-        if (!songs || songs.length === 0) {
-          document.getElementById('dynamicList').innerHTML = '<div style="color:#888; text-align:center; padding:40px;">Нет треков</div>';
+    switch (view) {
+      case 'home':
+        document.getElementById('topSidebar').style.display = 'block';
+        if (searchBar) searchBar.style.display = 'flex';
+        DB.getAll(CONFIG.STORE_SONGS).then(songs => {
+          const filtered = UI.getFilteredAndSortedSongs(songs);
+          UI.renderSongs(filtered);
+          UI.renderTop12(songs);
+        });
+        break;
+      case 'albums':
+        document.getElementById('topAlbumsSidebar').style.display = 'block';
+        UI.renderAlbums();
+        UI.renderTopAlbums();
+        break;
+      case 'favorites':
+        if (searchBar) searchBar.style.display = 'flex';
+        DB.getAll(CONFIG.STORE_SONGS).then(songs => {
+          const favs = UI.getFavorites();
+          const filtered = songs.filter(s => favs.includes(s.id));
+          if (filtered.length === 0) {
+            container.innerHTML = '<div style="color:#888;text-align:center;padding:60px 20px;"><div style="font-size:3rem;margin-bottom:16px;">💜</div><div>Нет избранных треков</div><div style="font-size:0.85rem;margin-top:8px;color:var(--text-muted);">Нажмите ❤️ на треке чтобы добавить</div></div>';
+          } else {
+            UI.renderSongs(filtered);
+          }
           document.getElementById('topList').innerHTML = '';
-          return;
-        }
-        const filtered = UI.getFilteredAndSortedSongs(songs);
-        UI.renderSongs(filtered);
-        UI.renderTop12(songs);
-      });
-    } else {
-      UI.renderAlbums();
-      UI.renderTopAlbums();
+        });
+        break;
+      case 'top':
+        if (searchBar) searchBar.style.display = 'flex';
+        DB.getAll(CONFIG.STORE_SONGS).then(songs => {
+          const rated = songs.filter(s => s.ratings && s.ratings.length > 0).map(s => ({ song: s, avg: UI.getAverageRating(s) })).sort((a, b) => b.avg - a.avg).slice(0, 20);
+          if (rated.length === 0) {
+            container.innerHTML = '<div style="color:#888;text-align:center;padding:60px 20px;"><div style="font-size:3rem;margin-bottom:16px;">🏆</div><div>Нет оценённых треков</div></div>';
+          } else {
+            UI.renderSongs(rated.map(r => r.song));
+          }
+          document.getElementById('topList').innerHTML = '';
+        });
+        break;
+      case 'search':
+        if (searchBar) searchBar.style.display = 'flex';
+        document.getElementById('searchInput').focus();
+        DB.getAll(CONFIG.STORE_SONGS).then(songs => {
+          const filtered = UI.getFilteredAndSortedSongs(songs);
+          UI.renderSongs(filtered);
+          UI.renderTop12(songs);
+        });
+        break;
     }
   },
 
-  // ========== СОРТИРОВКА ==========
+  refreshAll() {
+    this.navigateTo(UI.currentView);
+  },
 
   setSort(sort) {
     UI.currentSort = sort;
     document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(`sort${sort.charAt(0).toUpperCase() + sort.slice(1)}Btn`).classList.add('active');
+    const btn = document.getElementById(`sort${sort.charAt(0).toUpperCase() + sort.slice(1)}Btn`);
+    if (btn) btn.classList.add('active');
     this.refreshAll();
   },
 
@@ -363,74 +458,38 @@ const App = {
     const newUsername = document.getElementById('newUsername').value.trim();
     const password = document.getElementById('settingsPassword').value;
     if (!newUsername) return;
-
     const skipPasswordCheck = (Auth.currentUser.username === 'Letluvv' || Auth.currentUser.isAdmin || Auth.currentUser.passwordHash === 'tg_authorized');
-    if (!skipPasswordCheck && !password) {
-      UI.showNotification('Введите пароль для сохранения!', true);
-      return;
-    }
-
+    if (!skipPasswordCheck && !password) { UI.showNotification('Введите пароль для сохранения!', true); return; }
     try {
-      if (!skipPasswordCheck) {
-        const hash = await Auth.hashPassword(password);
-        if (hash !== Auth.currentUser.passwordHash) throw new Error('Неверный пароль');
-      }
-
+      if (!skipPasswordCheck) { const hash = await Auth.hashPassword(password); if (hash !== Auth.currentUser.passwordHash) throw new Error('Неверный пароль'); }
       if (newUsername !== Auth.currentUser.username) {
         const existing = await DB.getUserByUsername(newUsername);
         if (existing) throw new Error('Этот ник уже занят');
-
         const updatedUser = { ...Auth.currentUser, username: newUsername };
         await DB.put(CONFIG.STORE_USERS, updatedUser);
-
         const songs = await DB.getAll(CONFIG.STORE_SONGS);
         for (const song of songs) {
           let changed = false;
-          if (song.ratings) {
-            for (const r of song.ratings) {
-              if (r.userId === Auth.currentUser.id) { r.username = newUsername; changed = true; }
-            }
-          }
-          if (song.comments) {
-            for (const c of song.comments) {
-              if (c.userId === Auth.currentUser.id) { c.username = newUsername; changed = true; }
-            }
-          }
+          if (song.ratings) { for (const r of song.ratings) { if (r.userId === Auth.currentUser.id) { r.username = newUsername; changed = true; } } }
+          if (song.comments) { for (const c of song.comments) { if (c.userId === Auth.currentUser.id) { c.username = newUsername; changed = true; } } }
           if (changed) await DB.put(CONFIG.STORE_SONGS, song);
         }
-
         const albums = await DB.getAll(CONFIG.STORE_ALBUMS);
         for (const album of albums) {
-          if (album.ratings) {
-            let changed = false;
-            for (const r of album.ratings) {
-              if (r.userId === Auth.currentUser.id) { r.username = newUsername; changed = true; }
-            }
-            if (changed) await DB.put(CONFIG.STORE_ALBUMS, album);
-          }
+          if (album.ratings) { let changed = false; for (const r of album.ratings) { if (r.userId === Auth.currentUser.id) { r.username = newUsername; changed = true; } } if (changed) await DB.put(CONFIG.STORE_ALBUMS, album); }
         }
-
         Auth.currentUser = updatedUser;
         const userDisplay = document.getElementById('currentUserDisplay');
         if (userDisplay) userDisplay.textContent = `👤 ${Auth.currentUser.username}`;
       }
-
       const tokenInput = document.getElementById('settingsGithubToken');
-      if (tokenInput) {
-        const newTokenValue = tokenInput.value.trim();
-        localStorage.setItem('bpt_github_token', newTokenValue);
-        Sync.token = newTokenValue;
-      }
-
+      if (tokenInput) { const newTokenValue = tokenInput.value.trim(); localStorage.setItem('bpt_github_token', newTokenValue); Sync.token = newTokenValue; }
       UI.showNotification('Настройки успешно сохранены!');
       UI.closeModal(document.getElementById('modalSettings'));
       this.refreshAll();
       Sync.onDataChanged();
       if (Sync.token) Sync.sync();
-    } catch (error) {
-      console.error('Ошибка изменения настроек:', error);
-      UI.showNotification(error.message, true);
-    }
+    } catch (error) { console.error('Ошибка изменения настроек:', error); UI.showNotification(error.message, true); }
   },
 
   // ========== ДОБАВЛЕНИЕ ТРЕКА ==========
@@ -442,48 +501,25 @@ const App = {
     const date = document.getElementById('addDate').value;
     const rawCoverUrl = document.getElementById('addCoverUrl').value.trim();
     const coverUrl = UI.fixDropboxUrl(rawCoverUrl);
-
     if (!artist) return alert('Введите исполнителя');
-
     const rows = Array.from(document.getElementById('audioUrlsContainer').querySelectorAll('.audio-track-row'));
-    const tracks = rows
-      .map(row => ({
-        url: UI.fixDropboxUrl(row.querySelector('.audio-url-input').value.trim()),
-        title: row.querySelector('.audio-title-input').value.trim(),
-      }))
-      .filter(track => track.url !== '');
-
+    const tracks = rows.map(row => ({ url: UI.fixDropboxUrl(row.querySelector('.audio-url-input').value.trim()), title: row.querySelector('.audio-title-input').value.trim() })).filter(track => track.url !== '');
     if (tracks.length === 0) return alert('Добавьте хотя бы одну ссылку на аудиофайл');
-    for (const track of tracks) {
-      if (!track.title) return alert('Укажите название для каждого трека');
-    }
-
+    for (const track of tracks) { if (!track.title) return alert('Укажите название для каждого трека'); }
     try {
       for (const track of tracks) {
-        const newSong = {
-          title: track.title, artist, album: album || '', date,
-          audioUrl: track.url, coverUrl: coverUrl || '',
-          ratings: [], comments: [],
-        };
+        const newSong = { title: track.title, artist, album: album || '', date, audioUrl: track.url, coverUrl: coverUrl || '', ratings: [], comments: [] };
         const addedSong = await DB.add(CONFIG.STORE_SONGS, newSong);
         if (album) {
           const albumData = await DB.get(CONFIG.STORE_ALBUMS, album);
-          if (albumData) {
-            const currentOrder = albumData.trackOrder || [];
-            currentOrder.push(addedSong.id);
-            await DB.put(CONFIG.STORE_ALBUMS, { ...albumData, trackOrder: currentOrder });
-          } else {
-            await DB.put(CONFIG.STORE_ALBUMS, { name: album, ratings: [], trackOrder: [addedSong.id] });
-          }
+          if (albumData) { const currentOrder = albumData.trackOrder || []; currentOrder.push(addedSong.id); await DB.put(CONFIG.STORE_ALBUMS, { ...albumData, trackOrder: currentOrder }); }
+          else { await DB.put(CONFIG.STORE_ALBUMS, { name: album, ratings: [], trackOrder: [addedSong.id] }); }
         }
       }
       UI.closeModal(document.getElementById('modalAdd'));
       this.refreshAll();
       Sync.onDataChanged();
-    } catch (err) {
-      console.error(err);
-      alert('Ошибка при сохранении треков');
-    }
+    } catch (err) { console.error(err); alert('Ошибка при сохранении треков'); }
   },
 
   // ========== РЕДАКТИРОВАНИЕ ТРЕКА ==========
@@ -491,15 +527,12 @@ const App = {
   async handleEditSong(e) {
     e.preventDefault();
     if (!Auth.currentUser || !Auth.currentUser.isAdmin) return;
-
     const songId = document.getElementById('editSongId').value;
     const songs = await DB.getAll(CONFIG.STORE_SONGS);
     const song = songs.find(s => s.id === songId);
     if (!song) return;
-
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) overlay.classList.add('active');
-
     try {
       song.title = document.getElementById('editSongTitle').value.trim();
       song.artist = document.getElementById('editSongArtist').value.trim();
@@ -508,73 +541,28 @@ const App = {
       song.album = newAlbum || null;
       song.audioUrl = document.getElementById('editSongAudioUrl').value.trim() || null;
       song.coverUrl = document.getElementById('editSongCoverUrl').value.trim() || null;
-
       const audioFile = document.getElementById('editSongAudioFile').files[0];
       if (audioFile) { song.audioBlob = audioFile; song.audioUrl = null; }
-
       const coverFile = document.getElementById('editSongCoverFile').files[0];
       if (coverFile) { song.coverBlob = coverFile; song.coverUrl = null; }
-
       await DB.put(CONFIG.STORE_SONGS, song);
-
       if (oldAlbum !== newAlbum) {
-        if (oldAlbum) {
-          const albumOldObj = await DB.get(CONFIG.STORE_ALBUMS, oldAlbum);
-          if (albumOldObj && albumOldObj.trackOrder) {
-            albumOldObj.trackOrder = albumOldObj.trackOrder.filter(id => id !== song.id);
-            await DB.put(CONFIG.STORE_ALBUMS, albumOldObj);
-          }
-        }
-        if (newAlbum) {
-          const albumNewObj = await DB.get(CONFIG.STORE_ALBUMS, newAlbum) || { name: newAlbum, ratings: [], trackOrder: [] };
-          if (!albumNewObj.trackOrder) albumNewObj.trackOrder = [];
-          if (!albumNewObj.trackOrder.includes(song.id)) albumNewObj.trackOrder.push(song.id);
-          await DB.put(CONFIG.STORE_ALBUMS, albumNewObj);
-        }
+        if (oldAlbum) { const albumOldObj = await DB.get(CONFIG.STORE_ALBUMS, oldAlbum); if (albumOldObj && albumOldObj.trackOrder) { albumOldObj.trackOrder = albumOldObj.trackOrder.filter(id => id !== song.id); await DB.put(CONFIG.STORE_ALBUMS, albumOldObj); } }
+        if (newAlbum) { const albumNewObj = await DB.get(CONFIG.STORE_ALBUMS, newAlbum) || { name: newAlbum, ratings: [], trackOrder: [] }; if (!albumNewObj.trackOrder) albumNewObj.trackOrder = []; if (!albumNewObj.trackOrder.includes(song.id)) albumNewObj.trackOrder.push(song.id); await DB.put(CONFIG.STORE_ALBUMS, albumNewObj); }
       }
-
       UI.closeModal(document.getElementById('modalEdit'));
       this.refreshAll();
       Sync.onDataChanged();
-    } catch (error) {
-      console.error('Ошибка при редактировании трека:', error);
-      alert('Не удалось сохранить изменения: ' + error.message);
-    } finally {
-      if (overlay) overlay.classList.remove('active');
-    }
+    } catch (error) { console.error('Ошибка при редактировании трека:', error); alert('Не удалось сохранить изменения: ' + error.message); }
+    finally { if (overlay) overlay.classList.remove('active'); }
   },
 
-  // ========== ОЦЕНКИ ==========
-
-  async handleRatingSubmit(e) {
-    e.preventDefault();
-    if (!UI.currentRatingSongId) return;
-    const scores = CONFIG.CRITERIA.map((_, i) => {
-      const slider = document.getElementById(`ratingSlidersRange${i}`);
-      return slider ? parseInt(slider.value, 10) : 0;
-    });
-    const total = scores.reduce((a, b) => a + b, 0);
-    const songs = await DB.getAll(CONFIG.STORE_SONGS);
-    const song = songs.find(s => s.id === UI.currentRatingSongId);
-    if (!song) return;
-    if (!song.ratings) song.ratings = [];
-    const myIndex = song.ratings.findIndex(r => r.userId === Auth.currentUser.id);
-    const ratingObj = { userId: Auth.currentUser.id, username: Auth.currentUser.username, scores, total, date: new Date().toISOString() };
-    if (myIndex >= 0) song.ratings[myIndex] = ratingObj;
-    else song.ratings.push(ratingObj);
-    await DB.put(CONFIG.STORE_SONGS, song);
-    UI.closeModal(document.getElementById('modalRating'));
-    this.refreshAll();
-    Sync.onDataChanged();
-  },
+  // ========== ОЦЕНКА АЛЬБОМА ==========
 
   async handleAlbumRatingSubmit(e) {
     e.preventDefault();
     if (!UI.currentAlbumRatingName) return;
-    const scores = CONFIG.CRITERIA.map((_, i) => {
-      const slider = document.getElementById(`albumRatingSlidersRange${i}`);
-      return slider ? parseInt(slider.value, 10) : 0;
-    });
+    const scores = CONFIG.CRITERIA.map((_, i) => { const slider = document.getElementById(`albumRatingSlidersRange${i}`); return slider ? parseInt(slider.value, 10) : 0; });
     const total = scores.reduce((a, b) => a + b, 0);
     const album = await DB.get(CONFIG.STORE_ALBUMS, UI.currentAlbumRatingName) || { name: UI.currentAlbumRatingName, ratings: [], trackOrder: [] };
     if (!album.ratings) album.ratings = [];
@@ -587,37 +575,16 @@ const App = {
     this.refreshAll();
     Sync.onDataChanged();
   },
-
-  // ========== КОММЕНТАРИИ ==========
-
-  async handleAddComment() {
-    if (!UI.currentCommentSongId) return;
-    const text = document.getElementById('commentText').value.trim();
-    if (!text) return alert('Введите текст комментария');
-    const songs = await DB.getAll(CONFIG.STORE_SONGS);
-    const song = songs.find(s => s.id === UI.currentCommentSongId);
-    if (!song) return;
-    if (!song.comments) song.comments = [];
-    song.comments.push({
-      userId: Auth.currentUser.id,
-      username: Auth.currentUser.username,
-      text,
-      date: new Date().toLocaleString('ru-RU'),
-    });
-    await DB.put(CONFIG.STORE_SONGS, song);
-    UI.openCommentModal(UI.currentCommentSongId);
-    Sync.onDataChanged();
-  },
 };
 
 // ========== СТАРТ ==========
 document.addEventListener('DOMContentLoaded', async () => {
   Player.init();
+  App.init();
 
   try {
     await DB.open();
     await Auth.initAdmin();
-    App.init();
 
     const savedId = Auth.getSavedUserId();
     if (savedId) {

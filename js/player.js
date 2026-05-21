@@ -1,5 +1,5 @@
 /**
- * Аудиоплеер
+ * Аудиоплеер + визуализатор
  */
 const Player = {
   audio: null,
@@ -15,18 +15,36 @@ const Player = {
     this.artist = document.getElementById('playerArtist');
     this.bar = document.getElementById('player');
 
+    // Инициализация визуализатора
+    Visualizer.init();
+
     this.audio.addEventListener('play', () => {
       setTimeout(() => { if (!this.audio.paused) this.cover.classList.add('playing'); }, 50);
+      Visualizer.connect();
     });
     this.audio.addEventListener('pause', () => {
       this.cover.style.animation = 'none';
       this.cover.offsetHeight;
       this.cover.style.animation = '';
       this.cover.classList.remove('playing');
+      Visualizer.stop();
     });
     this.audio.addEventListener('ended', () => {
       this.cover.classList.remove('playing');
+      Visualizer.stop();
     });
+
+    // Кнопка переключения режима визуализации
+    const modeBtn = document.getElementById('visualizerModeBtn');
+    if (modeBtn) {
+      modeBtn.addEventListener('click', () => {
+        const modes = ['bars', 'waves', 'circle'];
+        const currentIdx = modes.indexOf(Visualizer.mode);
+        const nextMode = modes[(currentIdx + 1) % modes.length];
+        Visualizer.setMode(nextMode);
+        modeBtn.textContent = nextMode === 'bars' ? '📊' : nextMode === 'waves' ? '〰️' : '⭕';
+      });
+    }
   },
 
   async play(songId) {
