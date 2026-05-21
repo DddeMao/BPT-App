@@ -1,5 +1,5 @@
-/**
- * UI: рендеринг, модальные окна, утилиты
+﻿/**
+ * UI: СЂРµРЅРґРµСЂРёРЅРі, РјРѕРґР°Р»СЊРЅС‹Рµ РѕРєРЅР°, СѓС‚РёР»РёС‚С‹
  */
 const UI = {
   currentView: 'songs',
@@ -11,7 +11,7 @@ const UI = {
   contextMenuSongId: null,
   currentTrackSongId: null,
 
-  // ========== УТИЛИТЫ ==========
+  // ========== РЈРўРР›РРўР« ==========
 
   escapeHtml(text) {
     const div = document.createElement('div');
@@ -95,7 +95,7 @@ const UI = {
     }, 300);
   },
 
-  // ========== ФИЛЬТРАЦИЯ И СОРТИРОВКА ==========
+  // ========== Р¤РР›Р¬РўР РђР¦РРЇ Р РЎРћР РўРР РћР’РљРђ ==========
 
   getFilteredAndSortedSongs(songs) {
     if (!songs || !Array.isArray(songs) || songs.length === 0) return [];
@@ -132,12 +132,12 @@ const UI = {
     return filtered;
   },
 
-  // ========== РЕНДЕРИНГ ТРЕКОВ ==========
+  // ========== Р Р•РќР”Р•Р РРќР“ РўР Р•РљРћР’ ==========
 
   renderSongs(songs) {
     const container = document.getElementById('dynamicList');
     if (!songs || songs.length === 0) {
-      container.innerHTML = '<div style="color:#888; text-align:center; padding:40px;">Треки не найдены</div>';
+      container.innerHTML = '<div style="color:#888; text-align:center; padding:40px;">РўСЂРµРєРё РЅРµ РЅР°Р№РґРµРЅС‹</div>';
       return;
     }
     container.className = 'song-grid';
@@ -157,19 +157,19 @@ const UI = {
           <div class="card-score-row" style="display:flex;align-items:center;gap:10px;">
             <canvas class="card-radar" width="48" height="48" data-scores='${JSON.stringify(userRating.scores)}'></canvas>
             <div style="flex:1;">
-              <div class="total" style="font-size:0.9rem;">Ваша: ${userRating.total} ★</div>
-              ${avg !== null ? `<div style="font-size:0.75rem;color:var(--text-secondary);">Средний: ${avg} ★ (${song.ratings.length})</div>` : ''}
+              <div class="total" style="font-size:0.9rem;">Р’Р°С€Р°: ${userRating.total} в…</div>
+              ${avg !== null ? `<div style="font-size:0.75rem;color:var(--text-secondary);">РЎСЂРµРґРЅРёР№: ${avg} в… (${song.ratings.length})</div>` : ''}
             </div>
           </div>`;
       } else {
-        scoreHtml = `<div style="color:#888; font-style:italic; font-size:0.85rem;">Вы не оценили</div>`;
+        scoreHtml = `<div style="color:#888; font-style:italic; font-size:0.85rem;">Р’С‹ РЅРµ РѕС†РµРЅРёР»Рё</div>`;
         if (avg !== null) {
-          scoreHtml += `<div style="font-size:0.75rem;color:var(--text-secondary);">Средний: ${avg} ★ (${song.ratings.length})</div>`;
+          scoreHtml += `<div style="font-size:0.75rem;color:var(--text-secondary);">РЎСЂРµРґРЅРёР№: ${avg} в… (${song.ratings.length})</div>`;
         }
       }
 
-      const albumLine = song.album ? `<span>💿 ${this.escapeHtml(song.album)}</span>` : '';
-      const dateLine = song.date ? `<span>📅 ${song.date}</span>` : '';
+      const albumLine = song.album ? `<span>рџ’ї ${this.escapeHtml(song.album)}</span>` : '';
+      const dateLine = song.date ? `<span>рџ“… ${song.date}</span>` : '';
       const commentCount = (song.comments && song.comments.length) || 0;
       const commentClass = commentCount ? 'comment-btn has-comments' : 'comment-btn';
 
@@ -213,7 +213,7 @@ const UI = {
         </div>`;
     }).join('');
 
-    // Отрисовка мини-радаров на карточках
+    // РћС‚СЂРёСЃРѕРІРєР° РјРёРЅРё-СЂР°РґР°СЂРѕРІ РЅР° РєР°СЂС‚РѕС‡РєР°С…
     container.querySelectorAll('.card-radar').forEach(canvas => {
       try {
         const scores = JSON.parse(canvas.dataset.scores);
@@ -221,7 +221,7 @@ const UI = {
       } catch (e) {}
     });
 
-    // Обработчики карточек
+    // РћР±СЂР°Р±РѕС‚С‡РёРєРё РєР°СЂС‚РѕС‡РµРє
     container.querySelectorAll('.play-btn').forEach(btn =>
       btn.addEventListener('click', (e) => {
         const id = e.currentTarget.closest('.card')?.dataset.id;
@@ -250,7 +250,7 @@ const UI = {
     container.querySelectorAll('.delete-btn').forEach(btn =>
       btn.addEventListener('click', (e) => {
         const id = e.currentTarget.closest('.card')?.dataset.id;
-        if (id && confirm('Удалить этот трек и все его данные?')) {
+        if (id && confirm('РЈРґР°Р»РёС‚СЊ СЌС‚РѕС‚ С‚СЂРµРє Рё РІСЃРµ РµРіРѕ РґР°РЅРЅС‹Рµ?')) {
           DB.delete(CONFIG.STORE_SONGS, id).then(() => {
             App.refreshAll();
             Sync.onDataChanged();
@@ -259,7 +259,7 @@ const UI = {
       })
     );
 
-    // Клик по карточке — открыть окно трека
+    // РљР»РёРє РїРѕ РєР°СЂС‚РѕС‡РєРµ вЂ” РѕС‚РєСЂС‹С‚СЊ РѕРєРЅРѕ С‚СЂРµРєР°
     container.querySelectorAll('.card').forEach(card => {
       card.addEventListener('click', (e) => {
         if (e.target.closest('button')) return;
@@ -269,7 +269,7 @@ const UI = {
     });
   },
 
-  // ========== РЕНДЕРИНГ ТОП-12 ==========
+  // ========== Р Р•РќР”Р•Р РРќР“ РўРћРџ-12 ==========
 
   async renderTop12(songs) {
     const container = document.getElementById('topList');
@@ -287,11 +287,11 @@ const UI = {
             <div class="tvi-title">${this.escapeHtml(song.title)}</div>
             <div class="tvi-artist">${this.escapeHtml(song.artist)}</div>
           </div>
-          <div class="tvi-score">${avg} ★</div>
+          <div class="tvi-score">${avg} в…</div>
         </div>`;
     }).join('');
 
-    // Клик по элементу топ-12
+    // РљР»РёРє РїРѕ СЌР»РµРјРµРЅС‚Сѓ С‚РѕРї-12
     container.querySelectorAll('.top-vertical-item').forEach(item => {
       item.addEventListener('click', () => {
         const id = item.dataset.id;
@@ -300,7 +300,7 @@ const UI = {
     });
   },
 
-  // ========== РЕНДЕРИНГ АЛЬБОМОВ ==========
+  // ========== Р Р•РќР”Р•Р РРќР“ РђР›Р¬Р‘РћРњРћР’ ==========
 
   async renderAlbums() {
     const [songs, albums] = await Promise.all([DB.getAll(CONFIG.STORE_SONGS), DB.getAll(CONFIG.STORE_ALBUMS)]);
@@ -321,16 +321,16 @@ const UI = {
         ? Math.round(albumData.ratings.reduce((sum, r) => sum + r.total, 0) / albumData.ratings.length)
         : null;
       const scoreDisplay = totalScore !== null
-        ? `<span style="color:var(--accent); font-weight:700;">★ ${totalScore}</span>`
-        : 'Не оценен';
-      const dateDisplay = albumData?.date ? `📅 ${albumData.date}` : '';
+        ? `<span style="color:var(--accent); font-weight:700;">в… ${totalScore}</span>`
+        : 'РќРµ РѕС†РµРЅРµРЅ';
+      const dateDisplay = albumData?.date ? `рџ“… ${albumData.date}` : '';
       return `
         <div class="album-card" data-album="${this.escapeHtml(albumName)}">
           ${coverUrl ? `<img class="album-cover" src="${coverUrl}" alt="cover">` : '<div class="album-cover"></div>'}
           <div class="album-info">
             <h3>${this.escapeHtml(albumName)}</h3>
             <div class="album-artist">${this.escapeHtml(firstTrack.artist)}</div>
-            <div class="track-count">${tracks.length} треков ${dateDisplay}</div>
+            <div class="track-count">${tracks.length} С‚СЂРµРєРѕРІ ${dateDisplay}</div>
             <div>${scoreDisplay}</div>
           </div>
         </div>`;
@@ -351,7 +351,7 @@ const UI = {
     if (rated.length === 0) { container.innerHTML = ''; return; }
     container.innerHTML = rated.map(({ album, avg, firstSong }) => {
       const coverUrl = firstSong?.coverUrl || (firstSong?.coverBlob ? URL.createObjectURL(firstSong.coverBlob) : '');
-      const artistName = firstSong?.artist || 'Неизвестен';
+      const artistName = firstSong?.artist || 'РќРµРёР·РІРµСЃС‚РµРЅ';
       return `
         <div class="top-vertical-item">
           ${coverUrl ? `<img src="${coverUrl}" alt="cover">` : '<div style="width:44px;height:44px;background:#333;border-radius:8px;"></div>'}
@@ -359,12 +359,12 @@ const UI = {
             <div class="tvi-title">${this.escapeHtml(album.name)}</div>
             <div class="tvi-artist">${this.escapeHtml(artistName)}</div>
           </div>
-          <div class="tvi-score">${avg} ★</div>
+          <div class="tvi-score">${avg} в…</div>
         </div>`;
     }).join('');
   },
 
-  // ========== ПРОСМОТР АЛЬБОМА ==========
+  // ========== РџР РћРЎРњРћРўР  РђР›Р¬Р‘РћРњРђ ==========
 
   async openAlbumView(albumName) {
     const songs = await DB.getAll(CONFIG.STORE_SONGS);
@@ -375,7 +375,7 @@ const UI = {
     const orderedTracks = trackOrder.map(id => albumTracks.find(t => t.id === id)).filter(t => t !== undefined);
     albumTracks.forEach(t => { if (!orderedTracks.includes(t)) orderedTracks.push(t); });
     const isAdmin = Auth.currentUser?.isAdmin;
-    document.getElementById('albumViewTitle').textContent = `💿 ${albumName}`;
+    document.getElementById('albumViewTitle').textContent = `рџ’ї ${albumName}`;
     const container = document.getElementById('albumViewTracks');
     const existingDateRow = document.getElementById('albumDateRow');
     if (existingDateRow) existingDateRow.remove();
@@ -384,14 +384,14 @@ const UI = {
       dateRow.id = 'albumDateRow';
       dateRow.className = 'album-date-row';
       dateRow.innerHTML = `
-        <label>📅 Дата альбома:</label>
+        <label>рџ“… Р”Р°С‚Р° Р°Р»СЊР±РѕРјР°:</label>
         <input type="date" id="albumDateInput" value="${albumData.date || ''}">
-        <button id="applyDateToTracks" class="btn-settings" style="font-size:0.85rem;">Применить ко всем трекам</button>
+        <button id="applyDateToTracks" class="btn-settings" style="font-size:0.85rem;">РџСЂРёРјРµРЅРёС‚СЊ РєРѕ РІСЃРµРј С‚СЂРµРєР°Рј</button>
       `;
       container.parentNode.insertBefore(dateRow, container);
       document.getElementById('applyDateToTracks').onclick = async () => {
         const newDate = document.getElementById('albumDateInput').value;
-        if (!confirm(`Применить дату "${newDate}" ко всем трекам этого альбома?`)) return;
+        if (!confirm(`РџСЂРёРјРµРЅРёС‚СЊ РґР°С‚Сѓ "${newDate}" РєРѕ РІСЃРµРј С‚СЂРµРєР°Рј СЌС‚РѕРіРѕ Р°Р»СЊР±РѕРјР°?`)) return;
         const overlay = document.getElementById('loadingOverlay');
         if (overlay) overlay.classList.add('active');
         try {
@@ -400,7 +400,7 @@ const UI = {
           await DB.put(CONFIG.STORE_ALBUMS, albumData);
           this.openAlbumView(albumName);
           Sync.onDataChanged();
-        } catch (err) { console.error(err); alert('Ошибка при обновлении даты'); }
+        } catch (err) { console.error(err); alert('РћС€РёР±РєР° РїСЂРё РѕР±РЅРѕРІР»РµРЅРёРё РґР°С‚С‹'); }
         finally { if (overlay) overlay.classList.remove('active'); }
       };
       document.getElementById('albumDateInput').addEventListener('change', async () => {
@@ -415,14 +415,14 @@ const UI = {
       const userRating = song.ratings?.find(r => r.userId === Auth.currentUser?.id);
       let scoreHtml = '';
       if (userRating) {
-        scoreHtml = `<div class="score-circles">${userRating.scores.map((s, i) => `<span class="score-circle" style="background: ${this.getScoreColor(s)};" title="${CONFIG.CRITERIA[i]}: ${s}/${CONFIG.MAX_SCORE}">${s}</span>`).join('')}</div><div class="total">Ваша: ${userRating.total} ★</div>`;
+        scoreHtml = `<div class="score-circles">${userRating.scores.map((s, i) => `<span class="score-circle" style="background: ${this.getScoreColor(s)};" title="${CONFIG.CRITERIA[i]}: ${s}/${CONFIG.MAX_SCORE}">${s}</span>`).join('')}</div><div class="total">Р’Р°С€Р°: ${userRating.total} в…</div>`;
       } else {
-        scoreHtml = `<div style="color:#888;">Не оценен</div>`;
+        scoreHtml = `<div style="color:#888;">РќРµ РѕС†РµРЅРµРЅ</div>`;
       }
-      if (avg !== null) scoreHtml += `<div style="font-size:0.85rem; color:var(--text-secondary);">Средний: ${avg} ★</div>`;
+      if (avg !== null) scoreHtml += `<div style="font-size:0.85rem; color:var(--text-secondary);">РЎСЂРµРґРЅРёР№: ${avg} в…</div>`;
       return `
         <div class="card draggable-song" draggable="${isAdmin}" data-id="${song.id}">
-          ${isAdmin ? `<span class="drag-handle show" title="Перетащить">≡</span>` : ''}
+          ${isAdmin ? `<span class="drag-handle show" title="РџРµСЂРµС‚Р°С‰РёС‚СЊ">в‰Ў</span>` : ''}
           <div class="card-top">
             ${coverUrl ? `<img class="card-cover" src="${coverUrl}" alt="cover">` : '<div class="card-cover"></div>'}
             <div class="card-info">
@@ -432,7 +432,7 @@ const UI = {
           </div>
           ${scoreHtml}
           <div class="card-actions">
-            <button class="play-btn" data-id="${song.id}">▶ Слушать</button>
+            <button class="play-btn" data-id="${song.id}">в–¶ РЎР»СѓС€Р°С‚СЊ</button>
           </div>
         </div>`;
     }).join('');
@@ -451,7 +451,7 @@ const UI = {
       });
     }
     const deleteBtn = document.getElementById('deleteAlbumBtn');
-    if (deleteBtn) { deleteBtn.onclick = async () => { if (confirm(`Удалить альбом "${albumName}" и все его треки?`)) { for (const song of albumTracks) await DB.delete(CONFIG.STORE_SONGS, song.id); await DB.delete(CONFIG.STORE_ALBUMS, albumName); this.closeModal(document.getElementById('modalAlbumView')); App.refreshAll(); Sync.onDataChanged(); } }; }
+    if (deleteBtn) { deleteBtn.onclick = async () => { if (confirm(`РЈРґР°Р»РёС‚СЊ Р°Р»СЊР±РѕРј "${albumName}" Рё РІСЃРµ РµРіРѕ С‚СЂРµРєРё?`)) { for (const song of albumTracks) await DB.delete(CONFIG.STORE_SONGS, song.id); await DB.delete(CONFIG.STORE_ALBUMS, albumName); this.closeModal(document.getElementById('modalAlbumView')); App.refreshAll(); Sync.onDataChanged(); } }; }
     const rateBtn = document.getElementById('rateAlbumBtn');
     if (rateBtn) { rateBtn.onclick = () => { this.closeModal(document.getElementById('modalAlbumView')); this.openAlbumRatingModal(albumName); }; }
     const closeBtn = document.querySelector('.close-album-view');
@@ -459,7 +459,7 @@ const UI = {
     document.getElementById('modalAlbumView').classList.add('active');
   },
 
-  // ========== ОКНО ТРЕКА С ВКЛАДКАМИ ==========
+  // ========== РћРљРќРћ РўР Р•РљРђ РЎ Р’РљР›РђР”РљРђРњР ==========
 
   openTrackView(songId, defaultTab = 'ratings') {
     DB.getAll(CONFIG.STORE_SONGS).then(songs => {
@@ -471,7 +471,7 @@ const UI = {
 
       const coverUrl = song.coverUrl || (song.coverBlob ? URL.createObjectURL(song.coverBlob) : '');
 
-      // Заполняем шапку
+      // Р—Р°РїРѕР»РЅСЏРµРј С€Р°РїРєСѓ
       document.getElementById('trackViewCover').src = coverUrl;
       document.getElementById('trackViewTitle').textContent = song.title;
       document.getElementById('trackViewArtist').textContent = song.artist;
@@ -480,35 +480,35 @@ const UI = {
       const ratingCount = song.ratings?.length || 0;
       const commentCount = song.comments?.length || 0;
       document.getElementById('trackViewMeta').innerHTML = `
-        ${song.album ? `<span>💿 ${this.escapeHtml(song.album)}</span>` : ''}
-        ${song.date ? `<span>📅 ${song.date}</span>` : ''}
-        ${avg !== null ? `<span>⭐ ${avg} средний</span>` : ''}
-        <span>📊 ${ratingCount} оценок</span>
-        <span>💬 ${commentCount} комментариев</span>
+        ${song.album ? `<span>рџ’ї ${this.escapeHtml(song.album)}</span>` : ''}
+        ${song.date ? `<span>рџ“… ${song.date}</span>` : ''}
+        ${avg !== null ? `<span>в­ђ ${avg} СЃСЂРµРґРЅРёР№</span>` : ''}
+        <span>рџ“Љ ${ratingCount} РѕС†РµРЅРѕРє</span>
+        <span>рџ’¬ ${commentCount} РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ</span>
       `;
 
-      // Переключаем вкладку
+      // РџРµСЂРµРєР»СЋС‡Р°РµРј РІРєР»Р°РґРєСѓ
       this.switchTrackTab(defaultTab);
 
-      // Открываем окно
+      // РћС‚РєСЂС‹РІР°РµРј РѕРєРЅРѕ
       document.getElementById('trackView').classList.add('active');
     });
   },
 
   switchTrackTab(tabName) {
-    // Обновляем кнопки вкладок
+    // РћР±РЅРѕРІР»СЏРµРј РєРЅРѕРїРєРё РІРєР»Р°РґРѕРє
     document.querySelectorAll('.track-view-tab').forEach(tab => {
       tab.classList.toggle('active', tab.dataset.tab === tabName);
     });
 
-    // Обновляем содержимое
+    // РћР±РЅРѕРІР»СЏРµРј СЃРѕРґРµСЂР¶РёРјРѕРµ
     document.querySelectorAll('.track-view-tab-content').forEach(content => {
       content.classList.remove('active');
     });
     const targetContent = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
     if (targetContent) targetContent.classList.add('active');
 
-    // Загружаем данные для вкладки
+    // Р—Р°РіСЂСѓР¶Р°РµРј РґР°РЅРЅС‹Рµ РґР»СЏ РІРєР»Р°РґРєРё
     if (tabName === 'ratings') this.loadTrackRatings();
     if (tabName === 'comments') this.loadTrackComments();
     if (tabName === 'lyrics') this.loadTrackLyrics();
@@ -528,7 +528,7 @@ const UI = {
           if (slider) sum += parseInt(slider.value, 10);
         }
         document.getElementById('liveTotal').textContent = sum;
-        // Обновляем радар
+        // РћР±РЅРѕРІР»СЏРµРј СЂР°РґР°СЂ
         const scores = [];
         for (let i = 0; i < CONFIG.CRITERIA.length; i++) {
           const slider = document.getElementById(`ratingSlidersRange${i}`);
@@ -538,33 +538,33 @@ const UI = {
         if (radarCanvas) RadarChart.drawLarge(radarCanvas, scores);
       });
 
-      // Отрисовка радара
+      // РћС‚СЂРёСЃРѕРІРєР° СЂР°РґР°СЂР°
       const radarCanvas = document.getElementById('trackRatingRadar');
       if (radarCanvas) {
         RadarChart.drawLarge(radarCanvas, myRating?.scores || [0, 0, 0, 0, 0]);
       }
 
-      // Чужие оценки
+      // Р§СѓР¶РёРµ РѕС†РµРЅРєРё
       const otherContainer = document.getElementById('otherRatings');
       const others = song.ratings?.filter(r => r.userId !== Auth.currentUser.id) || [];
       const isAdmin = Auth.currentUser?.isAdmin;
       otherContainer.innerHTML = others.length === 0
-        ? '<div style="color:#888;">Нет оценок</div>'
+        ? '<div style="color:#888;">РќРµС‚ РѕС†РµРЅРѕРє</div>'
         : others.map((r) => `
           <div class="other-rating-item" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
-            <span><strong>${this.escapeHtml(r.username)}</strong>: ${r.total} ★ (${r.scores.map((s, i) => `${CONFIG.CRITERIA[i]}:${s}`).join(', ')})</span>
-            ${isAdmin ? `<button class="delete-rating-btn" data-userid="${r.userId}" style="background:#cf6679;border:none;color:white;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">✕</button>` : ''}
+            <span><strong>${this.escapeHtml(r.username)}</strong>: ${r.total} в… (${r.scores.map((s, i) => `${CONFIG.CRITERIA[i]}:${s}`).join(', ')})</span>
+            ${isAdmin ? `<button class="delete-rating-btn" data-userid="${r.userId}" style="background:#cf6679;border:none;color:white;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">вњ•</button>` : ''}
           </div>`).join('');
 
       if (isAdmin) {
         otherContainer.querySelectorAll('.delete-rating-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             const targetUserId = e.target.dataset.userid;
-            if (!confirm('Удалить эту оценку?')) return;
+            if (!confirm('РЈРґР°Р»РёС‚СЊ СЌС‚Сѓ РѕС†РµРЅРєСѓ?')) return;
             const songs = await DB.getAll(CONFIG.STORE_SONGS);
             const s = songs.find(s => s.id === songId);
             if (!s || !s.ratings) return;
-            s.ratings = s.ratings.filter(r => r.userId !== targetUserId);
+            s.ratings = s.ratings.filter(r => String(r.userId) !== String(targetUserId));
             await DB.put(CONFIG.STORE_SONGS, s);
             this.loadTrackRatings();
             Sync.onDataChanged();
@@ -592,7 +592,7 @@ const UI = {
       if (song.lyrics) {
         lyricsEl.textContent = song.lyrics;
       } else {
-        lyricsEl.innerHTML = '<div class="track-lyrics-empty"><div class="icon">📝</div><div>Текст песни не добавлен</div></div>';
+        lyricsEl.innerHTML = '<div class="track-lyrics-empty"><div class="icon">рџ“ќ</div><div>РўРµРєСЃС‚ РїРµСЃРЅРё РЅРµ РґРѕР±Р°РІР»РµРЅ</div></div>';
       }
     });
   },
@@ -610,47 +610,47 @@ const UI = {
 
       document.getElementById('trackInfoGrid').innerHTML = `
         <div class="track-info-item">
-          <div class="label">Исполнитель</div>
-          <div class="value">${this.escapeHtml(song.artist || '—')}</div>
+          <div class="label">РСЃРїРѕР»РЅРёС‚РµР»СЊ</div>
+          <div class="value">${this.escapeHtml(song.artist || 'вЂ”')}</div>
         </div>
         <div class="track-info-item">
-          <div class="label">Альбом</div>
-          <div class="value">${this.escapeHtml(song.album || '—')}</div>
+          <div class="label">РђР»СЊР±РѕРј</div>
+          <div class="value">${this.escapeHtml(song.album || 'вЂ”')}</div>
         </div>
         <div class="track-info-item">
-          <div class="label">Дата добавления</div>
-          <div class="value">${song.date || '—'}</div>
+          <div class="label">Р”Р°С‚Р° РґРѕР±Р°РІР»РµРЅРёСЏ</div>
+          <div class="value">${song.date || 'вЂ”'}</div>
         </div>
         <div class="track-info-item">
-          <div class="label">Средний балл</div>
-          <div class="value highlight">${avg !== null ? avg + ' ★' : '—'}</div>
+          <div class="label">РЎСЂРµРґРЅРёР№ Р±Р°Р»Р»</div>
+          <div class="value highlight">${avg !== null ? avg + ' в…' : 'вЂ”'}</div>
         </div>
         <div class="track-info-item">
-          <div class="label">Кол-во оценок</div>
+          <div class="label">РљРѕР»-РІРѕ РѕС†РµРЅРѕРє</div>
           <div class="value">${ratingCount}</div>
         </div>
         <div class="track-info-item">
-          <div class="label">Кол-во комментариев</div>
+          <div class="label">РљРѕР»-РІРѕ РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ</div>
           <div class="value">${commentCount}</div>
         </div>
         <div class="track-info-item">
-          <div class="label">Общий балл</div>
+          <div class="label">РћР±С‰РёР№ Р±Р°Р»Р»</div>
           <div class="value">${totalScore} / ${maxPossible}</div>
         </div>
         <div class="track-info-item">
-          <div class="label">Аудио</div>
-          <div class="value">${song.audioUrl ? '🔗 URL' : song.audioBlob ? '📁 Файл' : '—'}</div>
+          <div class="label">РђСѓРґРёРѕ</div>
+          <div class="value">${song.audioUrl ? 'рџ”— URL' : song.audioBlob ? 'рџ“Ѓ Р¤Р°Р№Р»' : 'вЂ”'}</div>
         </div>
       `;
     });
   },
 
-  // ========== МОДАЛКА ОЦЕНКИ АЛЬБОМА ==========
+  // ========== РњРћР”РђР›РљРђ РћР¦Р•РќРљР РђР›Р¬Р‘РћРњРђ ==========
 
   openAlbumRatingModal(albumName) {
     this.currentAlbumRatingName = albumName;
     DB.get(CONFIG.STORE_ALBUMS, albumName).then(album => {
-      document.getElementById('albumRatingInfo').textContent = `Альбом: ${albumName}`;
+      document.getElementById('albumRatingInfo').textContent = `РђР»СЊР±РѕРј: ${albumName}`;
       const myRating = album?.ratings?.find(r => r.userId === Auth.currentUser.id);
       this.buildSliders('albumRatingSliders', myRating?.scores, () => {
         let sum = 0;
@@ -664,17 +664,17 @@ const UI = {
       const others = album?.ratings?.filter(r => r.userId !== Auth.currentUser.id) || [];
       const isAdmin = Auth.currentUser?.isAdmin;
       otherContainer.innerHTML = others.length === 0
-        ? '<div style="color:#888;">Нет оценок</div>'
+        ? '<div style="color:#888;">РќРµС‚ РѕС†РµРЅРѕРє</div>'
         : others.map(r => `
           <div class="other-rating-item" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
-            <span><strong>${this.escapeHtml(r.username)}</strong>: ${r.total} ★</span>
-            ${isAdmin ? `<button class="delete-album-rating-btn" data-userid="${r.userId}" style="background:#cf6679;border:none;color:white;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">✕</button>` : ''}
+            <span><strong>${this.escapeHtml(r.username)}</strong>: ${r.total} в…</span>
+            ${isAdmin ? `<button class="delete-album-rating-btn" data-userid="${r.userId}" style="background:#cf6679;border:none;color:white;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">вњ•</button>` : ''}
           </div>`).join('');
       if (isAdmin) {
         otherContainer.querySelectorAll('.delete-album-rating-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             const targetUserId = e.target.dataset.userid;
-            if (!confirm('Удалить эту оценку альбома?')) return;
+            if (!confirm('РЈРґР°Р»РёС‚СЊ СЌС‚Сѓ РѕС†РµРЅРєСѓ Р°Р»СЊР±РѕРјР°?')) return;
             const alb = await DB.get(CONFIG.STORE_ALBUMS, albumName);
             if (!alb || !alb.ratings) return;
             alb.ratings = alb.ratings.filter(r => r.userId !== targetUserId);
@@ -688,7 +688,7 @@ const UI = {
     });
   },
 
-  // ========== ПОЛЗУНКИ ==========
+  // ========== РџРћР›Р—РЈРќРљР ==========
 
   buildSliders(containerId, values, onChange) {
     const container = document.getElementById(containerId);
@@ -707,19 +707,19 @@ const UI = {
     onChange();
   },
 
-  // ========== КОММЕНТАРИИ ==========
+  // ========== РљРћРњРњР•РќРўРђР РР ==========
 
   renderCommentsList(comments) {
     const container = document.getElementById('commentsContainer');
     if (comments.length === 0) {
-      container.innerHTML = '<div style="color:#888; text-align:center;">Пока нет комментариев</div>';
+      container.innerHTML = '<div style="color:#888; text-align:center;">РџРѕРєР° РЅРµС‚ РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ</div>';
       return;
     }
     container.innerHTML = comments.map((c, idx) => {
       const canDelete = c.userId === Auth.currentUser.id;
       return `
         <div class="comment-item">
-          ${canDelete ? `<button class="comment-del" data-index="${idx}">✕</button>` : ''}
+          ${canDelete ? `<button class="comment-del" data-index="${idx}">вњ•</button>` : ''}
           <div class="comment-author">${this.escapeHtml(c.username)}</div>
           <div class="comment-text">${this.escapeHtml(c.text)}</div>
           <div class="comment-date">${c.date || ''}</div>
@@ -739,7 +739,7 @@ const UI = {
     });
   },
 
-  // ========== ИЗБРАННОЕ ==========
+  // ========== РР—Р‘Р РђРќРќРћР• ==========
 
   toggleFavorite(songId) {
     if (!Auth.currentUser) return;
@@ -756,7 +756,7 @@ const UI = {
     }
   },
 
-  // ========== ДОБАВЛЕНИЕ ТРЕКА ==========
+  // ========== Р”РћР‘РђР’Р›Р•РќРР• РўР Р•РљРђ ==========
 
   async updateAlbumDatalist() {
     const albums = await DB.getAll(CONFIG.STORE_ALBUMS);
@@ -767,15 +767,15 @@ const UI = {
     document.getElementById('addSongForm').reset();
     document.getElementById('audioUrlsContainer').innerHTML = `
       <div class="audio-track-row" style="margin-bottom: 12px;">
-        <input type="text" class="audio-url-input" placeholder="Ссылка на трек" style="width: 100%;">
-        <input type="text" class="audio-title-input" placeholder="Название трека" style="width: 100%; margin-top: 4px;">
+        <input type="text" class="audio-url-input" placeholder="РЎСЃС‹Р»РєР° РЅР° С‚СЂРµРє" style="width: 100%;">
+        <input type="text" class="audio-title-input" placeholder="РќР°Р·РІР°РЅРёРµ С‚СЂРµРєР°" style="width: 100%; margin-top: 4px;">
       </div>
     `;
     this.updateAlbumDatalist();
     document.getElementById('modalAdd').classList.add('active');
   },
 
-  // ========== РЕДАКТИРОВАНИЕ ТРЕКА ==========
+  // ========== Р Р•Р”РђРљРўРР РћР’РђРќРР• РўР Р•РљРђ ==========
 
   async openEditModal(songId) {
     if (!Auth.currentUser || !Auth.currentUser.isAdmin) return;
@@ -793,3 +793,4 @@ const UI = {
     document.getElementById('modalEdit').classList.add('active');
   },
 };
+

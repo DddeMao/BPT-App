@@ -1923,3 +1923,5 @@ input[type=range]::-webkit-slider-thumb:hover {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+`n/* === ИСПРАВЛЕНИЯ === */
+.search-sort-bar { margin-bottom: 16px !important; }

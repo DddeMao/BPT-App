@@ -8,13 +8,11 @@ const Visualizer = {
   analyser: null,
   source: null,
   animationId: null,
-  mode: 'bars', // 'waves', 'bars', 'circle'
+  mode: 'bars',
   canvas: null,
   ctx: null,
+  connected: false,
 
-  /**
-   * Инициализация визуализатора
-   */
   init() {
     this.canvas = document.getElementById('visualizerCanvas');
     if (!this.canvas) return;
@@ -23,40 +21,41 @@ const Visualizer = {
     window.addEventListener('resize', () => this.resize());
   },
 
-  /**
-   * Подключение к аудиоплееру
-   */
   connect() {
     const audio = document.getElementById('audioPlayer');
-    if (!audio) return;
+    if (!audio || !this.canvas) return;
 
-    if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      this.analyser = this.audioContext.createAnalyser();
-      this.analyser.fftSize = 256;
-      this.source = this.audioContext.createMediaElementSource(audio);
-      this.source.connect(this.analyser);
-      this.analyser.connect(this.audioContext.destination);
+    try {
+      if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.analyser = this.audioContext.createAnalyser();
+        this.analyser.fftSize = 256;
+        this.analyser.smoothingTimeConstant = 0.8;
+      }
+
+      // Source создаётся только один раз
+      if (!this.connected) {
+        this.source = this.audioContext.createMediaElementSource(audio);
+        this.source.connect(this.analyser);
+        this.analyser.connect(this.audioContext.destination);
+        this.connected = true;
+      }
+
+      if (this.audioContext.state === 'suspended') {
+        this.audioContext.resume();
+      }
+
+      this.start();
+    } catch (e) {
+      console.warn('Visualizer connect error:', e);
     }
-
-    if (this.audioContext.state === 'suspended') {
-      this.audioContext.resume();
-    }
-
-    this.start();
   },
 
-  /**
-   * Запуск анимации
-   */
   start() {
     if (this.animationId) cancelAnimationFrame(this.animationId);
     this.draw();
   },
 
-  /**
-   * Остановка анимации
-   */
   stop() {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
@@ -65,39 +64,26 @@ const Visualizer = {
     this.clear();
   },
 
-  /**
-   * Очистка canvas
-   */
   clear() {
     if (!this.ctx || !this.canvas) return;
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   },
 
-  /**
-   * Изменение размера canvas
-   */
   resize() {
     if (!this.canvas) return;
     const dpr = window.devicePixelRatio || 1;
     const rect = this.canvas.getBoundingClientRect();
     this.canvas.width = rect.width * dpr;
     this.canvas.height = rect.height * dpr;
-    this.ctx.scale(dpr, dpr);
+    if (this.ctx) this.ctx.scale(dpr, dpr);
   },
 
-  /**
-   * Переключение режима
-   */
   setMode(mode) {
     this.mode = mode;
   },
 
-  /**
-   * Основной цикл отрисовки
-   */
   draw() {
     if (!this.analyser || !this.ctx) return;
-
     this.animationId = requestAnimationFrame(() => this.draw());
 
     const bufferLength = this.analyser.frequencyBinCount;
@@ -122,14 +108,10 @@ const Visualizer = {
     }
   },
 
-  /**
-   * Режим: волны
-   */
   drawWaves(dataArray, bufferLength, width, height) {
     const sliceWidth = width / bufferLength;
     let x = 0;
 
-    // Градиентная линия
     const gradient = this.ctx.createLinearGradient(0, 0, width, 0);
     gradient.addColorStop(0, '#b366ff');
     gradient.addColorStop(0.5, '#ff4d6d');
@@ -142,16 +124,12 @@ const Visualizer = {
     for (let i = 0; i < bufferLength; i++) {
       const v = dataArray[i] / 255;
       const y = (v * height / 2) + (height / 2);
-
       if (i === 0) this.ctx.moveTo(x, y);
       else this.ctx.lineTo(x, y);
-
       x += sliceWidth;
     }
-
     this.ctx.stroke();
 
-    // Заливка под волной
     this.ctx.lineTo(width, height);
     this.ctx.lineTo(0, height);
     this.ctx.closePath();
@@ -163,9 +141,6 @@ const Visualizer = {
     this.ctx.fill();
   },
 
-  /**
-   * Режим: частотные столбцы
-   */
   drawBars(dataArray, bufferLength, width, height) {
     const barCount = 64;
     const barWidth = width / barCount - 2;
@@ -177,7 +152,6 @@ const Visualizer = {
       const x = i * (barWidth + 2);
       const y = height - barHeight;
 
-      // Градиент для каждого столбца
       const gradient = this.ctx.createLinearGradient(x, y, x, height);
       gradient.addColorStop(0, '#b366ff');
       gradient.addColorStop(0.5, '#ff4d6d');
@@ -186,7 +160,6 @@ const Visualizer = {
       this.ctx.fillStyle = gradient;
       this.ctx.fillRect(x, y, barWidth, barHeight);
 
-      // Свечение сверху
       if (barHeight > 5) {
         this.ctx.beginPath();
         this.ctx.arc(x + barWidth / 2, y, Math.min(barWidth / 2, 4), 0, Math.PI * 2);
@@ -196,9 +169,6 @@ const Visualizer = {
     }
   },
 
-  /**
-   * Режим: круговой спектр
-   */
   drawCircle(dataArray, bufferLength, width, height) {
     const centerX = width / 2;
     const centerY = height / 2;
@@ -229,7 +199,6 @@ const Visualizer = {
       this.ctx.stroke();
     }
 
-    // Внутренний круг
     this.ctx.beginPath();
     this.ctx.arc(centerX, centerY, radius - 2, 0, Math.PI * 2);
     this.ctx.strokeStyle = 'rgba(179, 102, 255, 0.2)';
