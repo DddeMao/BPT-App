@@ -88,6 +88,11 @@ const DB = {
   },
 
   async getUserByUsername(username) {
+    if (!this.instance) {
+      console.warn('DB не инициализована, ожидание...');
+      await new Promise(r => setTimeout(r, 500));
+      if (!this.instance) return null;
+    }
     return new Promise((resolve, reject) => {
       const tx = this.instance.transaction(CONFIG.STORE_USERS, 'readonly');
       const store = tx.objectStore(CONFIG.STORE_USERS);

@@ -174,7 +174,9 @@ const App = {
   },
 
   bindTagReader() {
-    document.getElementById('songAudio').addEventListener('change', function(e) {
+    const songAudio = document.getElementById('songAudio');
+    if (!songAudio) return;
+    songAudio.addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
       if (typeof jsmediatags === 'undefined') { console.error('jsmediatags не загружена'); return; }
@@ -611,11 +613,11 @@ const App = {
 // ========== СТАРТ ==========
 document.addEventListener('DOMContentLoaded', async () => {
   Player.init();
-  App.init();
 
   try {
     await DB.open();
     await Auth.initAdmin();
+    App.init();
 
     const savedId = Auth.getSavedUserId();
     if (savedId) {
