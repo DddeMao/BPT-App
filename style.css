@@ -1,7 +1,7 @@
-/* ========================================
-   БПТ — Редизайн 2025
-   Навигация сверху по центру (мобилка — снизу)
-   Цвета: фиолетовый + красный + золотой + зелёный
+﻿/* ========================================
+   Р‘РџРў вЂ” Р РµРґРёР·Р°Р№РЅ 2025
+   РќР°РІРёРіР°С†РёСЏ СЃРІРµСЂС…Сѓ РїРѕ С†РµРЅС‚СЂСѓ (РјРѕР±РёР»РєР° вЂ” СЃРЅРёР·Сѓ)
+   Р¦РІРµС‚Р°: С„РёРѕР»РµС‚РѕРІС‹Р№ + РєСЂР°СЃРЅС‹Р№ + Р·РѕР»РѕС‚РѕР№ + Р·РµР»С‘РЅС‹Р№
    ======================================== */
 
 :root {
@@ -36,7 +36,7 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* === СКРОЛЛБАР === */
+/* === РЎРљР РћР›Р›Р‘РђР  === */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -45,7 +45,7 @@
 }
 * { scrollbar-width: thin; scrollbar-color: var(--primary) transparent; }
 
-/* === БАЗОВЫЕ СТИЛИ === */
+/* === Р‘РђР—РћР’Р«Р• РЎРўРР›Р === */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -58,7 +58,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Анимированный фон с частицами */
+/* РђРЅРёРјРёСЂРѕРІР°РЅРЅС‹Р№ С„РѕРЅ СЃ С‡Р°СЃС‚РёС†Р°РјРё */
 body::before {
   content: '';
   position: fixed;
@@ -80,7 +80,7 @@ body::before {
   75% { transform: translate(10px, 10px) scale(1.01); }
 }
 
-/* === НАВИГАЦИЯ СВЕРХУ (ДЕСКТОП) === */
+/* === РќРђР’РР“РђР¦РРЇ РЎР’Р•Р РҐРЈ (Р”Р•РЎРљРўРћРџ) === */
 .top-nav {
   position: fixed;
   top: 12px;
@@ -143,7 +143,7 @@ body::before {
   display: inline;
 }
 
-/* === ОСНОВНОЙ КОНТЕЙНЕР === */
+/* === РћРЎРќРћР’РќРћР™ РљРћРќРўР•Р™РќР•Р  === */
 #app {
   display: flex;
   flex: 1;
@@ -159,7 +159,7 @@ body::before {
   min-width: 0;
 }
 
-/* === ШАПКА САЙТА === */
+/* === РЁРђРџРљРђ РЎРђР™РўРђ === */
 .site-header {
   display: flex;
   align-items: center;
@@ -196,7 +196,7 @@ body::before {
   font-size: 0.9rem;
 }
 
-/* === КНОПКИ === */
+/* === РљРќРћРџРљР === */
 button {
   background: var(--primary);
   border: none;
@@ -270,7 +270,7 @@ button:hover {
   border-color: var(--primary);
 }
 
-/* === ПАНЕЛЬ УПРАВЛЕНИЯ === */
+/* === РџРђРќР•Р›Р¬ РЈРџР РђР’Р›Р•РќРРЇ === */
 .controls {
   display: flex;
   gap: 8px;
@@ -279,8 +279,8 @@ button:hover {
   align-items: center;
 }
 
-/* === ПОИСК === */
-.search-sort-bar {
+/* === РџРћРРЎРљ === */
+.search-sort-bar { margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -332,7 +332,7 @@ button:hover {
   background: var(--surface-hover);
 }
 
-/* === СОРТИРОВКА === */
+/* === РЎРћР РўРР РћР’РљРђ === */
 .sort-buttons {
   display: flex;
   gap: 4px;
@@ -365,14 +365,14 @@ button:hover {
   box-shadow: 0 0 15px var(--primary-glow);
 }
 
-/* === СЕТКА ТРЕКОВ === */
+/* === РЎР•РўРљРђ РўР Р•РљРћР’ === */
 .song-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
 
-/* === КАРТОЧКА ТРЕКА === */
+/* === РљРђР РўРћР§РљРђ РўР Р•РљРђ === */
 .card {
   background: var(--surface);
   border-radius: var(--radius);
@@ -468,14 +468,14 @@ button:hover {
   margin-top: 4px;
 }
 
-/* Мини-радар на карточке */
+/* РњРёРЅРё-СЂР°РґР°СЂ РЅР° РєР°СЂС‚РѕС‡РєРµ */
 .card-radar {
   width: 48px;
   height: 48px;
   flex-shrink: 0;
 }
 
-/* === БАЛЛЫ (КРУЖКИ) === */
+/* === Р‘РђР›Р›Р« (РљР РЈР–РљР) === */
 .score-circles {
   display: flex;
   gap: 6px;
@@ -509,7 +509,7 @@ button:hover {
   text-align: right;
 }
 
-/* === ДЕЙСТВИЯ КАРТОЧКИ === */
+/* === Р”Р•Р™РЎРўР’РРЇ РљРђР РўРћР§РљР === */
 .card-actions {
   display: flex;
   justify-content: space-between;
@@ -573,7 +573,7 @@ button:hover {
   background: var(--accent-dark);
 }
 
-/* === АЛЬБОМЫ === */
+/* === РђР›Р¬Р‘РћРњР« === */
 .album-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -637,7 +637,7 @@ button:hover {
   color: var(--text-muted);
 }
 
-/* === БОКОВАЯ ПАНЕЛЬ ТОП === */
+/* === Р‘РћРљРћР’РђРЇ РџРђРќР•Р›Р¬ РўРћРџ === */
 .top-sidebar {
   width: 300px;
   flex-shrink: 0;
@@ -741,7 +741,7 @@ button:hover {
   text-shadow: 0 0 10px var(--gold-glow);
 }
 
-/* === ПЛЕЕР === */
+/* === РџР›Р•Р•Р  === */
 .player-bar {
   position: fixed;
   bottom: 0;
@@ -756,7 +756,7 @@ button:hover {
   gap: 16px;
   border-top: 2px solid;
   border-image: linear-gradient(90deg, var(--primary), var(--accent)) 1;
-  z-index: 50;
+  z-index: 200;
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
   animation: slideUp 0.4s ease forwards;
   height: var(--player-height);
@@ -803,7 +803,7 @@ button:hover {
   color: var(--text-secondary);
 }
 
-/* Визуализатор в плеере */
+/* Р’РёР·СѓР°Р»РёР·Р°С‚РѕСЂ РІ РїР»РµРµСЂРµ */
 .player-visualizer {
   display: flex;
   align-items: flex-end;
@@ -824,7 +824,7 @@ button:hover {
   to { height: 24px; }
 }
 
-/* Аудиоплеер */
+/* РђСѓРґРёРѕРїР»РµРµСЂ */
 .player-bar audio {
   flex: 1;
   min-width: 250px;
@@ -885,7 +885,7 @@ button:hover {
   box-shadow: 0 0 8px var(--primary-glow);
 }
 
-/* === МОДАЛЬНЫЕ ОКНА === */
+/* === РњРћР”РђР›Р¬РќР«Р• РћРљРќРђ === */
 .modal {
   display: none;
   position: fixed;
@@ -933,7 +933,7 @@ button:hover {
 .modal-content::-webkit-scrollbar-track { background: transparent; margin: 12px 0; }
 .modal-content::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 2px; }
 
-/* Размеры модалок */
+/* Р Р°Р·РјРµСЂС‹ РјРѕРґР°Р»РѕРє */
 #modalRating .modal-content,
 #modalComment .modal-content { max-width: 700px; }
 #modalAlbumView .modal-content { max-width: 750px; }
@@ -941,7 +941,7 @@ button:hover {
 #modalSettings .modal-content,
 #modalConfirm .modal-content { max-width: 450px; }
 
-/* Закрытие модалки */
+/* Р—Р°РєСЂС‹С‚РёРµ РјРѕРґР°Р»РєРё */
 .close,
 .close-rating,
 .close-comment,
@@ -977,7 +977,7 @@ button:hover {
   transform: rotate(90deg);
 }
 
-/* === ФОРМЫ === */
+/* === Р¤РћР РњР« === */
 .form-group {
   margin-bottom: 14px;
   display: flex;
@@ -1014,7 +1014,7 @@ button:hover {
 
 input[readonly] { opacity: 0.6; }
 
-/* === ПОЛЗУНКИ === */
+/* === РџРћР›Р—РЈРќРљР === */
 .range-group {
   margin-bottom: 18px;
 }
@@ -1093,7 +1093,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   margin-bottom: 18px;
 }
 
-/* === КОММЕНТАРИИ === */
+/* === РљРћРњРњР•РќРўРђР РР === */
 .comments-list {
   max-height: 200px;
   overflow-y: auto;
@@ -1149,7 +1149,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   transform: scale(1.1);
 }
 
-/* === ДАТА АЛЬБОМА === */
+/* === Р”РђРўРђ РђР›Р¬Р‘РћРњРђ === */
 .album-date-row {
   display: flex;
   align-items: center;
@@ -1186,7 +1186,7 @@ input[type=range]::-webkit-slider-thumb:hover {
 .dragging { opacity: 0.5; }
 .drag-over { border: 2px dashed var(--primary) !important; }
 
-/* === ЗАГРУЗКА === */
+/* === Р—РђР“Р РЈР—РљРђ === */
 .loading-overlay {
   display: none;
   position: fixed;
@@ -1216,7 +1216,7 @@ input[type=range]::-webkit-slider-thumb:hover {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* === СИНХРОНИЗАЦИЯ === */
+/* === РЎРРќРҐР РћРќРР—РђР¦РРЇ === */
 .syncing-dot {
   display: inline-block;
   width: 8px;
@@ -1266,7 +1266,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   white-space: nowrap;
 }
 
-/* === КОНТЕКСТНОЕ МЕНЮ === */
+/* === РљРћРќРўР•РљРЎРўРќРћР• РњР•РќР® === */
 .context-menu {
   position: fixed;
   z-index: 400;
@@ -1307,7 +1307,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   color: var(--accent);
 }
 
-/* === УВЕДОМЛЕНИЯ === */
+/* === РЈР’Р•Р”РћРњР›Р•РќРРЇ === */
 .notification {
   position: fixed;
   bottom: calc(var(--player-height) + 20px);
@@ -1329,7 +1329,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   transform: translateX(-50%) translateY(0);
 }
 
-/* === ДИНАМИЧЕСКИЕ ПОЛЯ === */
+/* === Р”РРќРђРњРР§Р•РЎРљРР• РџРћР›РЇ === */
 #audioUrlsContainer {
   display: flex;
   flex-direction: column;
@@ -1341,7 +1341,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   width: 100%;
 }
 
-/* === АВТОРИЗАЦИЯ === */
+/* === РђР’РўРћР РР—РђР¦РРЇ === */
 #authScreen {
   min-height: 100vh;
   display: flex;
@@ -1418,7 +1418,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   overflow: hidden;
 }
 
-/* === АДАПТАЦИЯ: ПЛАНШЕТ === */
+/* === РђР”РђРџРўРђР¦РРЇ: РџР›РђРќРЁР•Рў === */
 @media (max-width: 1024px) {
   .top-sidebar {
     width: 260px;
@@ -1429,19 +1429,19 @@ input[type=range]::-webkit-slider-thumb:hover {
   }
 }
 
-/* === АДАПТАЦИЯ: МОБИЛЬНАЯ НАВИГАЦИЯ СНИЗУ === */
+/* === РђР”РђРџРўРђР¦РРЇ: РњРћР‘РР›Р¬РќРђРЇ РќРђР’РР“РђР¦РРЇ РЎРќРР—РЈ === */
 @media (max-width: 768px) {
   :root {
     --nav-height: 0;
-    --player-height: 64px;
+    --player-height: 120px;
   }
 
-  /* Скрываем верхнюю навигацию */
+  /* РЎРєСЂС‹РІР°РµРј РІРµСЂС…РЅСЋСЋ РЅР°РІРёРіР°С†РёСЋ */
   .top-nav {
     display: none;
   }
 
-  /* Нижняя навигация */
+  /* РќРёР¶РЅСЏСЏ РЅР°РІРёРіР°С†РёСЏ */
   .bottom-nav {
     display: flex !important;
     position: fixed;
@@ -1496,7 +1496,7 @@ input[type=range]::-webkit-slider-thumb:hover {
     gap: 10px;
   }
 
-  .search-sort-bar {
+  .search-sort-bar { margin-bottom: 16px;
     width: 100%;
     margin-left: 0;
     justify-content: space-between;
@@ -1551,14 +1551,14 @@ input[type=range]::-webkit-slider-thumb:hover {
   }
 }
 
-/* Показываем верхнюю навигацию на десктопе */
+/* РџРѕРєР°Р·С‹РІР°РµРј РІРµСЂС…РЅСЋСЋ РЅР°РІРёРіР°С†РёСЋ РЅР° РґРµСЃРєС‚РѕРїРµ */
 @media (min-width: 769px) {
   .bottom-nav {
     display: none !important;
   }
 }
 
-/* === HOVER ТОЛЬКО ДЛЯ ДЕСКТОПА === */
+/* === HOVER РўРћР›Р¬РљРћ Р”Р›РЇ Р”Р•РЎРљРўРћРџРђ === */
 @media (hover: none) {
   button:hover,
   .btn:hover,
@@ -1577,10 +1577,10 @@ input[type=range]::-webkit-slider-thumb:hover {
 }
 
 /* ========================================
-   ОКНО ТРЕКА С ВКЛАДКАМИ
+   РћРљРќРћ РўР Р•РљРђ РЎ Р’РљР›РђР”РљРђРњР
    ======================================== */
 
-/* Контейнер окна трека */
+/* РљРѕРЅС‚РµР№РЅРµСЂ РѕРєРЅР° С‚СЂРµРєР° */
 .track-view-overlay {
   position: fixed;
   top: 0; left: 0;
@@ -1622,7 +1622,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* Шапка окна трека */
+/* РЁР°РїРєР° РѕРєРЅР° С‚СЂРµРєР° */
 .track-view-header {
   display: flex;
   align-items: center;
@@ -1695,7 +1695,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   border-color: var(--accent);
 }
 
-/* Вкладки */
+/* Р’РєР»Р°РґРєРё */
 .track-view-tabs {
   display: flex;
   gap: 0;
@@ -1732,7 +1732,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   background: transparent;
 }
 
-/* Содержимое вкладок */
+/* РЎРѕРґРµСЂР¶РёРјРѕРµ РІРєР»Р°РґРѕРє */
 .track-view-body {
   flex: 1;
   overflow-y: auto;
@@ -1753,7 +1753,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Вкладка: Оценки */
+/* Р’РєР»Р°РґРєР°: РћС†РµРЅРєРё */
 .track-rating-layout {
   display: flex;
   gap: 24px;
@@ -1795,7 +1795,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   margin-bottom: 12px;
 }
 
-/* Вкладка: Текст */
+/* Р’РєР»Р°РґРєР°: РўРµРєСЃС‚ */
 .track-lyrics {
   white-space: pre-wrap;
   line-height: 1.8;
@@ -1815,7 +1815,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   margin-bottom: 12px;
 }
 
-/* Вкладка: Комментарии */
+/* Р’РєР»Р°РґРєР°: РљРѕРјРјРµРЅС‚Р°СЂРёРё */
 .track-comments-list {
   max-height: 300px;
   overflow-y: auto;
@@ -1841,7 +1841,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   resize: vertical;
 }
 
-/* Вкладка: Инфо */
+/* Р’РєР»Р°РґРєР°: РРЅС„Рѕ */
 .track-info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -1873,7 +1873,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   color: var(--primary);
 }
 
-/* Адаптив окна трека */
+/* РђРґР°РїС‚РёРІ РѕРєРЅР° С‚СЂРµРєР° */
 @media (max-width: 768px) {
   .track-view-container {
     width: 100%;
@@ -1923,5 +1923,7 @@ input[type=range]::-webkit-slider-thumb:hover {
     grid-template-columns: repeat(2, 1fr);
   }
 }
-`n/* === ИСПРАВЛЕНИЯ === */
-.search-sort-bar { margin-bottom: 16px !important; }
+`n/* === РРЎРџР РђР’Р›Р•РќРРЇ === */
+.search-sort-bar { margin-bottom: 16px; margin-bottom: 16px !important; }
+
+

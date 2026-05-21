@@ -11,8 +11,6 @@ const UI = {
   contextMenuSongId: null,
   currentTrackSongId: null,
 
-  // ========== УТИЛИТЫ ==========
-
   escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -95,8 +93,6 @@ const UI = {
     }, 300);
   },
 
-  // ========== ФИЛЬТРАЦИЯ И СОРТИРОВКА ==========
-
   getFilteredAndSortedSongs(songs) {
     if (!songs || !Array.isArray(songs) || songs.length === 0) return [];
     let filtered = [...songs];
@@ -153,14 +149,10 @@ const UI = {
 
       let scoreHtml = '';
       if (hasUserRating) {
-        scoreHtml = `
-          <div class="card-score-row" style="display:flex;align-items:center;gap:10px;">
-            <canvas class="card-radar" width="48" height="48" data-scores='${JSON.stringify(userRating.scores)}'></canvas>
-            <div style="flex:1;">
-              <div class="total" style="font-size:0.9rem;">Ваша: ${userRating.total} ★</div>
-              ${avg !== null ? `<div style="font-size:0.75rem;color:var(--text-secondary);">Средний: ${avg} ★ (${song.ratings.length})</div>` : ''}
-            </div>
-          </div>`;
+        scoreHtml = `<div style="font-size:0.9rem;">Ваша: ${userRating.total} ★</div>`;
+        if (avg !== null) {
+          scoreHtml += `<div style="font-size:0.75rem;color:var(--text-secondary);">Средний: ${avg} ★ (${song.ratings.length})</div>`;
+        }
       } else {
         scoreHtml = `<div style="color:#888; font-style:italic; font-size:0.85rem;">Вы не оценили</div>`;
         if (avg !== null) {
@@ -213,14 +205,6 @@ const UI = {
         </div>`;
     }).join('');
 
-    // Отрисовка мини-радаров на карточках
-    container.querySelectorAll('.card-radar').forEach(canvas => {
-      try {
-        const scores = JSON.parse(canvas.dataset.scores);
-        RadarChart.drawMini(canvas, scores);
-      } catch (e) {}
-    });
-
     // Обработчики карточек
     container.querySelectorAll('.play-btn').forEach(btn =>
       btn.addEventListener('click', (e) => {
@@ -259,7 +243,6 @@ const UI = {
       })
     );
 
-    // Клик по карточке — открыть окно трека
     container.querySelectorAll('.card').forEach(card => {
       card.addEventListener('click', (e) => {
         if (e.target.closest('button')) return;
@@ -268,8 +251,6 @@ const UI = {
       });
     });
   },
-
-  // ========== РЕНДЕРИНГ ТОП-12 ==========
 
   async renderTop12(songs) {
     const container = document.getElementById('topList');
@@ -291,7 +272,6 @@ const UI = {
         </div>`;
     }).join('');
 
-    // Клик по элементу топ-12
     container.querySelectorAll('.top-vertical-item').forEach(item => {
       item.addEventListener('click', () => {
         const id = item.dataset.id;
@@ -299,8 +279,6 @@ const UI = {
       });
     });
   },
-
-  // ========== РЕНДЕРИНГ АЛЬБОМОВ ==========
 
   async renderAlbums() {
     const [songs, albums] = await Promise.all([DB.getAll(CONFIG.STORE_SONGS), DB.getAll(CONFIG.STORE_ALBUMS)]);
@@ -363,8 +341,6 @@ const UI = {
         </div>`;
     }).join('');
   },
-
-  // ========== ПРОСМОТР АЛЬБОМА ==========
 
   async openAlbumView(albumName) {
     const songs = await DB.getAll(CONFIG.STORE_SONGS);
@@ -471,7 +447,6 @@ const UI = {
 
       const coverUrl = song.coverUrl || (song.coverBlob ? URL.createObjectURL(song.coverBlob) : '');
 
-      // Заполняем шапку
       document.getElementById('trackViewCover').src = coverUrl;
       document.getElementById('trackViewTitle').textContent = song.title;
       document.getElementById('trackViewArtist').textContent = song.artist;
@@ -487,28 +462,20 @@ const UI = {
         <span>💬 ${commentCount} комментариев</span>
       `;
 
-      // Переключаем вкладку
       this.switchTrackTab(defaultTab);
-
-      // Открываем окно
       document.getElementById('trackView').classList.add('active');
     });
   },
 
   switchTrackTab(tabName) {
-    // Обновляем кнопки вкладок
     document.querySelectorAll('.track-view-tab').forEach(tab => {
       tab.classList.toggle('active', tab.dataset.tab === tabName);
     });
-
-    // Обновляем содержимое
     document.querySelectorAll('.track-view-tab-content').forEach(content => {
       content.classList.remove('active');
     });
     const targetContent = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
     if (targetContent) targetContent.classList.add('active');
-
-    // Загружаем данные для вкладки
     if (tabName === 'ratings') this.loadTrackRatings();
     if (tabName === 'comments') this.loadTrackComments();
     if (tabName === 'lyrics') this.loadTrackLyrics();
@@ -528,7 +495,6 @@ const UI = {
           if (slider) sum += parseInt(slider.value, 10);
         }
         document.getElementById('liveTotal').textContent = sum;
-        // Обновляем радар
         const scores = [];
         for (let i = 0; i < CONFIG.CRITERIA.length; i++) {
           const slider = document.getElementById(`ratingSlidersRange${i}`);
@@ -538,13 +504,11 @@ const UI = {
         if (radarCanvas) RadarChart.drawLarge(radarCanvas, scores);
       });
 
-      // Отрисовка радара
       const radarCanvas = document.getElementById('trackRatingRadar');
       if (radarCanvas) {
         RadarChart.drawLarge(radarCanvas, myRating?.scores || [0, 0, 0, 0, 0]);
       }
 
-      // Чужие оценки
       const otherContainer = document.getElementById('otherRatings');
       const others = song.ratings?.filter(r => r.userId !== Auth.currentUser.id) || [];
       const isAdmin = Auth.currentUser?.isAdmin;
@@ -605,8 +569,7 @@ const UI = {
       const avg = this.getAverageRating(song);
       const ratingCount = song.ratings?.length || 0;
       const commentCount = song.comments?.length || 0;
-      const totalScore = song.ratings?.reduce((sum, r) => sum + r.total, 0) || 0;
-      const maxPossible = ratingCount * CONFIG.MAX_SCORE * CONFIG.CRITERIA.length;
+      const maxPossible = CONFIG.MAX_SCORE * CONFIG.CRITERIA.length;
 
       document.getElementById('trackInfoGrid').innerHTML = `
         <div class="track-info-item">
@@ -634,8 +597,8 @@ const UI = {
           <div class="value">${commentCount}</div>
         </div>
         <div class="track-info-item">
-          <div class="label">Общий балл</div>
-          <div class="value">${totalScore} / ${maxPossible}</div>
+          <div class="label">Средний общий балл</div>
+          <div class="value">${avg !== null ? avg + ' / ' + maxPossible : '—'}</div>
         </div>
         <div class="track-info-item">
           <div class="label">Аудио</div>
@@ -644,8 +607,6 @@ const UI = {
       `;
     });
   },
-
-  // ========== МОДАЛКА ОЦЕНКИ АЛЬБОМА ==========
 
   openAlbumRatingModal(albumName) {
     this.currentAlbumRatingName = albumName;
@@ -688,8 +649,6 @@ const UI = {
     });
   },
 
-  // ========== ПОЛЗУНКИ ==========
-
   buildSliders(containerId, values, onChange) {
     const container = document.getElementById(containerId);
     container.innerHTML = CONFIG.CRITERIA.map((name, i) => {
@@ -706,8 +665,6 @@ const UI = {
     });
     onChange();
   },
-
-  // ========== КОММЕНТАРИИ ==========
 
   renderCommentsList(comments) {
     const container = document.getElementById('commentsContainer');
@@ -739,8 +696,6 @@ const UI = {
     });
   },
 
-  // ========== ИЗБРАННОЕ ==========
-
   toggleFavorite(songId) {
     if (!Auth.currentUser) return;
     const key = `bpt_favorites_${Auth.currentUser.id}`;
@@ -755,8 +710,6 @@ const UI = {
       Sync.syncTimeout = setTimeout(() => Sync.sync(), CONFIG.FAVORITES_SYNC_DELAY);
     }
   },
-
-  // ========== ДОБАВЛЕНИЕ ТРЕКА ==========
 
   async updateAlbumDatalist() {
     const albums = await DB.getAll(CONFIG.STORE_ALBUMS);
@@ -774,8 +727,6 @@ const UI = {
     this.updateAlbumDatalist();
     document.getElementById('modalAdd').classList.add('active');
   },
-
-  // ========== РЕДАКТИРОВАНИЕ ТРЕКА ==========
 
   async openEditModal(songId) {
     if (!Auth.currentUser || !Auth.currentUser.isAdmin) return;
