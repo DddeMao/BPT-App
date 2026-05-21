@@ -95,6 +95,9 @@ const Visualizer = {
 
     this.ctx.clearRect(0, 0, width, height);
 
+    // Не рисуем если canvas слишком маленький
+    if (width < 10 || height < 10) return;
+
     switch (this.mode) {
       case 'waves':
         this.drawWaves(dataArray, bufferLength, width, height);
@@ -172,7 +175,7 @@ const Visualizer = {
   drawCircle(dataArray, bufferLength, width, height) {
     const centerX = width / 2;
     const centerY = height / 2;
-    const radius = Math.min(width, height) / 4;
+    const radius = Math.max(Math.min(width, height) / 4, 5); // Минимум 5px
     const barCount = 64;
     const step = Math.floor(bufferLength / barCount);
 
@@ -199,10 +202,13 @@ const Visualizer = {
       this.ctx.stroke();
     }
 
-    this.ctx.beginPath();
-    this.ctx.arc(centerX, centerY, radius - 2, 0, Math.PI * 2);
-    this.ctx.strokeStyle = 'rgba(179, 102, 255, 0.2)';
-    this.ctx.lineWidth = 1;
-    this.ctx.stroke();
+    // Внутренний круг — только если радиус достаточно большой
+    if (radius > 5) {
+      this.ctx.beginPath();
+      this.ctx.arc(centerX, centerY, Math.max(radius - 2, 1), 0, Math.PI * 2);
+      this.ctx.strokeStyle = 'rgba(179, 102, 255, 0.2)';
+      this.ctx.lineWidth = 1;
+      this.ctx.stroke();
+    }
   }
 };

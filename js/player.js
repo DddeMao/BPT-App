@@ -15,6 +15,9 @@ const Player = {
     this.artist = document.getElementById('playerArtist');
     this.bar = document.getElementById('player');
 
+    // CORS для визуализатора — обязательно для Dropbox и других внешних источников
+    this.audio.crossOrigin = 'anonymous';
+
     // Инициализация визуализатора (опционально)
     if (typeof Visualizer !== 'undefined') {
       Visualizer.init();
@@ -22,7 +25,7 @@ const Player = {
 
     this.audio.addEventListener('play', () => {
       setTimeout(() => { if (!this.audio.paused) this.cover.classList.add('playing'); }, 50);
-      // Визуализатор подключается только если есть canvas и пользователь кликнул
+      // Визуализатор подключается только если есть canvas
       if (typeof Visualizer !== 'undefined' && Visualizer.canvas) {
         try { Visualizer.connect(); } catch(e) { console.warn('Visualizer error:', e); }
       }
@@ -82,7 +85,6 @@ const Player = {
       await this.audio.play();
     } catch (err) {
       console.log('Play error:', err);
-      // Если autoplay заблокирован, пробуем ещё раз после взаимодействия
       if (err.name === 'NotAllowedError') {
         UI.showNotification('Нажмите play в плеере для воспроизведения', true);
       }
