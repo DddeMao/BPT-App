@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GitHub синхронизация
  */
 const Sync = {
@@ -95,10 +95,12 @@ const Sync = {
     if (!res.ok) throw new Error(`Ошибка загрузки: ${res.status}`);
   },
 
-  mergeRatings(localRatings = [], remoteRatings = []) {
+  mergeRatings(localRatings = [], remoteRatings = [], deletedRatingIds = []) {
     const rMap = new Map();
+    const deletedSet = new Set(deletedRatingIds || []);
     const processRating = (r) => {
       if (!r || !r.userId) return;
+      if (deletedSet.has(r.userId)) return;
       const existing = rMap.get(r.userId);
       if (!existing || !existing.date || !r.date || new Date(r.date) > new Date(existing.date)) {
         rMap.set(r.userId, r);
@@ -116,7 +118,7 @@ const Sync = {
     const localTombstones = JSON.parse(localStorage.getItem('bpt_tombstones') || '{}');
     const remoteTombstones = remoteData.tombstones || {};
 
-    ['songs', 'albums'].forEach(store => {
+    ['songs', 'albums', 'ratings'].forEach(store => {
       if (!localTombstones[store]) localTombstones[store] = [];
       if (remoteTombstones[store]) {
         remoteTombstones[store].forEach(rt => {
@@ -127,6 +129,8 @@ const Sync = {
       }
     });
     localStorage.setItem('bpt_tombstones', JSON.stringify(localTombstones));
+
+    const deletedRatingIds = (localTombstones.ratings || []).map(t => t.id);
 
     for (const remoteSong of remoteData.songs || []) {
       const isDeleted = localTombstones.songs?.find(t => t.id === remoteSong.id);
@@ -157,7 +161,7 @@ const Sync = {
           changed = true;
         }
 
-        const mergedRatings = this.mergeRatings(local.ratings, remoteSong.ratings);
+        const mergedRatings = this.mergeRatings(local.ratings, remoteSong.ratings, deletedRatingIds);
         if (JSON.stringify(local.ratings) !== JSON.stringify(mergedRatings)) {
           local.ratings = mergedRatings;
           changed = true;
@@ -228,7 +232,7 @@ const Sync = {
           if (albumChanged) exists.trackOrder = mergedOrder;
         }
 
-        const mergedAlbumRatings = this.mergeRatings(exists.ratings, remoteAlbum.ratings);
+        const mergedAlbumRatings = this.mergeRatings(exists.ratings, remoteAlbum.ratings, deletedRatingIds);
         if (JSON.stringify(exists.ratings) !== JSON.stringify(mergedAlbumRatings)) {
           exists.ratings = mergedAlbumRatings;
           albumChanged = true;
