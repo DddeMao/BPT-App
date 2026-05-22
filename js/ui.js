@@ -528,8 +528,7 @@ const UI = {
             const songs = await DB.getAll(CONFIG.STORE_SONGS);
             const s = songs.find(s => s.id === songId);
             if (!s || !s.ratings) return;
-            s.ratings = s.ratings.filter(r => String(r.userId) !== String(targetUserId));
-            await DB.put(CONFIG.STORE_SONGS, s);
+            s.ratings = s.ratings.filter(r => String(r.userId) !== String(targetUserId)); const ts = JSON.parse(localStorage.getItem(`bpt_tombstones`) || `{}`); if (!ts.ratings) ts.ratings = []; ts.ratings.push({ id: String(targetUserId) + `_` + String(songId), timestamp: Date.now() }); localStorage.setItem(`bpt_tombstones`, JSON.stringify(ts));     await DB.put(CONFIG.STORE_SONGS, s);
             this.loadTrackRatings();
             Sync.onDataChanged();
           });

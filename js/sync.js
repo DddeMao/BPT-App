@@ -95,12 +95,12 @@ const Sync = {
     if (!res.ok) throw new Error(`Ошибка загрузки: ${res.status}`);
   },
 
-  mergeRatings(localRatings = [], remoteRatings = [], deletedRatingIds = []) {
+  mergeRatings(localRatings = [], remoteRatings = [], deletedRatingIds = [], songId = null) {
     const rMap = new Map();
     const deletedSet = new Set(deletedRatingIds || []);
     const processRating = (r) => {
       if (!r || !r.userId) return;
-      if (deletedSet.has(r.userId)) return;
+      if (deletedSet.has(r.userId) || (songId && deletedSet.has(r.userId + `_` + songId))) return;
       const existing = rMap.get(r.userId);
       if (!existing || !existing.date || !r.date || new Date(r.date) > new Date(existing.date)) {
         rMap.set(r.userId, r);
@@ -161,7 +161,7 @@ const Sync = {
           changed = true;
         }
 
-        const mergedRatings = this.mergeRatings(local.ratings, remoteSong.ratings, deletedRatingIds);
+        const mergedRatings = this.mergeRatings(local.ratings, remoteSong.ratings, deletedRatingIds, remoteSong.id);
         if (JSON.stringify(local.ratings) !== JSON.stringify(mergedRatings)) {
           local.ratings = mergedRatings;
           changed = true;
@@ -232,7 +232,7 @@ const Sync = {
           if (albumChanged) exists.trackOrder = mergedOrder;
         }
 
-        const mergedAlbumRatings = this.mergeRatings(exists.ratings, remoteAlbum.ratings, deletedRatingIds);
+        const mergedAlbumRatings = this.mergeRatings(exists.ratings, remoteAlbum.ratings, deletedRatingIds, remoteAlbum.name);
         if (JSON.stringify(exists.ratings) !== JSON.stringify(mergedAlbumRatings)) {
           exists.ratings = mergedAlbumRatings;
           albumChanged = true;

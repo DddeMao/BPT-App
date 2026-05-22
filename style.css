@@ -806,12 +806,12 @@ button:hover {
   text-overflow: ellipsis;
 }
 
-#playerCover.playing {
+.player-progress { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 6px; overflow: hidden; } .player-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 2px; transition: width 0.3s ease; } #playerCover.playing {
   animation: coverPulse 2s ease-in-out infinite;
   box-shadow: 0 0 25px var(--primary-glow);
 }
 
-@keyframes coverPulse {
+@keyframes progressPulse { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } } @keyframes coverPulse {
   0%, 100% { transform: scale(1); box-shadow: 0 0 20px var(--primary-glow); }
   50% { transform: scale(1.05); box-shadow: 0 0 40px var(--accent-glow); }
 }
