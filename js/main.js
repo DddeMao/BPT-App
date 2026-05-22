@@ -343,7 +343,7 @@ const App = {
   },
 
   showApp() {
-    if (!Auth.currentUser || !Auth.currentUser.isAdmin) {
+    if (!Auth.currentUser) {
       console.error('Заблокирована попытка несанкционированного вызова showApp()!');
       if (document.getElementById('app')) document.getElementById('app').style.display = 'none';
       if (document.getElementById('player')) document.getElementById('player').style.display = 'none';

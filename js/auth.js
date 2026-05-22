@@ -26,7 +26,8 @@ const Auth = {
 
   async initAdmin() {
     const users = await DB.getAll(CONFIG.STORE_USERS);
-    if (users.length === 0) {
+    const existingAdmin = users.find(u => u.username === 'Letluvv');
+    if (!existingAdmin) {
       const adminHash = await this.hashPassword('123123');
       await DB.add(CONFIG.STORE_USERS, { username: 'Letluvv', passwordHash: adminHash, isAdmin: true });
     }
@@ -42,11 +43,23 @@ const Auth = {
   },
 
   async handleRegister(username, password) {
+    // Проверяем существующего пользователя по индексу
     const existing = await DB.getUserByUsername(username);
-    if (existing) throw new Error('Пользователь с таким ником уже существует');
+    if (existing) throw new Error('Пользователь с таким ником уже существует. Попробуйте войти или выберите другой ник.');
+    
     const passwordHash = await this.hashPassword(password);
     const user = { username, passwordHash, isAdmin: false };
-    await DB.add(CONFIG.STORE_USERS, user);
+    
+    try {
+      await DB.add(CONFIG.STORE_USERS, user);
+    } catch (e) {
+      // Если ошибка из-за дубликата (индекс unique)
+      if (e.name === 'ConstraintError' || e.message?.includes('unique') || e.message?.includes('already exists')) {
+        throw new Error('Пользователь с таким ником уже существует. Попробуйте войти или выберите другой ник.');
+      }
+      throw e;
+    }
+    
     this.saveSession(user.id);
     return user;
   },

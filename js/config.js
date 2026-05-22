@@ -4,7 +4,7 @@
 const CONFIG = {
   CRITERIA: ['Рифмы/Образы', 'Структура/Ритмика', 'Реализация стиля', 'Индивидуальность/Харизма', 'Атмосфера/Вайб'],
   MAX_SCORE: 12,
-  DB_NAME: 'MusicRatingsDB_v8',
+  DB_NAME: 'MusicRatingsDB_v9',
   STORE_SONGS: 'songs',
   STORE_ALBUMS: 'albums',
   STORE_USERS: 'users',
