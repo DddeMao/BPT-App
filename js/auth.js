@@ -53,48 +53,64 @@ const Auth = {
 
   async onTelegramAuth(tgUser) {
     console.log('[TG Auth] Данные от Telegram:', tgUser);
-    console.log('[TG Auth] Ожидаемый ID:', CONFIG.MY_TELEGRAM_ID);
-    console.log('[TG Auth] Полученный ID:', tgUser?.id);
-    console.log('[TG Auth] Совпадение:', tgUser?.id === CONFIG.MY_TELEGRAM_ID);
 
     if (!tgUser || !tgUser.id) {
-      alert('Авторизация отклонена. Доступ заблокирован!');
-      window.location.reload();
+      alert('Ошибка авторизации Telegram. Попробуйте ещё раз.');
       return;
     }
 
     const currentTime = Math.floor(Date.now() / 1000);
-    if (tgUser.auth_date && (currentTime - tgUser.auth_date > 30)) {
-      alert('Вход отменен. Чтобы сменить аккаунт, нажмите синюю кнопку Telegram и выберите «ВЫЙТИ» в углу попапа!');
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.reload();
+    if (tgUser.auth_date && (currentTime - tgUser.auth_date > 86400)) {
+      alert('Сессия устарела. Попробуйте войти снова.');
       return;
     }
 
-    if (tgUser.id === CONFIG.MY_TELEGRAM_ID) {
-      let adminUser = await DB.getUserByUsername('Letluvv');
-      if (!adminUser) {
-        adminUser = {
-          id: 'admin_tg_' + tgUser.id,
-          username: 'Letluvv',
-          passwordHash: 'tg_authorized',
-          isAdmin: true,
-        };
-        await DB.put(CONFIG.STORE_USERS, adminUser);
-        console.log('[TG Auth] Создан админ аккаунт:', adminUser);
-      } else {
-        console.log('[TG Auth] Найден существующий админ:', adminUser);
-      }
-      this.currentUser = adminUser;
-      this.currentUser.isAdmin = true;
-      this.saveSession(this.currentUser.id);
+    // Проверяем существующего пользователя по TG ID
+    const allUsers = await DB.getAll(CONFIG.STORE_USERS);
+    let user = allUsers.find(u => u.tgId === String(tgUser.id));
+
+    if (user) {
+      // Существующий пользователь — просто входим
+      this.currentUser = user;
+      this.saveSession(user.id);
       App.showApp();
       App.refreshAll();
-    } else {
-      alert('Доступ запрещен. Ваш Telegram ID: ' + tgUser.id + ' не совпадает с ожидаемым.');
-      window.location.reload();
+      return;
     }
+
+    // Новый пользователь — регистрируем
+    const username = tgUser.username || tgUser.first_name || 'tg_user_' + tgUser.id;
+    const existingByName = await DB.getUserByUsername(username);
+    if (existingByName) {
+      // Ник занят — добавляем суффикс
+      const uniqueUsername = username + '_' + tgUser.id;
+      user = {
+        id: 'tg_' + tgUser.id,
+        username: uniqueUsername,
+        passwordHash: 'tg_authorized',
+        isAdmin: false,
+        tgId: String(tgUser.id),
+        tgFirstName: tgUser.first_name || '',
+        tgPhotoUrl: tgUser.photo_url || '',
+      };
+    } else {
+      user = {
+        id: 'tg_' + tgUser.id,
+        username: username,
+        passwordHash: 'tg_authorized',
+        isAdmin: false,
+        tgId: String(tgUser.id),
+        tgFirstName: tgUser.first_name || '',
+        tgPhotoUrl: tgUser.photo_url || '',
+      };
+    }
+
+    await DB.add(CONFIG.STORE_USERS, user);
+    console.log('[TG Auth] Зарегистрирован новый пользователь:', user);
+    this.currentUser = user;
+    this.saveSession(user.id);
+    App.showApp();
+    App.refreshAll();
   },
 };
 
