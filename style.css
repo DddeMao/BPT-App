@@ -1,7 +1,7 @@
 ﻿/* ========================================
-   Р‘РџРў вЂ” Р РµРґРёР·Р°Р№РЅ 2025
-   РќР°РІРёРіР°С†РёСЏ СЃРІРµСЂС…Сѓ РїРѕ С†РµРЅС‚СЂСѓ (РјРѕР±РёР»РєР° вЂ” СЃРЅРёР·Сѓ)
-   Р¦РІРµС‚Р°: С„РёРѕР»РµС‚РѕРІС‹Р№ + РєСЂР°СЃРЅС‹Р№ + Р·РѕР»РѕС‚РѕР№ + Р·РµР»С‘РЅС‹Р№
+   БПТ — Редизайн 2025
+   Навигация сверху по центру (мобилка — снизу)
+   Цвета: фиолетовый + красный + золотой + зелёный
    ======================================== */
 
 :root {
@@ -36,7 +36,7 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* === РЎРљР РћР›Р›Р‘РђР  === */
+/* === СКРОЛЛБАР === */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -45,7 +45,7 @@
 }
 * { scrollbar-width: thin; scrollbar-color: var(--primary) transparent; }
 
-/* === Р‘РђР—РћР’Р«Р• РЎРўРР›Р === */
+/* === БАЗОВЫЕ СТИЛИ === */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -58,7 +58,7 @@ body {
   overflow-x: hidden;
 }
 
-/* РђРЅРёРјРёСЂРѕРІР°РЅРЅС‹Р№ С„РѕРЅ СЃ С‡Р°СЃС‚РёС†Р°РјРё */
+/* Анимированный фон с частицами */
 body::before {
   content: '';
   position: fixed;
@@ -80,7 +80,7 @@ body::before {
   75% { transform: translate(10px, 10px) scale(1.01); }
 }
 
-/* === РќРђР’РР“РђР¦РРЇ РЎР’Р•Р РҐРЈ (Р”Р•РЎРљРўРћРџ) === */
+/* === НАВИГАЦИЯ СВЕРХУ (ДЕСКТОП) === */
 .top-nav {
   position: fixed;
   top: 12px;
@@ -143,7 +143,7 @@ body::before {
   display: inline;
 }
 
-/* === РћРЎРќРћР’РќРћР™ РљРћРќРўР•Р™РќР•Р  === */
+/* === ОСНОВНОЙ КОНТЕЙНЕР === */
 #app {
   display: flex;
   flex: 1;
@@ -159,7 +159,7 @@ body::before {
   min-width: 0;
 }
 
-/* === РЁРђРџРљРђ РЎРђР™РўРђ === */
+/* === ШАПКА САЙТА === */
 .site-header {
   display: flex;
   align-items: center;
@@ -196,7 +196,7 @@ body::before {
   font-size: 0.9rem;
 }
 
-/* === РљРќРћРџРљР === */
+/* === КНОПКИ === */
 button {
   background: var(--primary);
   border: none;
@@ -270,7 +270,7 @@ button:hover {
   border-color: var(--primary);
 }
 
-/* === РџРђРќР•Р›Р¬ РЈРџР РђР’Р›Р•РќРРЇ === */
+/* === ПАНЕЛЬ УПРАВЛЕНИЯ === */
 .controls {
   display: flex;
   gap: 8px;
@@ -279,7 +279,7 @@ button:hover {
   align-items: center;
 }
 
-/* === РџРћРРЎРљ === */
+/* === ПОИСК === */
 .search-sort-bar { margin-bottom: 16px;
   display: flex;
   align-items: center;
@@ -332,7 +332,7 @@ button:hover {
   background: var(--surface-hover);
 }
 
-/* === РЎРћР РўРР РћР’РљРђ === */
+/* === СОРТИРОВКА === */
 .sort-buttons {
   display: flex;
   gap: 4px;
@@ -365,14 +365,14 @@ button:hover {
   box-shadow: 0 0 15px var(--primary-glow);
 }
 
-/* === РЎР•РўРљРђ РўР Р•РљРћР’ === */
+/* === СЕТКА ТРЕКОВ === */
 .song-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
 
-/* === РљРђР РўРћР§РљРђ РўР Р•РљРђ === */
+/* === КАРТОЧКА ТРЕКА === */
 .card {
   background: var(--surface);
   border-radius: var(--radius);
@@ -468,14 +468,14 @@ button:hover {
   margin-top: 4px;
 }
 
-/* РњРёРЅРё-СЂР°РґР°СЂ РЅР° РєР°СЂС‚РѕС‡РєРµ */
+/* Мини-радар на карточке */
 .card-radar {
   width: 48px;
   height: 48px;
   flex-shrink: 0;
 }
 
-/* === Р‘РђР›Р›Р« (РљР РЈР–РљР) === */
+/* === БАЛЛЫ (КРУЖКИ) === */
 .score-circles {
   display: flex;
   gap: 6px;
@@ -509,7 +509,7 @@ button:hover {
   text-align: right;
 }
 
-/* === Р”Р•Р™РЎРўР’РРЇ РљРђР РўРћР§РљР === */
+/* === ДЕЙСТВИЯ КАРТОЧКИ === */
 .card-actions {
   display: flex;
   justify-content: space-between;
@@ -573,7 +573,7 @@ button:hover {
   background: var(--accent-dark);
 }
 
-/* === РђР›Р¬Р‘РћРњР« === */
+/* === АЛЬБОМЫ === */
 .album-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -637,7 +637,7 @@ button:hover {
   color: var(--text-muted);
 }
 
-/* === Р‘РћРљРћР’РђРЇ РџРђРќР•Р›Р¬ РўРћРџ === */
+/* === БОКОВАЯ ПАНЕЛЬ ТОП === */
 .top-sidebar {
   width: 300px;
   flex-shrink: 0;
@@ -741,46 +741,69 @@ button:hover {
   text-shadow: 0 0 10px var(--gold-glow);
 }
 
-/* === РџР›Р•Р•Р  === */
+/* ========================================
+   ПЛЕЕР — APPLE MUSIC STYLE
+   Скруглённый, по центру внизу, glassmorphism
+   ======================================== */
+
 .player-bar {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(180deg, rgba(20, 20, 30, 0.95) 0%, rgba(14, 14, 20, 0.98) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  padding: 12px 20px;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 24px);
+  max-width: 600px;
+  background: rgba(30, 30, 40, 0.85);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-radius: 20px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  border-top: 2px solid;
-  border-image: linear-gradient(90deg, var(--primary), var(--accent)) 1;
+  gap: 12px;
   z-index: 200;
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
-  animation: slideUp 0.4s ease forwards;
-  height: var(--player-height);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.08);
+  animation: playerSlideUp 0.4s ease forwards;
+  height: auto;
 }
 
-@keyframes slideUp {
-  from { transform: translateY(100%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+@keyframes playerSlideUp {
+  from { transform: translateX(-50%) translateY(100%); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
 
 .player-info {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-width: 180px;
+  flex: 1;
+  min-width: 0;
 }
 
 .player-info img {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-sm);
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   object-fit: cover;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.player-info #playerTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.player-info #playerArtist {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #playerCover.playing {
@@ -793,99 +816,15 @@ button:hover {
   50% { transform: scale(1.05); box-shadow: 0 0 40px var(--accent-glow); }
 }
 
-.player-info #playerTitle {
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.player-info #playerArtist {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-/* Р’РёР·СѓР°Р»РёР·Р°С‚РѕСЂ РІ РїР»РµРµСЂРµ */
-.player-visualizer {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 30px;
-  margin-left: 10px;
-}
-
-.player-visualizer .bar {
-  width: 3px;
-  background: linear-gradient(180deg, var(--primary), var(--accent));
-  border-radius: 2px;
-  animation: visualizerBar 0.8s ease-in-out infinite alternate;
-}
-
-@keyframes visualizerBar {
-  from { height: 4px; }
-  to { height: 24px; }
-}
-
-/* РђСѓРґРёРѕРїР»РµРµСЂ */
 .player-bar audio {
   flex: 1;
-  min-width: 250px;
-  height: 40px;
-  background: var(--surface-solid) !important;
-  border-radius: 24px;
+  min-width: 200px;
+  height: 36px;
+  border-radius: 12px;
   outline: none;
-  border: 1px solid var(--border);
 }
 
-.player-bar audio::-webkit-media-controls-enclosure {
-  background-color: var(--surface-solid) !important;
-  border-radius: 24px;
-}
-
-.player-bar audio::-webkit-media-controls-panel {
-  background-color: var(--surface-solid) !important;
-  border-radius: 24px;
-  padding: 0 12px;
-}
-
-.player-bar audio::-webkit-media-controls-play-button {
-  filter: brightness(0) saturate(100%) invert(45%) sepia(98%) saturate(2054%) hue-rotate(316deg) brightness(101%) contrast(101%);
-}
-
-.player-bar audio::-webkit-media-controls-current-time-display,
-.player-bar audio::-webkit-media-controls-time-remaining-display {
-  color: var(--text) !important;
-  font-weight: 600;
-  font-size: 0.8rem;
-}
-
-.player-bar audio::-webkit-media-controls-timeline {
-  background-color: var(--surface-hover) !important;
-  border-radius: 2px;
-  height: 4px;
-}
-
-.player-bar audio::-webkit-media-controls-timeline::-webkit-slider-thumb {
-  background-color: var(--accent) !important;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--accent-glow);
-}
-
-.player-bar audio::-webkit-media-controls-volume-slider {
-  background-color: var(--surface-hover) !important;
-  border-radius: 2px;
-  height: 4px;
-}
-
-.player-bar audio::-webkit-media-controls-volume-slider::-webkit-slider-thumb {
-  background-color: var(--primary) !important;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--primary-glow);
-}
-
-/* === РњРћР”РђР›Р¬РќР«Р• РћРљРќРђ === */
+/* === МОДАЛЬНЫЕ ОКНА === */
 .modal {
   display: none;
   position: fixed;
@@ -933,7 +872,7 @@ button:hover {
 .modal-content::-webkit-scrollbar-track { background: transparent; margin: 12px 0; }
 .modal-content::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 2px; }
 
-/* Р Р°Р·РјРµСЂС‹ РјРѕРґР°Р»РѕРє */
+/* Размеры модалок */
 #modalRating .modal-content,
 #modalComment .modal-content { max-width: 700px; }
 #modalAlbumView .modal-content { max-width: 750px; }
@@ -941,7 +880,7 @@ button:hover {
 #modalSettings .modal-content,
 #modalConfirm .modal-content { max-width: 450px; }
 
-/* Р—Р°РєСЂС‹С‚РёРµ РјРѕРґР°Р»РєРё */
+/* Закрытие модалки */
 .close,
 .close-rating,
 .close-comment,
@@ -977,7 +916,7 @@ button:hover {
   transform: rotate(90deg);
 }
 
-/* === Р¤РћР РњР« === */
+/* === ФОРМЫ === */
 .form-group {
   margin-bottom: 14px;
   display: flex;
@@ -1014,7 +953,7 @@ button:hover {
 
 input[readonly] { opacity: 0.6; }
 
-/* === РџРћР›Р—РЈРќРљР === */
+/* === ПОЛЗУНКИ === */
 .range-group {
   margin-bottom: 18px;
 }
@@ -1093,7 +1032,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   margin-bottom: 18px;
 }
 
-/* === РљРћРњРњР•РќРўРђР РР === */
+/* === КОММЕНТАРИИ === */
 .comments-list {
   max-height: 200px;
   overflow-y: auto;
@@ -1149,7 +1088,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   transform: scale(1.1);
 }
 
-/* === Р”РђРўРђ РђР›Р¬Р‘РћРњРђ === */
+/* === ДАТА АЛЬБОМА === */
 .album-date-row {
   display: flex;
   align-items: center;
@@ -1186,7 +1125,7 @@ input[type=range]::-webkit-slider-thumb:hover {
 .dragging { opacity: 0.5; }
 .drag-over { border: 2px dashed var(--primary) !important; }
 
-/* === Р—РђР“Р РЈР—РљРђ === */
+/* === ЗАГРУЗКА === */
 .loading-overlay {
   display: none;
   position: fixed;
@@ -1216,7 +1155,7 @@ input[type=range]::-webkit-slider-thumb:hover {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* === РЎРРќРҐР РћРќРР—РђР¦РРЇ === */
+/* === СИНХРОНИЗАЦИЯ === */
 .syncing-dot {
   display: inline-block;
   width: 8px;
@@ -1266,7 +1205,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   white-space: nowrap;
 }
 
-/* === РљРћРќРўР•РљРЎРўРќРћР• РњР•РќР® === */
+/* === КОНТЕКСТНОЕ МЕНЮ === */
 .context-menu {
   position: fixed;
   z-index: 400;
@@ -1307,7 +1246,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   color: var(--accent);
 }
 
-/* === РЈР’Р•Р”РћРњР›Р•РќРРЇ === */
+/* === УВЕДОМЛЕНИЯ === */
 .notification {
   position: fixed;
   bottom: calc(var(--player-height) + 20px);
@@ -1329,7 +1268,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   transform: translateX(-50%) translateY(0);
 }
 
-/* === Р”РРќРђРњРР§Р•РЎРљРР• РџРћР›РЇ === */
+/* === ДИНАМИЧЕСКИЕ ПОЛЯ === */
 #audioUrlsContainer {
   display: flex;
   flex-direction: column;
@@ -1341,7 +1280,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   width: 100%;
 }
 
-/* === РђР’РўРћР РР—РђР¦РРЇ === */
+/* === АВТОРИЗАЦИЯ === */
 #authScreen {
   min-height: 100vh;
   display: flex;
@@ -1418,7 +1357,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   overflow: hidden;
 }
 
-/* === РђР”РђРџРўРђР¦РРЇ: РџР›РђРќРЁР•Рў === */
+/* === АДАПТАЦИЯ: ПЛАНШЕТ === */
 @media (max-width: 1024px) {
   .top-sidebar {
     width: 260px;
@@ -1429,19 +1368,19 @@ input[type=range]::-webkit-slider-thumb:hover {
   }
 }
 
-/* === РђР”РђРџРўРђР¦РРЇ: РњРћР‘РР›Р¬РќРђРЇ РќРђР’РР“РђР¦РРЇ РЎРќРР—РЈ === */
+/* === АДАПТАЦИЯ: МОБИЛЬНАЯ НАВИГАЦИЯ СНИЗУ === */
 @media (max-width: 768px) {
   :root {
     --nav-height: 0;
     --player-height: 120px;
   }
 
-  /* РЎРєСЂС‹РІР°РµРј РІРµСЂС…РЅСЋСЋ РЅР°РІРёРіР°С†РёСЋ */
+  /* Скрываем верхнюю навигацию */
   .top-nav {
     display: none;
   }
 
-  /* РќРёР¶РЅСЏСЏ РЅР°РІРёРіР°С†РёСЏ */
+  /* Нижняя навигация */
   .bottom-nav {
     display: flex !important;
     position: fixed;
@@ -1524,20 +1463,26 @@ input[type=range]::-webkit-slider-thumb:hover {
     height: 110px;
   }
 
+  /* Плеер на мобильных */
   .player-bar {
-    flex-direction: column;
-    gap: 6px;
-    padding: 10px 12px;
+    bottom: 8px;
+    width: calc(100% - 16px);
+    border-radius: 16px;
+    padding: 8px 12px;
   }
 
-  .player-info {
-    width: 100%;
-    justify-content: flex-start;
+  .player-info img {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
   }
 
-  .player-bar audio {
-    width: 100%;
-    min-width: 100%;
+  .player-info #playerTitle {
+    font-size: 0.8rem;
+  }
+
+  .player-info #playerArtist {
+    font-size: 0.68rem;
   }
 
   #authScreen > div {
@@ -1551,14 +1496,14 @@ input[type=range]::-webkit-slider-thumb:hover {
   }
 }
 
-/* РџРѕРєР°Р·С‹РІР°РµРј РІРµСЂС…РЅСЋСЋ РЅР°РІРёРіР°С†РёСЋ РЅР° РґРµСЃРєС‚РѕРїРµ */
+/* Показываем верхнюю навигацию на десктопе */
 @media (min-width: 769px) {
   .bottom-nav {
     display: none !important;
   }
 }
 
-/* === HOVER РўРћР›Р¬РљРћ Р”Р›РЇ Р”Р•РЎРљРўРћРџРђ === */
+/* === HOVER ТОЛЬКО ДЛЯ ДЕСКТОПА === */
 @media (hover: none) {
   button:hover,
   .btn:hover,
@@ -1577,10 +1522,10 @@ input[type=range]::-webkit-slider-thumb:hover {
 }
 
 /* ========================================
-   РћРљРќРћ РўР Р•РљРђ РЎ Р’РљР›РђР”РљРђРњР
+   ОКНО ТРЕКА С ВКЛАДКАМИ
    ======================================== */
 
-/* РљРѕРЅС‚РµР№РЅРµСЂ РѕРєРЅР° С‚СЂРµРєР° */
+/* Контейнер окна трека */
 .track-view-overlay {
   position: fixed;
   top: 0; left: 0;
@@ -1622,7 +1567,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* РЁР°РїРєР° РѕРєРЅР° С‚СЂРµРєР° */
+/* Шапка окна трека */
 .track-view-header {
   display: flex;
   align-items: center;
@@ -1695,7 +1640,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   border-color: var(--accent);
 }
 
-/* Р’РєР»Р°РґРєРё */
+/* Вкладки */
 .track-view-tabs {
   display: flex;
   gap: 0;
@@ -1732,7 +1677,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   background: transparent;
 }
 
-/* РЎРѕРґРµСЂР¶РёРјРѕРµ РІРєР»Р°РґРѕРє */
+/* Содержимое вкладок */
 .track-view-body {
   flex: 1;
   overflow-y: auto;
@@ -1753,7 +1698,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Р’РєР»Р°РґРєР°: РћС†РµРЅРєРё */
+/* Вкладка: Оценки */
 .track-rating-layout {
   display: flex;
   gap: 24px;
@@ -1795,7 +1740,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   margin-bottom: 12px;
 }
 
-/* Р’РєР»Р°РґРєР°: РўРµРєСЃС‚ */
+/* Вкладка: Текст */
 .track-lyrics {
   white-space: pre-wrap;
   line-height: 1.8;
@@ -1815,7 +1760,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   margin-bottom: 12px;
 }
 
-/* Р’РєР»Р°РґРєР°: РљРѕРјРјРµРЅС‚Р°СЂРёРё */
+/* Вкладка: Комментарии */
 .track-comments-list {
   max-height: 300px;
   overflow-y: auto;
@@ -1841,7 +1786,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   resize: vertical;
 }
 
-/* Р’РєР»Р°РґРєР°: РРЅС„Рѕ */
+/* Вкладка: Инфо */
 .track-info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -1873,7 +1818,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   color: var(--primary);
 }
 
-/* РђРґР°РїС‚РёРІ РѕРєРЅР° С‚СЂРµРєР° */
+/* Адаптив окна трека */
 @media (max-width: 768px) {
   .track-view-container {
     width: 100%;
@@ -1923,7 +1868,6 @@ input[type=range]::-webkit-slider-thumb:hover {
     grid-template-columns: repeat(2, 1fr);
   }
 }
-`n/* === РРЎРџР РђР’Р›Р•РќРРЇ === */
+
+/* === ИСПРАВЛЕНИЯ === */
 .search-sort-bar { margin-bottom: 16px; margin-bottom: 16px !important; }
-
-
