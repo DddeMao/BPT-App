@@ -512,24 +512,13 @@ const UI = {
       const otherContainer = document.getElementById('otherRatings');
       const others = song.ratings?.filter(r => r.userId !== Auth.currentUser.id) || [];
       const isAdmin = Auth.currentUser?.isAdmin;
-      otherContainer.innerHTML = others.length === 0 ? `<div style="color:#888;text-align:center;padding:20px;">Нет оценок от других пользователей</div>` : this.renderAverageRating(song) + others.map((r) => this.renderUserRatingCard(r, isAdmin, songId)).join("");if (isAdmin) {
-        otherContainer.querySelectorAll('.delete-rating-btn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            const targetUserId = e.target.dataset.userid;
-            if (!confirm('Удалить эту оценку?')) return;
-            const songs = await DB.getAll(CONFIG.STORE_SONGS);
-            const s = songs.find(s => s.id === songId);
-            if (!s || !s.ratings) return;
-            s.ratings = s.ratings.filter(r => String(r.userId) !== String(targetUserId)); const ts = JSON.parse(localStorage.getItem(`bpt_tombstones`) || `{}`); if (!ts.ratings) ts.ratings = []; ts.ratings.push({ id: String(targetUserId) + `_` + String(songId), timestamp: Date.now() }); localStorage.setItem(`bpt_tombstones`, JSON.stringify(ts));     await DB.put(CONFIG.STORE_SONGS, s);
-            this.loadTrackRatings();
-            Sync.onDataChanged();
-          });
+      
         });
       }
     });
   },
 
-  loadTrackComments() {
+  loadTrackRatingsList() {`r`n    const songId = this.currentTrackSongId;`r`n    DB.getAll(CONFIG.STORE_SONGS).then(songs => {`r`n      const song = songs.find(s => s.id === songId);`r`n      if (!song) return;`r`n      const container = document.getElementById(`ratingsListContainer`);`r`n      const ratings = song.ratings || [];`r`n      const isAdmin = Auth.currentUser?.isAdmin;`r`n      const myUserId = Auth.currentUser?.id;`r`n      if (ratings.length === 0) {`r`n        container.innerHTML = `<div style="color:#888;text-align:center;padding:40px;">Пока нет оценок</div>`;`r`n        return;`r`n      }`r`n      let html = ``;`r`n      html += this.renderAverageRating(song);`r`n      const myRating = ratings.find(r => r.userId === myUserId);`r`n      if (myRating) {`r`n        html += `<div style="font-weight:600;font-size:0.85rem;color:var(--primary);margin:12px 0 8px;">★ Ваша оценка</div>`;`r`n        html += this.renderUserRatingCard(myRating, isAdmin, songId);`r`n      }`r`n      const others = ratings.filter(r => r.userId !== myUserId);`r`n      if (others.length > 0) {`r`n        html += `<div style="font-weight:600;font-size:0.85rem;color:var(--text-secondary);margin:12px 0 8px;">Оценки других пользователей</div>`;`r`n        html += others.map(r => this.renderUserRatingCard(r, isAdmin, songId)).join(``);`r`n      }`r`n      container.innerHTML = html;`r`n      if (isAdmin) {`r`n        container.querySelectorAll(`.delete-rating-btn`).forEach(btn => {`r`n          btn.addEventListener(`click`, async (e) => {`r`n            const targetUserId = e.target.dataset.userid;`r`n            if (!confirm(`Удалить эту оценку?`)) return;`r`n            const songs = await DB.getAll(CONFIG.STORE_SONGS);`r`n            const s = songs.find(s => s.id === songId);`r`n            if (!s || !s.ratings) return;`r`n            s.ratings = s.ratings.filter(r => String(r.userId) !== String(targetUserId));`r`n            const ts = JSON.parse(localStorage.getItem(`bpt_tombstones`) || `{}`);`r`n            if (!ts.ratings) ts.ratings = [];`r`n            ts.ratings.push({ id: String(targetUserId) + `_` + String(songId), timestamp: Date.now() });`r`n            localStorage.setItem(`bpt_tombstones`, JSON.stringify(ts));`r`n            await DB.put(CONFIG.STORE_SONGS, s);`r`n            this.loadTrackRatingsList();`r`n            Sync.onDataChanged();`r`n          });`r`n        });`r`n      }`r`n    });`r`n  },`r`n`r`n  loadTrackComments() {
     const songId = this.currentTrackSongId;
     DB.getAll(CONFIG.STORE_SONGS).then(songs => {
       const song = songs.find(s => s.id === songId);
