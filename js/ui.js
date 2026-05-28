@@ -43,7 +43,7 @@ const UI = {
     return Math.round(sum / song.ratings.length);
   },
 
-  getAlbumAverageRating(album) {
+  getScoreColorHex(score) { const ratio = score / CONFIG.MAX_SCORE; const start = {r:102,g:102,b:120}; const mid = {r:179,g:102,b:255}; const end = {r:255,g:77,b:109}; let r,g,b; if (ratio <= 0.5) { const t = ratio*2; r=Math.round(start.r+(mid.r-start.r)*t); g=Math.round(start.g+(mid.g-start.g)*t); b=Math.round(start.b+(mid.b-start.b)*t); } else { const t=(ratio-0.5)*2; r=Math.round(mid.r+(end.r-mid.r)*t); g=Math.round(mid.g+(end.g-mid.g)*t); b=Math.round(mid.b+(end.b-mid.b)*t); } return `rgb(${r},${g},${b})`; }, renderMiniCircles(scores) { if (!scores) return ""; return `<div class="rating-mini-circles">${scores.map(s => `<span class=rating-mini-circle style=background:${this.getScoreColorHex(s)}></span>`).join("")}</div>`; }, renderRatingBars(scores) { if (!scores) return ""; return `<div class=rating-bars>${scores.map((s,i) => `<div class=rating-bar-row><span class=rating-bar-label>${CONFIG.CRITERIA[i]}</span><div class=rating-bar-track><div class=rating-bar-fill style=width:${s/CONFIG.MAX_SCORE*100}%;background:${this.getScoreColorHex(s)}></div></div><span class=rating-bar-value>${s}</span></div>`).join("")}</div>`; }, renderUserRatingCard(r, isAdmin, songId) { const initials = r.username ? r.username.charAt(0).toUpperCase() : "?"; return `<div class=user-rating-card><div class=user-rating-header><div class=user-rating-avatar>${initials}</div><span class=user-rating-name>${this.escapeHtml(r.username)}</span><span class=user-rating-total>${r.total} ★</span>${isAdmin ? `<button class=delete-rating-btn data-userid=${r.userId} data-songid=${songId} style=background:#cf6679;border:none;color:white;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;>✕</button>` : ""}</div>${this.renderRatingBars(r.scores)}</div>`; }, renderAverageRating(song) { if (!song.ratings || song.ratings.length === 0) return ""; const avg = this.getAverageRating(song); const avgScores = CONFIG.CRITERIA.map((_,i) => { const vals = song.ratings.map(r => r.scores[i]).filter(s => s !== undefined); return vals.length ? Math.round(vals.reduce((a,b) => a+b,0)/vals.length*10)/10 : 0; }); return `<div class=average-rating-card><div class=average-rating-title>📊 Средний балл: ${avg} ★ (${song.ratings.length} оценок)</div><div class=rating-bars>${avgScores.map((s,i) => `<div class=rating-bar-row><span class=rating-bar-label>${CONFIG.CRITERIA[i]}</span><div class=rating-bar-track><div class=rating-bar-fill style=width:${s/CONFIG.MAX_SCORE*100}%;background:${this.getScoreColorHex(Math.round(s))}></div></div><span class=rating-bar-value>${s}</span></div>`).join("")}</div></div>`; }, getAlbumAverageRating(album) {
     if (!album.ratings || album.ratings.length === 0) return null;
     const sum = album.ratings.reduce((acc, r) => acc + r.total, 0);
     return Math.round(sum / album.ratings.length);
@@ -512,15 +512,7 @@ const UI = {
       const otherContainer = document.getElementById('otherRatings');
       const others = song.ratings?.filter(r => r.userId !== Auth.currentUser.id) || [];
       const isAdmin = Auth.currentUser?.isAdmin;
-      otherContainer.innerHTML = others.length === 0
-        ? '<div style="color:#888;">Нет оценок</div>'
-        : others.map((r) => `
-          <div class="other-rating-item" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
-            <span><strong>${this.escapeHtml(r.username)}</strong>: ${r.total} ★ (${r.scores.map((s, i) => `${CONFIG.CRITERIA[i]}:${s}`).join(', ')})</span>
-            ${isAdmin ? `<button class="delete-rating-btn" data-userid="${r.userId}" style="background:#cf6679;border:none;color:white;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">✕</button>` : ''}
-          </div>`).join('');
-
-      if (isAdmin) {
+      otherContainer.innerHTML = others.length === 0 ? `<div style="color:#888;text-align:center;padding:20px;">Нет оценок от других пользователей</div>` : this.renderAverageRating(song) + others.map((r) => this.renderUserRatingCard(r, isAdmin, songId)).join("");if (isAdmin) {
         otherContainer.querySelectorAll('.delete-rating-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             const targetUserId = e.target.dataset.userid;

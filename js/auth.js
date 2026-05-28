@@ -29,7 +29,16 @@ const Auth = {
     const existingAdmin = users.find(u => u.username === 'Letluvv');
     if (!existingAdmin) {
       const adminHash = await this.hashPassword('123123');
-      await DB.add(CONFIG.STORE_USERS, { username: 'Letluvv', passwordHash: adminHash, isAdmin: true });
+      await DB.add(CONFIG.STORE_USERS, {
+        username: 'Letluvv',
+        passwordHash: adminHash,
+        isAdmin: true,
+        tgId: String(CONFIG.MY_TELEGRAM_ID),
+      });
+    } else if (!existingAdmin.tgId) {
+      // Привязываем TG ID к существующему админу
+      existingAdmin.tgId = String(CONFIG.MY_TELEGRAM_ID);
+      await DB.put(CONFIG.STORE_USERS, existingAdmin);
     }
   },
 
@@ -43,23 +52,21 @@ const Auth = {
   },
 
   async handleRegister(username, password) {
-    // Проверяем существующего пользователя по индексу
     const existing = await DB.getUserByUsername(username);
     if (existing) throw new Error('Пользователь с таким ником уже существует. Попробуйте войти или выберите другой ник.');
-    
+
     const passwordHash = await this.hashPassword(password);
     const user = { username, passwordHash, isAdmin: false };
-    
+
     try {
       await DB.add(CONFIG.STORE_USERS, user);
     } catch (e) {
-      // Если ошибка из-за дубликата (индекс unique)
       if (e.name === 'ConstraintError' || e.message?.includes('unique') || e.message?.includes('already exists')) {
         throw new Error('Пользователь с таким ником уже существует. Попробуйте войти или выберите другой ник.');
       }
       throw e;
     }
-    
+
     this.saveSession(user.id);
     return user;
   },
@@ -78,9 +85,11 @@ const Auth = {
       return;
     }
 
+    const tgId = String(tgUser.id);
+
     // Проверяем существующего пользователя по TG ID
     const allUsers = await DB.getAll(CONFIG.STORE_USERS);
-    let user = allUsers.find(u => u.tgId === String(tgUser.id));
+    let user = allUsers.find(u => u.tgId === tgId);
 
     if (user) {
       // Существующий пользователь — просто входим
@@ -91,18 +100,33 @@ const Auth = {
       return;
     }
 
+    // Проверяем админа по username (для первого входа админа через ТГ)
+    const adminUsername = tgUser.username || tgUser.first_name || '';
+    if (adminUsername) {
+      const existingAdmin = allUsers.find(u => u.username === adminUsername && u.isAdmin);
+      if (existingAdmin) {
+        // Привязываем TG ID к существующему админу
+        existingAdmin.tgId = tgId;
+        await DB.put(CONFIG.STORE_USERS, existingAdmin);
+        this.currentUser = existingAdmin;
+        this.saveSession(existingAdmin.id);
+        App.showApp();
+        App.refreshAll();
+        return;
+      }
+    }
+
     // Новый пользователь — регистрируем
     const username = tgUser.username || tgUser.first_name || 'tg_user_' + tgUser.id;
     const existingByName = await DB.getUserByUsername(username);
     if (existingByName) {
-      // Ник занят — добавляем суффикс
       const uniqueUsername = username + '_' + tgUser.id;
       user = {
         id: 'tg_' + tgUser.id,
         username: uniqueUsername,
         passwordHash: 'tg_authorized',
         isAdmin: false,
-        tgId: String(tgUser.id),
+        tgId: tgId,
         tgFirstName: tgUser.first_name || '',
         tgPhotoUrl: tgUser.photo_url || '',
       };
@@ -112,7 +136,7 @@ const Auth = {
         username: username,
         passwordHash: 'tg_authorized',
         isAdmin: false,
-        tgId: String(tgUser.id),
+        tgId: tgId,
         tgFirstName: tgUser.first_name || '',
         tgPhotoUrl: tgUser.photo_url || '',
       };
