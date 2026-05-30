@@ -413,41 +413,7 @@ button:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.card-top {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.card-cover {
-  width: 72px;
-  height: 72px;
-  border-radius: var(--radius-sm);
-  object-fit: cover;
-  background: var(--surface-solid);
-  transition: var(--transition);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.card:hover .card-cover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(179, 102, 255, 0.2);
-}
-
-.card-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.card-title {
-  font-size: 1rem;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.track-num {
+.card-cover { width: 100%; aspect-ratio: 1; border-radius: var(--radius); object-fit: cover; background: var(--surface-solid); transition: var(--transition); box-shadow: 0 4px 16px rgba(0,0,0,0.4); } .card-cover-empty { background: linear-gradient(135deg, var(--surface-solid), var(--surface-hover)); } .card-cover-wrap { position: relative; overflow: hidden; border-radius: var(--radius); } .play-btn-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; } .card:hover .play-btn-overlay { opacity: 1; } .card-body { padding: 10px 0 0; } .card-actions { display: flex; gap: 4px; align-items: center; margin-top: 8px; } .card-actions button { padding: 6px 10px; font-size: 0.75rem; border-radius: var(--radius-xs); } .card:hover .card-cover { transform: scale(1.02); } .card-info { width: 100%; } .card-title { font-size: 0.95rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }.track-num {
   color: var(--accent);
   margin-right: 6px;
   font-weight: 700;
