@@ -36,7 +36,6 @@ const Auth = {
         tgId: String(CONFIG.MY_TELEGRAM_ID),
       });
     } else if (!existingAdmin.tgId) {
-      // Привязываем TG ID к существующему админу
       existingAdmin.tgId = String(CONFIG.MY_TELEGRAM_ID);
       await DB.put(CONFIG.STORE_USERS, existingAdmin);
     }
@@ -100,7 +99,7 @@ const Auth = {
       return;
     }
 
-    // Проверяем админа по username (для первого входа админа через ТГ)
+    // Проверяем админа по username
     const adminUsername = tgUser.username || tgUser.first_name || '';
     if (adminUsername) {
       const existingAdmin = allUsers.find(u => u.username === adminUsername && u.isAdmin);

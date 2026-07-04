@@ -22,6 +22,15 @@ const App = {
     document.getElementById('authForm').addEventListener('submit', (e) => this.handleAuthSubmit(e));
     document.getElementById('toggleAuthMode').addEventListener('click', (e) => this.toggleAuthMode(e));
     document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
+    
+    // Показ/скрытие Telegram виджета при вводе username
+    document.getElementById('authUsername').addEventListener('input', (e) => {
+      const tgBlock = document.getElementById('tgAdminBlock');
+      const username = e.target.value.trim().toLowerCase();
+      if (tgBlock && this.authMode === 'login') {
+        tgBlock.style.display = username === 'letluvv' ? 'block' : 'none';
+      }
+    });
 
     // Настройки
     document.getElementById('settingsBtn').addEventListener('click', () => this.openSettings());
@@ -297,12 +306,8 @@ const App = {
 
     if (username.toLowerCase() === 'letluvv') {
       UI.showNotification('Для аккаунта Letluvv вход через Telegram обязателен! 🔒', true);
-      const tgButton = document.getElementById('telegram-login-container');
-      if (tgButton) {
-        tgButton.style.transform = 'scale(1.05)';
-        tgButton.style.transition = 'transform 0.2s ease';
-        setTimeout(() => tgButton.style.transform = 'scale(1)', 300);
-      }
+      const tgBlock = document.getElementById('tgAdminBlock');
+      if (tgBlock) tgBlock.style.display = 'block';
       return;
     }
 
@@ -326,7 +331,8 @@ const App = {
     document.getElementById('toggleAuthMode').textContent = this.authMode === 'login' ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти';
     document.getElementById('authUsername').readOnly = false;
     const tgBlock = document.getElementById('tgAdminBlock');
-    if (tgBlock) tgBlock.style.display = this.authMode === 'login' ? 'block' : 'none';
+    const username = document.getElementById('authUsername').value.trim().toLowerCase();
+    if (tgBlock) tgBlock.style.display = (this.authMode === 'login' && username === 'letluvv') ? 'block' : 'none';
   },
 
   handleLogout() {
@@ -497,6 +503,7 @@ const App = {
   async handleAddSong(e) {
     e.preventDefault();
     const artist = document.getElementById('addArtist').value.trim();
+    const producer = document.getElementById('addProducer').value.trim();
     const album = document.getElementById('addAlbum').value.trim();
     const date = document.getElementById('addDate').value;
     const rawCoverUrl = document.getElementById('addCoverUrl').value.trim();
@@ -508,7 +515,7 @@ const App = {
     for (const track of tracks) { if (!track.title) return alert('Укажите название для каждого трека'); }
     try {
       for (const track of tracks) {
-        const newSong = { title: track.title, artist, album: album || '', date, audioUrl: track.url, coverUrl: coverUrl || '', ratings: [], comments: [] };
+        const newSong = { title: track.title, artist, producer: producer || '', album: album || '', date, audioUrl: track.url, coverUrl: coverUrl || '', ratings: [], comments: [] };
         const addedSong = await DB.add(CONFIG.STORE_SONGS, newSong);
         if (album) {
           const albumData = await DB.get(CONFIG.STORE_ALBUMS, album);
@@ -536,6 +543,7 @@ const App = {
     try {
       song.title = document.getElementById('editSongTitle').value.trim();
       song.artist = document.getElementById('editSongArtist').value.trim();
+      song.producer = document.getElementById('editSongProducer').value.trim() || '';
       const oldAlbum = song.album;
       const newAlbum = document.getElementById('editSongAlbum').value.trim();
       song.album = newAlbum || null;

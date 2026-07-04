@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
@@ -34,7 +34,7 @@
         <span class="nav-label">Избранное</span>
       </button>
       <button class="nav-item" data-view="top">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.4.73L5.82 21z"/></svg>
         <span class="nav-label">Топ</span>
       </button>
       <button class="nav-item" data-view="search">
@@ -141,7 +141,7 @@
       <button type="submit" class="btn" style="margin-top: 10px;">Войти</button>
     </form>
     
-    <div id="tgAdminBlock" style="display: block;">
+    <div id="tgAdminBlock" style="display: none;">
   <div style="margin: 20px 0; color: var(--text-secondary, #555); text-align: center; font-size: 0.9rem;">или</div>
   
   <div id="tg-widget-wrapper" style="text-align: center; min-height: 40px;">
@@ -152,7 +152,6 @@
             data-onauth="onTelegramAuth(user)" 
             data-request-access="write"></script>
   </div>
-</div>
 
     <div style="margin-top: 20px; text-align: center;">
       <a href="#" id="toggleAuthMode" style="color: var(--accent); text-decoration: none; font-size: 0.95rem;">Нет аккаунта? Зарегистрироваться</a>
@@ -168,6 +167,7 @@
       <h2>Добавить трек</h2>
       <form id="addSongForm">
         <div class="form-group"><label>Исполнитель</label><input type="text" id="addArtist" required></div>
+        <div class="form-group"><label>Продюсер</label><input type="text" id="addProducer" placeholder="Продюсер трека"></div>
         <div class="form-group"><label>Альбом</label><input type="text" id="addAlbum" list="albumList"><datalist id="albumList"></datalist></div>
         <div class="form-group"><label>Дата</label><input type="date" id="addDate"></div>
         <div class="form-group">
@@ -203,6 +203,11 @@
         <div class="form-group">
           <label for="editSongArtist">Исполнитель *</label>
           <input type="text" id="editSongArtist" required autocomplete="off">
+        </div>
+        
+        <div class="form-group">
+          <label for="editSongProducer">Продюсер</label>
+          <input type="text" id="editSongProducer" autocomplete="off">
         </div>
         
         <div class="form-group">
@@ -267,10 +272,6 @@
                 <button type="submit" style="width:100%;margin-top:16px;">Сохранить оценку</button>
               </form>
             </div>
-          </div>
-          <div class="track-rating-other">
-            <h4>Оценки других пользователей</h4>
-            <div id="otherRatings" style="max-height:150px;overflow-y:auto;background:var(--surface);border-radius:8px;padding:8px;"></div>
           </div>
         </div>
         <div class="track-view-tab-content" id="tabLyrics">

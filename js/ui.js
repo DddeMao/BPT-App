@@ -298,6 +298,7 @@ const UI = {
       const mp = CONFIG.MAX_SCORE * CONFIG.CRITERIA.length;
       document.getElementById('trackInfoGrid').innerHTML =
         `<div class="track-info-item"><div class="label">Исполнитель</div><div class="value">${this.escapeHtml(song.artist || '—')}</div></div>` +
+        `<div class="track-info-item"><div class="label">Продюсер</div><div class="value">${this.escapeHtml(song.producer || '—')}</div></div>` +
         `<div class="track-info-item"><div class="label">Альбом</div><div class="value">${this.escapeHtml(song.album || '—')}</div></div>` +
         `<div class="track-info-item"><div class="label">Дата добавления</div><div class="value">${song.date || '—'}</div></div>` +
         `<div class="track-info-item"><div class="label">Средний балл</div><div class="value highlight">${avg !== null ? avg + ' ★' : '—'}</div></div>` +
@@ -365,6 +366,7 @@ const UI = {
     document.getElementById('editSongId').value = s.id;
     document.getElementById('editSongTitle').value = s.title || '';
     document.getElementById('editSongArtist').value = s.artist || '';
+    document.getElementById('editSongProducer').value = s.producer || '';
     document.getElementById('editSongAlbum').value = s.album || '';
     document.getElementById('editSongAudioUrl').value = s.audioUrl || '';
     document.getElementById('editSongCoverUrl').value = s.coverUrl || '';
