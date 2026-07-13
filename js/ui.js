@@ -394,6 +394,28 @@ const UI = {
     document.getElementById('modalAlbumView').classList.add('active');
   },
 
+  init() {
+    const trackListContainer = document.getElementById('tracksContainer');
+
+    if (trackListContainer) {
+      trackListContainer.onclick = async (e) => {
+        const trackRow = e.target.closest('.track-item');
+        if (!trackRow) return;
+
+        const trackId = trackRow.dataset.id;
+        if (e.target.closest('.play-btn') || e.target.closest('.pause-btn')) return;
+
+        if (e.target.closest('.track-rating')) {
+          this.openTrackRatingModal(trackId);
+        } else if (e.target.closest('.track-comments')) {
+          this.openTrackView(trackId, 'comments');
+        } else {
+          this.openTrackView(trackId);
+        }
+      };
+    }
+  }
+
   openTrackView(songId, defaultTab = 'ratings') {
     DB.getAll(CONFIG.STORE_SONGS).then(songs => {
       const song = songs.find(s => s.id === songId);
@@ -586,9 +608,6 @@ const UI = {
     this.updateAlbumDatalist();
     document.getElementById('modalAdd').classList.add('active');
   },
-
-  // Находим общий статический контейнер списка треков
-  const trackListContainer = document.getElementById('tracksContainer'); 
 
   if (trackListContainer) {
   trackListContainer.onclick = async (e) => {

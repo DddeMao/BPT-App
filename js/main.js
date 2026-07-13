@@ -716,6 +716,7 @@ const App = {
 
 // ========== СТАРТ ==========
 document.addEventListener('DOMContentLoaded', async () => {
+  UI.init();
   Player.init();
   App.init();
 
