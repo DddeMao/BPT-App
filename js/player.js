@@ -31,21 +31,6 @@ const Player = {
       this.updateProgress();
     });
 
-    // Улучшенный обработчик прогресса буферизации
-    updateBuffered() {
-      if (!this.audio.buffered || this.audio.buffered.length === 0) return;
-      
-      const bufferedEnd = this.audio.buffered.end(this.audio.buffered.length - 1);
-     const duration = this.audio.duration || 0;
-    
-     if (duration > 0) {
-       const percent = (bufferedEnd / duration) * 100;
-       if (this.progressBar) {
-         this.progressBar.style.width = percent + '%';
-       }
-     }
-    },
-
     // Обновление прогресс-бара загрузки
     this.audio.addEventListener('progress', () => this.updateProgress());
     this.audio.addEventListener('loadeddata', () => this.updateProgress());
@@ -61,6 +46,20 @@ const Player = {
     this.audio.addEventListener('playing', () => this.showLoading(false));
     this.audio.addEventListener('canplaythrough', () => this.showLoading(false));
   },
+
+    updateBuffered() {
+      if (!this.audio.buffered || this.audio.buffered.length === 0) return;
+      
+      const bufferedEnd = this.audio.buffered.end(this.audio.buffered.length - 1);
+     const duration = this.audio.duration || 0;
+    
+     if (duration > 0) {
+       const percent = (bufferedEnd / duration) * 100;
+       if (this.progressBar) {
+         this.progressBar.style.width = percent + '%';
+       }
+     }
+    },
 
   updateProgress() {
     if (!this.progressBar || !this.audio.duration) return;

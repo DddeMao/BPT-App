@@ -285,6 +285,20 @@ const UI = {
     if (deleteBtn) deleteBtn.onclick = async () => { if (confirm(`Удалить альбом "${albumName}"?`)) { for (const s of albumTracks) await DB.delete(CONFIG.STORE_SONGS, s.id); await DB.delete(CONFIG.STORE_ALBUMS, albumName); this.closeModal(document.getElementById('modalAlbumView')); App.refreshAll(); Sync.onDataChanged(); } };
     const rateBtn = document.getElementById('rateAlbumBtn');
     if (rateBtn) rateBtn.onclick = () => { this.closeModal(document.getElementById('modalAlbumView')); this.openAlbumRatingModal(albumName); };
+    const downloadBtn = document.getElementById('downloadAlbumBtn');
+    if (downloadBtn) {
+      // Проверяем, какие треки уже загружены локально
+      const alreadyLocal = albumTracks.filter(s => s.audioBlob).length;
+      if (alreadyLocal === albumTracks.length) {
+        downloadBtn.textContent = '✅ Альбом уже сохранён';
+        downloadBtn.style.background = '#28a745';
+        downloadBtn.style.color = '#fff';
+        downloadBtn.disabled = true;
+      } else {
+        downloadBtn.textContent = `📥 Загрузить альбом (${alreadyLocal}/${albumTracks.length} уже есть)`;
+      }
+      downloadBtn.onclick = () => App.downloadFullAlbum(albumName);
+    }
     const closeBtn = document.querySelector('.close-album-view');
     if (closeBtn) closeBtn.onclick = () => this.closeModal(document.getElementById('modalAlbumView'));
     document.getElementById('modalAlbumView').classList.add('active');

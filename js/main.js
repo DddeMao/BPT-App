@@ -585,6 +585,11 @@ const App = {
       song.title = document.getElementById('editSongTitle').value.trim();
       song.artist = document.getElementById('editSongArtist').value.trim();
       song.producer = document.getElementById('editSongProducer').value.trim() || '';
+      
+      // Читаем и сохраняем текст песни при редактировании
+      const lyricsField = document.getElementById('editSongLyrics');
+      song.lyrics = lyricsField ? lyricsField.value.trim() : '';
+
       const oldAlbum = song.album;
       const newAlbum = document.getElementById('editSongAlbum').value.trim();
       song.album = newAlbum || null;
@@ -623,6 +628,89 @@ const App = {
     UI.closeModal(document.getElementById('modalAlbumRating'));
     this.refreshAll();
     Sync.onDataChanged();
+  },
+
+  // ========== ЛОКАЛЬНАЯ ЗАГРУЗКА ВСЕГО АЛЬБОМА ==========
+
+  async downloadFullAlbum(albumName) {
+    if (!albumName) return;
+    
+    const btn = document.getElementById('downloadAlbumBtn');
+    if (btn) {
+      btn.disabled = true;
+      btn.style.opacity = '0.7';
+      btn.textContent = '⏳ Подготовка... 0%';
+    }
+
+    try {
+      // 1. Получаем все треки из IndexedDB
+      const songs = await DB.getAll(CONFIG.STORE_SONGS);
+      
+      // 2. Отбираем только треки нужного альбома
+      const albumSongs = songs.filter(s => s.album === albumName);
+      
+      if (albumSongs.length === 0) {
+        alert('В этом альбоме пока нет треков.');
+        if (btn) { btn.disabled = false; btn.textContent = '📥 Скачать альбом'; }
+        return;
+      }
+
+      let processed = 0;
+
+      // 3. Перебираем треки и скачиваем их
+      for (const song of albumSongs) {
+        // Если трек уже сохранен в IndexedDB как Blob — пропускаем скачивание
+        if (song.audioBlob) {
+          processed++;
+          if (btn) btn.textContent = `⏳ Загрузка... ${Math.round((processed / albumSongs.length) * 100)}%`;
+          continue;
+        }
+
+        // Если есть ссылка, скачиваем файл в память
+        if (song.audioUrl) {
+          try {
+            const response = await fetch(song.audioUrl);
+            if (!response.ok) throw new Error(`Статус сети: ${response.status}`);
+            
+            const blob = await response.blob();
+            
+            // Записываем бинарник в объект трека
+            song.audioBlob = blob;
+            
+            // Пересохраняем обновленный трек в базу данных
+            await DB.put(CONFIG.STORE_SONGS, song);
+          } catch (fetchErr) {
+            console.error(` Не удалось скачать трек "${song.title}":`, fetchErr);
+          }
+        }
+
+        processed++;
+        if (btn) btn.textContent = `⏳ Загрузка... ${Math.round((processed / albumSongs.length) * 100)}%`;
+      }
+
+      // 4. Завершение загрузки
+      if (btn) {
+        btn.textContent = '✅ Альбом сохранен локально';
+        btn.style.background = '#28a745'; // Зеленый цвет успеха
+        btn.style.color = '#fff';
+      }
+      
+      if (typeof UI !== 'undefined' && typeof UI.showNotification === 'function') {
+        UI.showNotification('Альбом успешно сохранен на устройство!');
+      }
+
+      // Триггерим синхронизацию, чтобы зафиксировать состояние
+      Sync.onDataChanged();
+
+    } catch (error) {
+      console.error('Ошибка при скачивании альбома:', error);
+      alert('Произошла ошибка при загрузке альбома.');
+      if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.textContent = '📥 Скачать альбом';
+      }
+    }
   },
 };
 
