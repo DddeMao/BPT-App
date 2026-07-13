@@ -245,6 +245,33 @@ const UI = {
     });
   },
 
+  renderTop12(songs) {
+    const c = document.getElementById('topList');
+    if (!c) return;
+    const rated = songs.filter(s => s.ratings && s.ratings.length > 0)
+      .map(s => ({ song: s, avg: this.getAverageRating(s) }))
+      .sort((a, b) => b.avg - a.avg)
+      .slice(0, 12);
+    if (rated.length === 0) { c.innerHTML = ''; return; }
+    c.innerHTML = rated.map(({ song, avg }, i) => {
+      const u = song.coverUrl || (song.coverBlob ? URL.createObjectURL(song.coverBlob) : '');
+      return `<div class="top-vertical-item" data-id="${song.id}" style="cursor:pointer;">
+        ${u ? `<img src="${u}" alt="cover">` : '<div style="width:44px;height:44px;background:#333;border-radius:8px;"></div>'}
+        <div class="tvi-info">
+          <div class="tvi-title">${i + 1}. ${this.escapeHtml(song.title)}</div>
+          <div class="tvi-artist">${this.escapeHtml(song.artist)}</div>
+        </div>
+        <div class="tvi-score">${avg} ★</div>
+      </div>`;
+    }).join('');
+    c.querySelectorAll('.top-vertical-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const id = item.dataset.id;
+        if (id) this.openTrackView(id, 'ratings');
+      });
+    });
+  },
+
   async renderAlbums() { const [songs, albums] = await Promise.all([DB.getAll(CONFIG.STORE_SONGS), DB.getAll(CONFIG.STORE_ALBUMS)]); const c = document.getElementById('dynamicList'); const g = new Map(); songs.forEach(s => { if (!s.album) return; if (!g.has(s.album)) g.set(s.album, []); g.get(s.album).push(s); }); c.className = 'album-list'; c.innerHTML = Array.from(g.keys()).map(n => { const t = g.get(n); const f = t[0]; const u = f.coverUrl || (f.coverBlob ? URL.createObjectURL(f.coverBlob) : ''); const d = albums.find(a => a.name === n); const sc = d && d.ratings && d.ratings.length > 0 ? Math.round(d.ratings.reduce((s, r) => s + r.total, 0) / d.ratings.length) : null; return `<div class="album-card" data-album="${this.escapeHtml(n)}">${u ? `<img class="album-cover" src="${u}" alt="cover">` : '<div class="album-cover"></div>'}<div class="album-info"><h3>${this.escapeHtml(n)}</h3><div class="album-artist">${this.escapeHtml(f.artist)}</div><div class="track-count">${t.length} треков ${d?.date ? '📅 ' + d.date : ''}</div><div>${sc !== null ? `<span style="color:var(--accent);font-weight:700;">★ ${sc}</span>` : 'Не оценен'}</div></div></div>`; }).join(''); c.querySelectorAll('.album-card').forEach(card => card.addEventListener('click', () => this.openAlbumView(card.dataset.album))); },
 
   async renderTopAlbums() { const [albums, songs] = await Promise.all([DB.getAll(CONFIG.STORE_ALBUMS), DB.getAll(CONFIG.STORE_SONGS)]); const c = document.getElementById('topAlbumsList'); const r = albums.filter(a => a.ratings && a.ratings.length > 0).map(a => ({ album: a, avg: this.getAlbumAverageRating(a), firstSong: songs.find(s => s.album === a.name) })).sort((a, b) => b.avg - a.avg).slice(0, 5); if (r.length === 0) { c.innerHTML = ''; return; } c.innerHTML = r.map(({ album, avg, firstSong }) => { const u = firstSong?.coverUrl || (firstSong?.coverBlob ? URL.createObjectURL(firstSong.coverBlob) : ''); return `<div class="top-vertical-item">${u ? `<img src="${u}" alt="cover">` : '<div style="width:44px;height:44px;background:#333;border-radius:8px;"></div>'}<div class="tvi-info"><div class="tvi-title">${this.escapeHtml(album.name)}</div><div class="tvi-artist">${this.escapeHtml(firstSong?.artist || 'Неизвестен')}</div></div><div class="tvi-score">${avg} ★</div></div>`; }).join(''); },

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bpt-assets-v3';
+const CACHE_NAME = 'bpt-assets-v4';
 
 const ASSETS = [
   './',
