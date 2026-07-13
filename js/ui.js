@@ -587,6 +587,42 @@ const UI = {
     document.getElementById('modalAdd').classList.add('active');
   },
 
+  // Находим общий статический контейнер списка треков
+  const trackListContainer = document.getElementById('tracksContainer'); 
+
+  if (trackListContainer) {
+  trackListContainer.onclick = async (e) => {
+    // 1. Находим родительский элемент трека, по которому кликнули
+    const trackRow = e.target.closest('.track-item');
+    if (!trackRow) return; // Кликнули мимо трека
+
+    const trackId = trackRow.dataset.id; // Предполагается, что ID сохранен в data-id
+
+    // 2. Исключаем клик по кнопке Play/Pause (чтобы плеер не конфликтовал с открытием окон)
+    if (e.target.closest('.play-btn') || e.target.closest('.pause-btn')) {
+      return; 
+    }
+
+    // 3. Проверяем, куда именно кликнули: на оценку, комментарий или сам трек
+    if (e.target.closest('.track-rating')) {
+      // Клик по блоку оценки — открываем окно оценок
+      if (typeof UI.openTrackRatingModal === 'function') {
+        UI.openTrackRatingModal(trackId);
+      }
+    } else if (e.target.closest('.track-comments')) {
+      // Клик по комментариям — открываем вкладку комментариев
+      if (typeof UI.openTrackView === 'function') {
+        UI.openTrackView(trackId, 'comments'); 
+      }
+    } else {
+      // Клик по любой другой части строки трека — открываем общую карточку трека
+      if (typeof UI.openTrackView === 'function') {
+        UI.openTrackView(trackId);
+      }
+    }
+  };
+}
+  
   async openEditModal(songId) {
     if (!Auth.currentUser || !Auth.currentUser.isAdmin) return;
     const ss = await DB.getAll(CONFIG.STORE_SONGS);
