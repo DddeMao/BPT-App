@@ -133,7 +133,7 @@ const UI = {
 
   // ========== РЕНДЕРИНГ ТРЕКОВ ==========
 
-    renderSongs(songs) {
+  renderSongs(songs) {
     const c = document.getElementById('dynamicList');
     if (!songs || songs.length === 0) {
       c.innerHTML = `<div style="color:#888;text-align:center;padding:40px;">Треки не найдены</div>`;
@@ -188,7 +188,7 @@ const UI = {
           ${canDelete ? `<button class="delete-btn" data-id="${song.id}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>` : ``}
         </div>
       </div>`;
-    }).join('');
+    }).trim();
 
     // === НАДЁЖНЫЕ ОБРАБОТЧИКИ КЛИКОВ ===
     c.querySelectorAll('.card').forEach(card => {
@@ -245,96 +245,6 @@ const UI = {
     });
   },
 
-  renderTop12(songs) {
-    const c = document.getElementById('topList');
-    if (!c) return;
-    const rated = songs.filter(s => s.ratings && s.ratings.length > 0)
-      .map(s => ({ song: s, avg: this.getAverageRating(s) }))
-      .sort((a, b) => b.avg - a.avg)
-      .slice(0, 12);
-    if (rated.length === 0) { c.innerHTML = ''; return; }
-    c.innerHTML = rated.map(({ song, avg }, i) => {
-      const u = song.coverUrl || (song.coverBlob ? URL.createObjectURL(song.coverBlob) : '');
-      return `<div class="top-vertical-item" data-id="${song.id}" style="cursor:pointer;">
-        ${u ? `<img src="${u}" alt="cover">` : '<div style="width:44px;height:44px;background:#333;border-radius:8px;"></div>'}
-        <div class="tvi-info">
-          <div class="tvi-title">${i + 1}. ${this.escapeHtml(song.title)}</div>
-          <div class="tvi-artist">${this.escapeHtml(song.artist)}</div>
-        </div>
-        <div class="tvi-score">${avg} ★</div>
-      </div>`;
-    }).join('');
-    c.querySelectorAll('.top-vertical-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const id = item.dataset.id;
-        if (id) this.openTrackView(id, 'ratings');
-      });
-    });
-  },
-
-  async openTrackView(id, tab = 'info') {
-     // 1. Пытаемся найти трек в оперативной памяти приложения
-      let song = null;
-     if (typeof App !== 'undefined' && App.songs) {
-        song = App.songs.find(s => s.id == id);
-     }
-     
-     // 2. Если в памяти нет, ищем в базе данных (например, IndexedDB / Dexie)
-     if (!song && typeof App !== 'undefined' && App.db) {
-        try {
-          song = await App.db.songs.get(Number(id) || id);
-        } catch (e) {
-          console.error("Ошибка при загрузке трека из БД:", e);
-       }
-     }
-
-      if (!song) {
-        alert("Не удалось найти информацию о треке.");
-        return;
-      }
-
-      // 3. Создаем или находим контейнер для модального окна
-      let modal = document.getElementById('trackModal');
-      if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'trackModal';
-        modal.className = 'custom-modal';
-        document.body.appendChild(modal);
-      }
-
-     // 4. Генерируем содержимое окна
-      const cover = song.coverUrl || (song.coverBlob ? URL.createObjectURL(song.coverBlob) : '');
-      const avgRating = this.getAverageRating ? this.getAverageRating(song) : '0';
-
-      modal.innerHTML = `
-        <div class="custom-modal-content">
-          <span class="custom-modal-close">&times;</span>
-          <div class="custom-modal-body">
-            <div class="modal-media">
-              ${cover ? `<img src="${cover}" alt="Обложка">` : '<div class="no-avatar-modal">🎵</div>'}
-            </div>
-            <div class="modal-info-text">
-              <h2>${this.escapeHtml ? this.escapeHtml(song.title) : song.title}</h2>
-             <p><strong>Исполнитель:</strong> ${this.escapeHtml ? this.escapeHtml(song.artist) : song.artist}</p>
-             <p><strong>Альбом:</strong> ${this.escapeHtml ? this.escapeHtml(song.album || 'Не указан') : (song.album || 'Не указан')}</p>
-             <p><strong>Рейтинг:</strong> ${avgRating} ★</p>
-            </div>
-         </div>
-       </div>
-      `;
-
-     // 5. Показываем окно (меняем display с none на flex)
-     modal.style.display = 'flex';
-
-     // 6. Вешаем обработчики закрытия окна
-      modal.querySelector('.custom-modal-close').addEventListener('click', () => {
-        modal.style.display = 'none';
-      });
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.style.display = 'none';
-    });
-  },
-
   async renderAlbums() { const [songs, albums] = await Promise.all([DB.getAll(CONFIG.STORE_SONGS), DB.getAll(CONFIG.STORE_ALBUMS)]); const c = document.getElementById('dynamicList'); const g = new Map(); songs.forEach(s => { if (!s.album) return; if (!g.has(s.album)) g.set(s.album, []); g.get(s.album).push(s); }); c.className = 'album-list'; c.innerHTML = Array.from(g.keys()).map(n => { const t = g.get(n); const f = t[0]; const u = f.coverUrl || (f.coverBlob ? URL.createObjectURL(f.coverBlob) : ''); const d = albums.find(a => a.name === n); const sc = d && d.ratings && d.ratings.length > 0 ? Math.round(d.ratings.reduce((s, r) => s + r.total, 0) / d.ratings.length) : null; return `<div class="album-card" data-album="${this.escapeHtml(n)}">${u ? `<img class="album-cover" src="${u}" alt="cover">` : '<div class="album-cover"></div>'}<div class="album-info"><h3>${this.escapeHtml(n)}</h3><div class="album-artist">${this.escapeHtml(f.artist)}</div><div class="track-count">${t.length} треков ${d?.date ? '📅 ' + d.date : ''}</div><div>${sc !== null ? `<span style="color:var(--accent);font-weight:700;">★ ${sc}</span>` : 'Не оценен'}</div></div></div>`; }).join(''); c.querySelectorAll('.album-card').forEach(card => card.addEventListener('click', () => this.openAlbumView(card.dataset.album))); },
 
   async renderTopAlbums() { const [albums, songs] = await Promise.all([DB.getAll(CONFIG.STORE_ALBUMS), DB.getAll(CONFIG.STORE_SONGS)]); const c = document.getElementById('topAlbumsList'); const r = albums.filter(a => a.ratings && a.ratings.length > 0).map(a => ({ album: a, avg: this.getAlbumAverageRating(a), firstSong: songs.find(s => s.album === a.name) })).sort((a, b) => b.avg - a.avg).slice(0, 5); if (r.length === 0) { c.innerHTML = ''; return; } c.innerHTML = r.map(({ album, avg, firstSong }) => { const u = firstSong?.coverUrl || (firstSong?.coverBlob ? URL.createObjectURL(firstSong.coverBlob) : ''); return `<div class="top-vertical-item">${u ? `<img src="${u}" alt="cover">` : '<div style="width:44px;height:44px;background:#333;border-radius:8px;"></div>'}<div class="tvi-info"><div class="tvi-title">${this.escapeHtml(album.name)}</div><div class="tvi-artist">${this.escapeHtml(firstSong?.artist || 'Неизвестен')}</div></div><div class="tvi-score">${avg} ★</div></div>`; }).join(''); },
@@ -377,7 +287,6 @@ const UI = {
     if (rateBtn) rateBtn.onclick = () => { this.closeModal(document.getElementById('modalAlbumView')); this.openAlbumRatingModal(albumName); };
     const downloadBtn = document.getElementById('downloadAlbumBtn');
     if (downloadBtn) {
-      // Проверяем, какие треки уже загружены локально
       const alreadyLocal = albumTracks.filter(s => s.audioBlob).length;
       if (alreadyLocal === albumTracks.length) {
         downloadBtn.textContent = '✅ Альбом уже сохранён';
@@ -396,25 +305,49 @@ const UI = {
 
   init() {
     const trackListContainer = document.getElementById('tracksContainer');
-
     if (trackListContainer) {
       trackListContainer.onclick = async (e) => {
         const trackRow = e.target.closest('.track-item');
         if (!trackRow) return;
-
         const trackId = trackRow.dataset.id;
         if (e.target.closest('.play-btn') || e.target.closest('.pause-btn')) return;
-
         if (e.target.closest('.track-rating')) {
-          this.openTrackRatingModal(trackId);
+          this.openTrackView(trackId, 'ratings');
         } else if (e.target.closest('.track-comments')) {
           this.openTrackView(trackId, 'comments');
         } else {
-          this.openTrackView(trackId);
+          this.openTrackView(trackId, 'info');
         }
       };
     }
-  }
+  }, // <-- Запятая добавлення, синтаксис восстановлен
+
+  renderTop12(songs) {
+    const c = document.getElementById('topList');
+    if (!c) return;
+    const rated = songs.filter(s => s.ratings && s.ratings.length > 0)
+      .map(s => ({ song: s, avg: this.getAverageRating(s) }))
+      .sort((a, b) => b.avg - a.avg)
+      .slice(0, 12);
+    if (rated.length === 0) { c.innerHTML = ''; return; }
+    c.innerHTML = rated.map(({ song, avg }, i) => {
+      const u = song.coverUrl || (song.coverBlob ? URL.createObjectURL(song.coverBlob) : '');
+      return `<div class="top-vertical-item" data-id="${song.id}" style="cursor:pointer;">
+        ${u ? `<img src="${u}" alt="cover">` : '<div style="width:44px;height:44px;background:#333;border-radius:8px;"></div>'}
+        <div class="tvi-info">
+          <div class="tvi-title">${i + 1}. ${this.escapeHtml(song.title)}</div>
+          <div class="tvi-artist">${this.escapeHtml(song.artist)}</div>
+        </div>
+        <div class="tvi-score">${avg} ★</div>
+      </div>`;
+    }).join('');
+    c.querySelectorAll('.top-vertical-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const id = item.dataset.id;
+        if (id) this.openTrackView(id, 'ratings');
+      });
+    });
+  },
 
   openTrackView(songId, defaultTab = 'ratings') {
     DB.getAll(CONFIG.STORE_SONGS).then(songs => {
@@ -608,39 +541,6 @@ const UI = {
     this.updateAlbumDatalist();
     document.getElementById('modalAdd').classList.add('active');
   },
-
-  if (trackListContainer) {
-  trackListContainer.onclick = async (e) => {
-    // 1. Находим родительский элемент трека, по которому кликнули
-    const trackRow = e.target.closest('.track-item');
-    if (!trackRow) return; // Кликнули мимо трека
-
-    const trackId = trackRow.dataset.id; // Предполагается, что ID сохранен в data-id
-
-    // 2. Исключаем клик по кнопке Play/Pause (чтобы плеер не конфликтовал с открытием окон)
-    if (e.target.closest('.play-btn') || e.target.closest('.pause-btn')) {
-      return; 
-    }
-
-    // 3. Проверяем, куда именно кликнули: на оценку, комментарий или сам трек
-    if (e.target.closest('.track-rating')) {
-      // Клик по блоку оценки — открываем окно оценок
-      if (typeof UI.openTrackRatingModal === 'function') {
-        UI.openTrackRatingModal(trackId);
-      }
-    } else if (e.target.closest('.track-comments')) {
-      // Клик по комментариям — открываем вкладку комментариев
-      if (typeof UI.openTrackView === 'function') {
-        UI.openTrackView(trackId, 'comments'); 
-      }
-    } else {
-      // Клик по любой другой части строки трека — открываем общую карточку трека
-      if (typeof UI.openTrackView === 'function') {
-        UI.openTrackView(trackId);
-      }
-    }
-  };
-}
   
   async openEditModal(songId) {
     if (!Auth.currentUser || !Auth.currentUser.isAdmin) return;
@@ -656,7 +556,7 @@ const UI = {
     document.getElementById('editSongCoverUrl').value = s.coverUrl || '';
     document.getElementById('editSongAudioFile').value = '';
     document.getElementById('editSongCoverFile').value = '';
-    document.getElementById('editSongLyrics').value = song.lyrics || '';
+    document.getElementById('editSongLyrics').value = s.lyrics || '';
     document.getElementById('modalEdit').classList.add('active');
-  },
+  }
 };
