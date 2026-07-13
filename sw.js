@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bpt-assets-v2';
+const CACHE_NAME = 'bpt-assets-v3';
 
 const ASSETS = [
   './',
@@ -10,6 +10,7 @@ const ASSETS = [
   './js/auth.js',
   './js/sync.js',
   './js/player.js',
+  './js/radar.js',
   './js/ui.js',
   './js/main.js',
 ];
