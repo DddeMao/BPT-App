@@ -142,15 +142,12 @@
     </form>
     
     <div id="tgAdminBlock" style="display: none;">
-  <div style="margin: 20px 0; color: var(--text-secondary, #555); text-align: center; font-size: 0.9rem;">или</div>
-  
-  <div id="tg-widget-wrapper" style="text-align: center; min-height: 40px;"></div>
+        <div id="tg-widget-wrapper" style="text-align: center; min-height: 50px; margin: 20px 0;"></div>
+      </div>
 
-    <div style="margin-top: 20px; text-align: center;">
-      <a href="#" id="toggleAuthMode" style="color: var(--accent); text-decoration: none; font-size: 0.95rem;">Нет аккаунта? Зарегистрироваться</a>
-    </div>
-
-  </div>
+      <div id="registerLinkBlock" style="margin-top: 20px; text-align: center;">
+        <a href="#" id="toggleAuthMode" style="color: var(--accent); text-decoration: none; font-size: 0.95rem;">Нет аккаунта? Зарегистрироваться</a>
+      </div>
 
   <!-- Модальное окно добавления трека -->
   <div id="modalAdd" class="modal">
@@ -227,6 +224,11 @@
           <input type="file" id="editSongCoverFile" accept="image/*">
         </div>
         
+        <div class="form-group">
+          <label for="editSongLyrics">Текст трека</label>
+          <textarea id="editSongLyrics" rows="8" placeholder="Вставьте текст песни сюда..." style="width: 100%; resize: vertical; background: var(--surface); color: var(--text-primary); border: 1px solid var(--border); border-radius: 4px; padding: 8px; font-family: inherit;"></textarea>
+        </div>
+
         <button type="submit" style="width:100%; margin-top:10px;">Сохранить изменения</button>
       </form>
     </div>
@@ -240,6 +242,7 @@
         <div class="track-view-info">
           <div class="track-view-title" id="trackViewTitle"></div>
           <div class="track-view-artist" id="trackViewArtist"></div>
+          <div class="track-view-producer" id="trackViewProducer" style="font-size: 0.9em; color: var(--accent); margin-top: 4px;"></div>
           <div class="track-view-meta" id="trackViewMeta"></div>
         </div>
         <button class="track-view-close" id="trackViewClose">&times;</button>

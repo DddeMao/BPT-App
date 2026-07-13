@@ -542,6 +542,10 @@ const App = {
     const date = document.getElementById('addDate').value;
     const rawCoverUrl = document.getElementById('addCoverUrl').value.trim();
     const coverUrl = UI.fixDropboxUrl(rawCoverUrl);
+    
+    // Получаем текст песни из формы добавления
+    const lyrics = document.getElementById('addLyrics') ? document.getElementById('addLyrics').value.trim() : '';
+
     if (!artist) return alert('Введите исполнителя');
     const rows = Array.from(document.getElementById('audioUrlsContainer').querySelectorAll('.audio-track-row'));
     const tracks = rows.map(row => ({ url: UI.fixDropboxUrl(row.querySelector('.audio-url-input').value.trim()), title: row.querySelector('.audio-title-input').value.trim() })).filter(track => track.url !== '');
@@ -549,7 +553,8 @@ const App = {
     for (const track of tracks) { if (!track.title) return alert('Укажите название для каждого трека'); }
     try {
       for (const track of tracks) {
-        const newSong = { title: track.title, artist, producer: producer || '', album: album || '', date, audioUrl: track.url, coverUrl: coverUrl || '', ratings: [], comments: [] };
+        // Добавляем lyrics: lyrics в объект трека
+        const newSong = { title: track.title, artist, producer: producer || '', album: album || '', date, audioUrl: track.url, coverUrl: coverUrl || '', lyrics: lyrics, ratings: [], comments: [] };
         const addedSong = await DB.add(CONFIG.STORE_SONGS, newSong);
         if (album) {
           const albumData = await DB.get(CONFIG.STORE_ALBUMS, album);
@@ -558,6 +563,8 @@ const App = {
         }
       }
       UI.closeModal(document.getElementById('modalAdd'));
+      // Сбрасываем форму после успешного добавления
+      document.getElementById('addSongForm').reset();
       this.refreshAll();
       Sync.onDataChanged();
     } catch (err) { console.error(err); alert('Ошибка при сохранении треков'); }

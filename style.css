@@ -1835,5 +1835,31 @@ input[type=range]::-webkit-slider-thumb:hover {
   }
 }
 
-/* === ИСПРАВЛЕНИЯ === */
 .search-sort-bar { margin-bottom: 16px; margin-bottom: 16px !important; }
+
+/* Стили для строки продюсера */
+.track-view-producer {
+  font-size: 0.9rem;
+  color: var(--accent, #b366ff); /* Используем ваш фиолетовый акцентный цвет */
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Стили для вкладки с текстом трека */
+.track-lyrics {
+  white-space: pre-wrap; /* КРИТИЧНО ВАЖНО: сохраняет абзацы и переносы строк */
+  line-height: 1.6;
+  font-size: 1rem;
+  color: var(--text-primary, #ffffff);
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05); /* Легкий фон для читаемости */
+  border-radius: 8px;
+}
+
+/* Стиль для пустой вкладки текста */
+.empty-state {
+  color: var(--text-secondary, #aaaaaa);
+  text-align: center;
+  padding: 30px 10px;
+  font-style: italic;
+}
