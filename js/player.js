@@ -47,19 +47,17 @@ const Player = {
     this.audio.addEventListener('canplaythrough', () => this.showLoading(false));
   },
 
-    updateBuffered() {
-      if (!this.audio.buffered || this.audio.buffered.length === 0) return;
-      
-      const bufferedEnd = this.audio.buffered.end(this.audio.buffered.length - 1);
-     const duration = this.audio.duration || 0;
-    
-     if (duration > 0) {
-       const percent = (bufferedEnd / duration) * 100;
-       if (this.progressBar) {
-         this.progressBar.style.width = percent + '%';
-       }
-     }
-    },
+  updateBuffered() {
+    if (!this.audio.buffered || this.audio.buffered.length === 0) return;
+    const bufferedEnd = this.audio.buffered.end(this.audio.buffered.length - 1);
+    const duration = this.audio.duration || 0;
+    if (duration > 0) {
+      const percent = (bufferedEnd / duration) * 100;
+      if (this.progressBar) {
+        this.progressBar.style.width = percent + '%';
+      }
+    }
+  },
 
   updateProgress() {
     if (!this.progressBar || !this.audio.duration) return;
@@ -70,7 +68,7 @@ const Player = {
     }
   },
 
-    showLoading(isLoading) {
+  showLoading(isLoading) {
     if (!this.progressBar) return;
     if (isLoading) {
       this.progressBar.style.background = 'linear-gradient(90deg, var(--primary), var(--accent), var(--primary))';
@@ -80,9 +78,9 @@ const Player = {
       this.progressBar.style.animation = 'none';
       this.progressBar.style.background = 'linear-gradient(90deg, var(--primary), var(--accent))';
     }
-    },
+  },
 
-    async play(songId) {
+  async play(songId) {
     const songs = await DB.getAll(CONFIG.STORE_SONGS);
     const song = songs.find(s => s.id === songId);
     if (!song) return;

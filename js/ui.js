@@ -315,27 +315,25 @@ const UI = {
       document.getElementById('trackViewArtist').textContent = song.artist;
       const avg = this.getAverageRating(song);
       document.getElementById('trackViewMeta').innerHTML = `${song.album ? `<span>💿 ${this.escapeHtml(song.album)}</span>` : ''}${song.date ? `<span>📅 ${song.date}</span>` : ''}${avg !== null ? `<span>⭐ ${avg} средний</span>` : ''}<span>📊 ${song.ratings?.length || 0} оценок</span><span>💬 ${song.comments?.length || 0} комментариев</span>`;
+      const producerContainer = document.getElementById('trackViewProducer');
+      if (song.producer && song.producer.trim() !== '') {
+        producerContainer.textContent = `prod. ${song.producer}`;
+        producerContainer.style.display = 'block';
+      } else {
+        producerContainer.style.display = 'none';
+      }
+
+      const lyricsContainer = document.getElementById('trackLyrics');
+      if (song.lyrics && song.lyrics.trim() !== '') {
+        lyricsContainer.textContent = song.lyrics;
+      } else {
+        lyricsContainer.innerHTML = '<div class="empty-state">Текст трека пока не добавлен.</div>';
+      }
+
       this.switchTrackTab(defaultTab);
       document.getElementById('trackView').classList.add('active');
     });
   },
-
-    const producerContainer = document.getElementById('trackViewProducer');
-    if (song.producer && song.producer.trim() !== '') {
-      producerContainer.textContent = `prod. ${song.producer}`;
-      producerContainer.style.display = 'block';
-    } else {
-      producerContainer.style.display = 'none'; // Скрываем, если продюсер не указан
-    }
-
-    const lyricsContainer = document.getElementById('trackLyrics'); // ID из index_3.html
-    if (song.lyrics && song.lyrics.trim() !== '') {
-      // Используем textContent для безопасности, а переносы строк настроим через CSS
-      lyricsContainer.textContent = song.lyrics;
-    } else {
-      // Заглушка, если текста в базе нет
-      lyricsContainer.innerHTML = '<div class="empty-state">Текст трека пока не добавлен.</div>';
-    }
 
   switchTrackTab(tabName) {
     document.querySelectorAll('.track-view-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.tab === tabName));
