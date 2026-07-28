@@ -1,6 +1,3 @@
-/**
- * Константы и конфигурация приложения
- */
 const CONFIG = {
   CRITERIA: ['Рифмы/Образы', 'Структура/Ритмика', 'Реализация стиля', 'Индивидуальность/Харизма', 'Атмосфера/Вайб'],
   MAX_SCORE: 12,
@@ -17,10 +14,6 @@ const CONFIG = {
   FAVORITES_SYNC_DELAY: 3000,
 };
 
-/**
- * Утилита для исправления ссылок Dropbox
- * Преобразует www.dropbox.com в dl.dropboxusercontent.com для CORS-доступа
- */
 function fixDropboxUrl(url) {
   if (!url) return '';
   let clean = url.trim();

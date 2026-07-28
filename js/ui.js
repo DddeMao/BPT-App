@@ -559,4 +559,6 @@ const UI = {
     document.getElementById('editSongLyrics').value = s.lyrics || '';
     document.getElementById('modalEdit').classList.add('active');
   }
+
+  window.UI = UI;
 };
