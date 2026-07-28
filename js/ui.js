@@ -560,5 +560,4 @@ const UI = {
     document.getElementById('modalEdit').classList.add('active');
   }
 
-  window.UI = UI;
 };
