@@ -192,7 +192,6 @@ const UI = {
 
     c.querySelectorAll('.card').forEach(card => {
   card.addEventListener('click', (e) => {
-    console.log('Клик по карточке сработал! ID:', card.dataset.id); // <-- Добавьте эту строку
     if (e.target.closest('button')) return;
     const id = card.dataset.id;
     if (id) this.openTrackView(id, 'ratings');
