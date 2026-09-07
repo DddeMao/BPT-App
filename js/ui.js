@@ -685,6 +685,7 @@ const UI = {
     document.getElementById('editSongArtist').value = s.artist || '';
     document.getElementById('editSongProducer').value = s.producer || '';
     document.getElementById('editSongAlbum').value = s.album || '';
+	document.getElementById('editSongDate').value = song.date || '';
     document.getElementById('editSongAudioUrl').value = s.audioUrl || '';
     document.getElementById('editSongCoverUrl').value = s.coverUrl || '';
     document.getElementById('editSongAudioFile').value = '';

@@ -432,6 +432,7 @@ const App = {
     document.getElementById('deleteAlbumBtn').style.display = Auth.currentUser.isAdmin ? 'inline-block' : 'none';
     document.getElementById('syncNowBtn').style.display = 'inline-block';
     this.updateAdminUI();
+	this.navigateTo('home');
   },
 
   updateAdminUI() {
@@ -621,7 +622,11 @@ const App = {
       song.artist = document.getElementById('editSongArtist').value.trim();
       song.producer = document.getElementById('editSongProducer').value.trim() || '';
       
-      // Читаем и сохраняем текст песни при редактировании
+      const dateField = document.getElementById('editSongDate');
+      if (dateField) {
+        song.date = dateField.value.trim();
+      }
+	  
       const lyricsField = document.getElementById('editSongLyrics');
       song.lyrics = lyricsField ? lyricsField.value.trim() : '';
 
@@ -642,8 +647,12 @@ const App = {
       UI.closeModal(document.getElementById('modalEdit'));
       this.refreshAll();
       Sync.onDataChanged();
-    } catch (error) { console.error('Ошибка при редактировании трека:', error); alert('Не удалось сохранить изменения: ' + error.message); }
-    finally { if (overlay) overlay.classList.remove('active'); }
+    } catch (error) {
+		console.error('Ошибка при редактировании трека:', error);
+		alert('Не удалось сохранить изменения: ' + error.message); 
+	} finally {
+		if (overlay) overlay.classList.remove('active');
+	}
   },
 
   // ========== ОЦЕНКА АЛЬБОМА ==========
