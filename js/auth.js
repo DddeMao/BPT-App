@@ -35,9 +35,19 @@ const Auth = {
         isAdmin: true,
         tgId: String(CONFIG.MY_TELEGRAM_ID),
       });
-    } else if (!existingAdmin.tgId) {
-      existingAdmin.tgId = String(CONFIG.MY_TELEGRAM_ID);
-      await DB.put(CONFIG.STORE_USERS, existingAdmin);
+    } else {
+      let needsUpdate = false;
+      if (!existingAdmin.isAdmin) {
+        existingAdmin.isAdmin = true;
+        needsUpdate = true;
+      }
+      if (!existingAdmin.tgId) {
+        existingAdmin.tgId = String(CONFIG.MY_TELEGRAM_ID);
+        needsUpdate = true;
+      }
+      if (needsUpdate) {
+        await DB.put(CONFIG.STORE_USERS, existingAdmin);
+      }
     }
   },
 
