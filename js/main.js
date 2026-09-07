@@ -192,6 +192,13 @@ const App = {
     document.addEventListener('click', () => {
       document.getElementById('contextMenu').style.display = 'none';
     });
+	
+	window.addEventListener('scroll', () => {
+      const menu = document.getElementById('contextMenu');
+      if (menu && menu.style.display === 'block') {
+        menu.style.display = 'none';
+      }
+    }, { passive: true });
 
     document.querySelectorAll('.context-menu-item').forEach(item => {
       item.addEventListener('click', () => {
