@@ -569,24 +569,44 @@ const UI = {
   buildSliders(containerId, initialScores, onChange) {
     const container = document.getElementById(containerId);
     if (!container) return;
+    
     container.innerHTML = CONFIG.CRITERIA.map((criterion, i) => {
       const val = initialScores ? initialScores[i] : 0;
-      return `<div class="rating-slider-row">
-        <div class="rating-slider-label"><span>${criterion}</span><span id="${containerId}Val${i}">${val}</span></div>
-        <input type="range" id="${containerId}Range${i}" min="0" max="${CONFIG.MAX_SCORE}" value="${val}" class="rating-range">
+      const percent = (val / CONFIG.MAX_SCORE) * 100;
+      const color = this.getScoreColorHex(val);
+      
+      return `<div class="rating-slider-row" style="margin-bottom: 16px;">
+        <div class="rating-slider-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-weight: 500;">
+          <span>${criterion}</span>
+          <span id="${containerId}Val${i}" style="font-weight: 600; color: var(--primary, #b366ff);">${val}</span>
+        </div>
+        <div class="rating-slider-track-wrap" style="position: relative; width: 100%; height: 24px; display: flex; align-items: center;">
+          <div class="rating-bar-track" style="position: absolute; width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; pointer-events: none;">
+            <div id="${containerId}Fill${i}" class="rating-bar-fill" style="width: ${percent}%; height: 100%; background: ${color}; transition: width 0.1s ease, background 0.1s ease;"></div>
+          </div>
+          <input type="range" id="${containerId}Range${i}" min="0" max="${CONFIG.MAX_SCORE}" value="${val}" class="rating-range" style="position: relative; width: 100%; background: transparent; cursor: pointer; z-index: 2; margin: 0;">
+        </div>
       </div>`;
     }).join('');
 
     CONFIG.CRITERIA.forEach((_, i) => {
       const range = document.getElementById(`${containerId}Range${i}`);
       const valSpan = document.getElementById(`${containerId}Val${i}`);
+      const fillDiv = document.getElementById(`${containerId}Fill${i}`);
+      
       if (range) {
         range.addEventListener('input', (e) => {
-          if (valSpan) valSpan.textContent = e.target.value;
+          const newVal = parseInt(e.target.value, 10);
+          if (valSpan) valSpan.textContent = newVal;
+          if (fillDiv) {
+            fillDiv.style.width = `${(newVal / CONFIG.MAX_SCORE) * 100}%`;
+            fillDiv.style.background = this.getScoreColorHex(newVal);
+          }
           if (onChange) onChange();
         });
       }
     });
+    
     if (onChange) onChange();
   },
 

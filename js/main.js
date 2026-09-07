@@ -146,7 +146,7 @@ const App = {
     const song = songs.find(s => s.id === songId);
     if (!song) return;
     if (!song.ratings) song.ratings = [];
-    const myIndex = song.ratings.findIndex(r => r.userId === Auth.currentUser.id);
+    const myIndex = song.ratings.findIndex(r => String(r.userId) === String(Auth.currentUser.id));
     const ratingObj = { userId: Auth.currentUser.id, username: Auth.currentUser.username, scores, total, date: new Date().toISOString() };
     if (myIndex >= 0) song.ratings[myIndex] = ratingObj;
     else song.ratings.push(ratingObj);
@@ -620,7 +620,7 @@ const App = {
     const total = scores.reduce((a, b) => a + b, 0);
     const album = await DB.get(CONFIG.STORE_ALBUMS, UI.currentAlbumRatingName) || { name: UI.currentAlbumRatingName, ratings: [], trackOrder: [] };
     if (!album.ratings) album.ratings = [];
-    const myIndex = album.ratings.findIndex(r => r.userId === Auth.currentUser.id);
+    const myIndex = album.ratings.findIndex(r => String(r.userId) === String(Auth.currentUser.id));
     const ratingObj = { userId: Auth.currentUser.id, username: Auth.currentUser.username, scores, total, date: new Date().toISOString() };
     if (myIndex >= 0) album.ratings[myIndex] = ratingObj;
     else album.ratings.push(ratingObj);
