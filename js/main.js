@@ -1,7 +1,4 @@
-﻿/**
- * Точка входа — инициализация и связывание модулей
- */
-const App = {
+﻿const App = {
   init() {
     this.bindGlobalEvents();
     this.bindTrackViewEvents();

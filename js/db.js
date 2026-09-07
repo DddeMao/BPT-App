@@ -1,6 +1,3 @@
-/**
- * Работа с IndexedDB
- */
 const DB = {
   instance: null,
   _initPromise: null,
@@ -20,10 +17,7 @@ const DB = {
           db.createObjectStore(CONFIG.STORE_ALBUMS, { keyPath: 'name' });
         }
         if (!db.objectStoreNames.contains(CONFIG.STORE_USERS)) {
-          const userStore = db.createObjectStore(CONFIG.STORE_USERS, { keyPath: 'id' });
-          if (!userStore.indexNames.contains('username')) {
-            userStore.createIndex('username', 'username', { unique: true });
-          }
+          db.createObjectStore(CONFIG.STORE_USERS, { keyPath: 'id' });
         }
       };
       
@@ -123,9 +117,12 @@ const DB = {
     return new Promise((resolve, reject) => {
       const tx = this.instance.transaction(CONFIG.STORE_USERS, 'readonly');
       const store = tx.objectStore(CONFIG.STORE_USERS);
-      const index = store.index('username');
-      const request = index.get(username);
-      request.onsuccess = () => resolve(request.result || null);
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const users = request.result || [];
+        const user = users.find(u => u.username && u.username.toLowerCase() === username.toLowerCase()) || null;
+        resolve(user);
+      };
       request.onerror = (e) => reject(e.target.error);
     });
   },

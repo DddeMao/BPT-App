@@ -1,7 +1,4 @@
-﻿/**
- * GitHub синхронизация
- */
-const Sync = {
+﻿const Sync = {
   token: localStorage.getItem('bpt_github_token') || '',
   isSyncing: false,
   syncTimeout: null,

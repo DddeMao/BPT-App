@@ -1,6 +1,3 @@
-/**
- * Аутентификация и управление пользователями
- */
 const Auth = {
   currentUser: null,
 
@@ -29,7 +26,7 @@ const Auth = {
     const adminTgId = String(CONFIG.MY_TELEGRAM_ID);
     const expectedAdminId = 'tg_' + adminTgId;
 
-    let adminUser = users.find(u => u.tgId === adminTgId || u.id === expectedAdminId);
+    let adminUser = users.find(u => u.tgId === adminTgId || u.id === expectedAdminId || (u.username && u.username.toLowerCase() === 'letluvv'));
 
     if (!adminUser) {
       const adminHash = await this.hashPassword('123123');
@@ -42,24 +39,26 @@ const Auth = {
       };
       await DB.put(CONFIG.STORE_USERS, adminUser);
     } else {
-      let needsUpdate = false;
-      if (!adminUser.isAdmin) {
-        adminUser.isAdmin = true;
-        needsUpdate = true;
-      }
-      if (!adminUser.tgId) {
-        adminUser.tgId = adminTgId;
-        needsUpdate = true;
-      }
+      const oldId = adminUser.id;
+      adminUser.id = expectedAdminId;
+      adminUser.isAdmin = true;
+      adminUser.tgId = adminTgId;
+      adminUser.username = 'Letluvv';
 
-      if (adminUser.id !== expectedAdminId) {
-        const oldId = adminUser.id;
-        adminUser.id = expectedAdminId;
+      if (oldId && oldId !== expectedAdminId) {
         await DB.put(CONFIG.STORE_USERS, adminUser);
         await DB.delete(CONFIG.STORE_USERS, oldId);
         await Auth.migrateRatingsAndComments(oldId, expectedAdminId);
-      } else if (needsUpdate) {
+      } else {
         await DB.put(CONFIG.STORE_USERS, adminUser);
+      }
+    }
+
+    const freshUsers = await DB.getAll(CONFIG.STORE_USERS);
+    for (const u of freshUsers) {
+      if (u.username && u.username.toLowerCase() === 'letluvv' && u.id !== expectedAdminId) {
+        await Auth.migrateRatingsAndComments(u.id, expectedAdminId);
+        await DB.delete(CONFIG.STORE_USERS, u.id);
       }
     }
   },
@@ -126,7 +125,7 @@ const Auth = {
       
       if (isConfigAdmin) {
         user.isAdmin = true;
-        user.username = 'Letluvv'; // Жестко фиксируем кастомный ник админа
+        user.username = 'Letluvv';
       } else if (!user.username || user.username.toLowerCase().startsWith('tg_user_')) {
         user.username = tgUser.username || tgUser.first_name || 'User';
       }
@@ -139,7 +138,7 @@ const Auth = {
       let baseName = isConfigAdmin ? 'Letluvv' : (tgUser.username || tgUser.first_name || ('tg_user_' + tgId));
       let finalUsername = baseName;
       let counter = 1;
-      while (allUsers.some(u => u.username.toLowerCase() === finalUsername.toLowerCase() && u.id !== deterministicId)) {
+      while (allUsers.some(u => u.username && u.username.toLowerCase() === finalUsername.toLowerCase() && u.id !== deterministicId)) {
         finalUsername = `${baseName}_${counter}`;
         counter++;
       }
