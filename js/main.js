@@ -365,7 +365,7 @@ const App = {
       wrapper.innerHTML = `
         <div style="color: #cf6679; font-size: 0.9rem; padding: 15px; text-align: center; background: rgba(207, 102, 121, 0.1); border-radius: 8px; border: 1px solid #cf6679;">
           ⚠️ <b>Ошибка соединения с Telegram</b><br>
-          Не удалось загрузить виджет авторизации. Проверьте интернет-соединение или настройки VPN.
+          Не удалось загрузить виджет авторизации. Попробуйте включить VPN.
         </div>
       `;
     };
