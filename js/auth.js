@@ -98,7 +98,7 @@ const Auth = {
     const isConfigAdmin = (tgId === String(CONFIG.MY_TELEGRAM_ID));
 
     if (isConfigAdmin) {
-      user = allUsers.find(u => u.isAdmin || u.username.toLowerCase() === 'letlu' || u.username.toLowerCase() === 'letluvv');
+      user = allUsers.find(u => u.isAdmin || u.username.toLowerCase() === 'letluvv');
     }
 
     if (!user) {
