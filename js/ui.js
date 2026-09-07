@@ -190,10 +190,9 @@ const UI = {
       </div>`;
     }).trim();
 
-    // === НАДЁЖНЫЕ ОБРАБОТЧИКИ КЛИКОВ ===
     c.querySelectorAll('.card').forEach(card => {
       card.addEventListener('click', (e) => {
-        if (e.target.closest('button')) return; // игнорируем кнопки
+        if (e.target.closest('button')) return;
         const id = card.dataset.id;
         if (id) this.openTrackView(id, 'ratings');
       });
@@ -320,7 +319,7 @@ const UI = {
         }
       };
     }
-  }, // <-- Запятая добавлення, синтаксис восстановлен
+  },
 
   renderTop12(songs) {
     const c = document.getElementById('topList');
@@ -498,40 +497,120 @@ const UI = {
     DB.get(CONFIG.STORE_ALBUMS, albumName).then(album => {
       document.getElementById('albumRatingInfo').textContent = `Альбом: ${albumName}`;
       const myRating = album?.ratings?.find(r => r.userId === Auth.currentUser.id);
-      this.buildSliders('albumRatingSliders', myRating?.scores, () => { let s = 0; for (let i = 0; i < CONFIG.CRITERIA.length; i++) { const sl = document.getElementById(`albumRatingSlidersRange${i}`); if (sl) s += parseInt(sl.value, 10); } document.getElementById('albumLiveTotal').textContent = s; });
+      this.buildSliders('albumRatingSliders', myRating?.scores, () => { 
+        let s = 0; 
+        for (let i = 0; i < CONFIG.CRITERIA.length; i++) { 
+          const sl = document.getElementById(`albumRatingSlidersRange${i}`); 
+          if (sl) s += parseInt(sl.value, 10); 
+        } 
+        document.getElementById('albumLiveTotal').textContent = s; 
+      });
+      
       const oc = document.getElementById('otherAlbumRatings');
       const others = album?.ratings?.filter(r => r.userId !== Auth.currentUser.id) || [];
       const isAdmin = Auth.currentUser?.isAdmin;
-      oc.innerHTML = others.length === 0 ? '<div style="color:#888;">Нет оценок</div>' : others.map(r => `<div class="other-rating-item" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;"><span><strong>${this.escapeHtml(r.username)}</strong>: ${r.total} ★</span>${isAdmin ? `<button class="delete-album-rating-btn" data-userid="${r.userId}" style="background:#cf6679;border:none;color:white;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">✕</button>` : ''}</div>`).join('');
-      if (isAdmin) { oc.querySelectorAll('.delete-album-rating-btn').forEach(btn => { btn.addEventListener('click', async (e) => { const tid = e.target.dataset.userid; if (!confirm('Удалить?')) return; const a = await DB.get(CONFIG.STORE_ALBUMS, albumName); if (!a || !a.ratings) return; a.ratings = a.ratings.filter(r => r.userId !== tid); await DB.put(CONFIG.STORE_ALBUMS, a); this.openAlbumRatingModal(albumName); Sync.onDataChanged(); }); }); }
+      
+      oc.innerHTML = others.length === 0 ? '<div style="color:#888;">Нет оценок</div>' : others.map(r => `
+        <div class="other-rating-item" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
+          <span><strong>${this.escapeHtml(r.username)}</strong>: ${r.total} ★</span>
+          ${isAdmin ? `<button class="delete-album-rating-btn" data-userid="${r.userId}" data-albumname="${albumName}" style="background:#cf6679;border:none;color:white;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;">✕</button>` : ''}
+        </div>
+      `).join('');
+
+      if (isAdmin) {
+        oc.querySelectorAll('.delete-album-rating-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const uid = e.target.dataset.userid;
+            if (!confirm('Удалить эту оценку альбома?')) return;
+            const alb = await DB.get(CONFIG.STORE_ALBUMS, albumName);
+            if (!alb || !alb.ratings) return;
+            alb.ratings = alb.ratings.filter(r => String(r.userId) !== String(uid));
+            await DB.put(CONFIG.STORE_ALBUMS, alb);
+            this.openAlbumRatingModal(albumName);
+            Sync.onDataChanged();
+          });
+        });
+      }
+
       document.getElementById('modalAlbumRating').classList.add('active');
     });
   },
 
-  buildSliders(containerId, values, onChange) {
-    const c = document.getElementById(containerId);
-    c.innerHTML = CONFIG.CRITERIA.map((name, i) => { const v = values ? values[i] : 0; return `<div class="range-group"><label><span>${name}</span><span id="${containerId}Val${i}">${v}</span></label><input type="range" id="${containerId}Range${i}" min="0" max="${CONFIG.MAX_SCORE}" value="${v}" step="1"></div>`; }).join('');
-    CONFIG.CRITERIA.forEach((_, i) => { const s = document.getElementById(`${containerId}Range${i}`); const vs = document.getElementById(`${containerId}Val${i}`); s.addEventListener('input', () => { vs.textContent = s.value; onChange(); }); });
-    onChange();
+  buildSliders(containerId, initialScores, onChange) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = CONFIG.CRITERIA.map((criterion, i) => {
+      const val = initialScores ? initialScores[i] : 0;
+      return `<div class="rating-slider-row">
+        <div class="rating-slider-label"><span>${criterion}</span><span id="${containerId}Val${i}">${val}</span></div>
+        <input type="range" id="${containerId}Range${i}" min="0" max="${CONFIG.MAX_SCORE}" value="${val}" class="rating-range">
+      </div>`;
+    }).join('');
+
+    CONFIG.CRITERIA.forEach((_, i) => {
+      const range = document.getElementById(`${containerId}Range${i}`);
+      const valSpan = document.getElementById(`${containerId}Val${i}`);
+      if (range) {
+        range.addEventListener('input', (e) => {
+          if (valSpan) valSpan.textContent = e.target.value;
+          if (onChange) onChange();
+        });
+      }
+    });
+    if (onChange) onChange();
   },
 
   renderCommentsList(comments) {
     const c = document.getElementById('commentsContainer');
-    if (comments.length === 0) { c.innerHTML = '<div style="color:#888;text-align:center;">Пока нет комментариев</div>'; return; }
-    c.innerHTML = comments.map((cm, idx) => { const cd = cm.userId === Auth.currentUser.id; return `<div class="comment-item">${cd ? `<button class="comment-del" data-index="${idx}">✕</button>` : ''}<div class="comment-author">${this.escapeHtml(cm.username)}</div><div class="comment-text">${this.escapeHtml(cm.text)}</div><div class="comment-date">${cm.date || ''}</div></div>`; }).join('');
-    c.querySelectorAll('.comment-del').forEach(btn => { btn.addEventListener('click', async (e) => { const i = parseInt(e.target.dataset.index, 10); const ss = await DB.getAll(CONFIG.STORE_SONGS); const s = ss.find(x => x.id === this.currentCommentSongId); if (!s || !s.comments) return; s.comments.splice(i, 1); await DB.put(CONFIG.STORE_SONGS, s); this.renderCommentsList(s.comments); Sync.onDataChanged(); }); });
+    if (!c) return;
+    const isAdmin = Auth.currentUser?.isAdmin;
+    if (!comments || comments.length === 0) {
+      c.innerHTML = '<div style="color:#888;text-align:center;padding:40px;">Пока нет комментариев. Будьте первыми!</div>';
+      return;
+    }
+    c.innerHTML = comments.map((comment, index) => {
+      const initials = comment.username ? comment.username.charAt(0).toUpperCase() : '?';
+      return `<div class="comment-item">
+        <div class="comment-avatar">${initials}</div>
+        <div class="comment-content">
+          <div class="comment-header">
+            <span class="comment-username">${this.escapeHtml(comment.username)}</span>
+            <span class="comment-date">${comment.date}</span>
+          </div>
+          <div class="comment-text">${this.escapeHtml(comment.text)}</div>
+        </div>
+        ${isAdmin || comment.userId === Auth.currentUser?.id ? `<button class="delete-comment-btn" data-index="${index}" style="background:none;border:none;color:#888;cursor:pointer;font-size:0.9rem;">✕</button>` : ''}
+      </div>`;
+    }).join('');
+
+    c.querySelectorAll('.delete-comment-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const index = parseInt(e.target.dataset.index, 10);
+        const songId = this.currentTrackSongId;
+        const songs = await DB.getAll(CONFIG.STORE_SONGS);
+        const song = songs.find(s => s.id === songId);
+        if (!song || !song.comments) return;
+        song.comments.splice(index, 1);
+        await DB.put(CONFIG.STORE_SONGS, song);
+        this.loadTrackComments();
+        Sync.onDataChanged();
+      });
+    });
   },
 
   toggleFavorite(songId) {
-    if (!Auth.currentUser) return;
-    const k = `bpt_favorites_${Auth.currentUser.id}`;
-    const f = JSON.parse(localStorage.getItem(k) || '[]');
-    const i = f.indexOf(songId);
-    if (i >= 0) f.splice(i, 1); else f.push(songId);
-    localStorage.setItem(k, JSON.stringify(f));
-    App.refreshAll();
-    if (Sync.token) { clearTimeout(Sync.syncTimeout); Sync.syncTimeout = setTimeout(() => Sync.sync(), CONFIG.FAVORITES_SYNC_DELAY); }
-  },
+    const favs = this.getFavorites();
+    const index = favs.indexOf(songId);
+    if (index >= 0) {
+      favs.splice(index, 1);
+    } else {
+      favs.push(songId);
+    }
+    this.saveFavorites(favs);
+    this.refreshAll();
+    Sync.onDataChanged();
+  }
+};
 
   async updateAlbumDatalist() { const a = await DB.getAll(CONFIG.STORE_ALBUMS); document.getElementById('albumList').innerHTML = a.map(x => `<option value="${this.escapeHtml(x.name)}">`).join(''); },
 
