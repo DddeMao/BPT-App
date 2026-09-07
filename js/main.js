@@ -18,9 +18,7 @@ const App = {
       });
     });
 
-    // Аутентификация
-    document.getElementById('authForm').addEventListener('submit', (e) => this.handleAuthSubmit(e));
-    document.getElementById('toggleAuthMode').addEventListener('click', (e) => this.toggleAuthMode(e));
+    // Аутентификация (выход)
     document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
 
     // Настройки
@@ -292,52 +290,13 @@ const App = {
     });
   },
 
-  // ========== АУТЕНТИФИКАЦИЯ ==========
-
-  authMode: 'login',
-
-  async handleAuthSubmit(e) {
-    e.preventDefault();
-    const username = document.getElementById('authUsername').value.trim();
-    const password = document.getElementById('authPassword').value;
-    if (!username || !password) return;
-
-    if (username.toLowerCase() === 'letluvv') {
-      UI.showNotification('Для аккаунта Letluvv вход через Telegram обязателен! 🔒', true);
-      const tgBlock = document.getElementById('tgAdminBlock');
-      if (tgBlock) {
-        tgBlock.style.display = 'block';
-        this.initTelegramWidget();
-      }
-      return;
-    }
-
-    try {
-      if (this.authMode === 'login') {
-        Auth.currentUser = await Auth.handleLogin(username, password);
-      } else {
-        Auth.currentUser = await Auth.handleRegister(username, password);
-      }
-      this.showApp();
-      this.refreshAll();
-    } catch (err) {
-      alert(err.message);
-    }
-  },
+  // ========== АУТЕНТИФИКАЦИЯ (TELEGRAM) ==========
 
   showAuthScreen() {
     document.getElementById('app').style.display = 'none';
     document.getElementById('authScreen').style.display = 'flex';
-    
-    // Скрываем стандартную форму логина/пароля
-    const authForm = document.getElementById('authForm');
-    if (authForm) authForm.style.display = 'none';
 
-    // Скрываем переключатель режима
-    const toggleMode = document.getElementById('toggleAuthMode');
-    if (toggleMode) toggleMode.style.display = 'none';
-
-    // Гарантированно показываем и инициализируем Telegram-виджет для всех
+    // Инициализируем и показываем Telegram-виджет авторизации
     const tgBlock = document.getElementById('tgAdminBlock');
     if (tgBlock) {
       tgBlock.style.display = 'block';
@@ -378,17 +337,6 @@ const App = {
     };
 
     wrapper.appendChild(script);
-  },
-
-  toggleAuthMode(e) {
-    e.preventDefault();
-    this.authMode = this.authMode === 'login' ? 'register' : 'login';
-    document.getElementById('authTitle').textContent = this.authMode === 'login' ? 'Вход' : 'Регистрация';
-    document.getElementById('toggleAuthMode').textContent = this.authMode === 'login' ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти';
-    document.getElementById('authUsername').readOnly = false;
-    const tgBlock = document.getElementById('tgAdminBlock');
-    const username = document.getElementById('authUsername').value.trim().toLowerCase();
-    if (tgBlock) tgBlock.style.display = (this.authMode === 'login' && username === 'letluvv') ? 'block' : 'none';
   },
 
   handleLogout() {
@@ -598,6 +546,7 @@ const App = {
     const rawCoverUrl = document.getElementById('addCoverUrl').value.trim();
     const coverUrl = UI.fixDropboxUrl(rawCoverUrl);
     
+    // Получаем текст песни из формы добавления
     const lyrics = document.getElementById('addLyrics') ? document.getElementById('addLyrics').value.trim() : '';
 
     if (!artist) return alert('Введите исполнителя');
@@ -608,9 +557,10 @@ const App = {
     
     try {
       for (const track of tracks) {
+        // Генерируем уникальный гарантированный ID для каждого трека через crypto.randomUUID
         const songId = (window.crypto && crypto.randomUUID) 
           ? crypto.randomUUID() 
-          : ('song_' + Date.now + '_' + Math.random().toString(36).substr(2, 9));
+          : ('song_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
 
         const newSong = { 
           id: songId,
@@ -626,6 +576,7 @@ const App = {
           comments: [] 
         };
 
+        // Используем DB.put для безопасной записи без ConstraintError
         await DB.put(CONFIG.STORE_SONGS, newSong);
 
         if (album) {
@@ -733,10 +684,7 @@ const App = {
     }
 
     try {
-      // 1. Получаем все треки из IndexedDB
       const songs = await DB.getAll(CONFIG.STORE_SONGS);
-      
-      // 2. Отбираем только треки нужного альбома
       const albumSongs = songs.filter(s => s.album === albumName);
       
       if (albumSongs.length === 0) {
@@ -747,30 +695,22 @@ const App = {
 
       let processed = 0;
 
-      // 3. Перебираем треки и скачиваем их
       for (const song of albumSongs) {
-        // Если трек уже сохранен в IndexedDB как Blob — пропускаем скачивание
         if (song.audioBlob) {
           processed++;
           if (btn) btn.textContent = `⏳ Загрузка... ${Math.round((processed / albumSongs.length) * 100)}%`;
           continue;
         }
 
-        // Если есть ссылка, скачиваем файл в память
         if (song.audioUrl) {
           try {
             const response = await fetch(song.audioUrl);
             if (!response.ok) throw new Error(`Статус сети: ${response.status}`);
-            
             const blob = await response.blob();
-            
-            // Записываем бинарник в объект трека
             song.audioBlob = blob;
-            
-            // Пересохраняем обновленный трек в базу данных
             await DB.put(CONFIG.STORE_SONGS, song);
           } catch (fetchErr) {
-            console.error(` Не удалось скачать трек "${song.title}":`, fetchErr);
+            console.error(`Не удалось скачать трек "${song.title}":`, fetchErr);
           }
         }
 
@@ -778,10 +718,9 @@ const App = {
         if (btn) btn.textContent = `⏳ Загрузка... ${Math.round((processed / albumSongs.length) * 100)}%`;
       }
 
-      // 4. Завершение загрузки
       if (btn) {
         btn.textContent = '✅ Альбом сохранен локально';
-        btn.style.background = '#28a745'; // Зеленый цвет успеха
+        btn.style.background = '#28a745';
         btn.style.color = '#fff';
       }
       
@@ -789,7 +728,6 @@ const App = {
         UI.showNotification('Альбом успешно сохранен на устройство!');
       }
 
-      // Триггерим синхронизацию, чтобы зафиксировать состояние
       Sync.onDataChanged();
 
     } catch (error) {

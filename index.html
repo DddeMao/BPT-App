@@ -124,29 +124,15 @@
   </div>
 
   <!-- Экран входа / регистрации (ТЕПЕРЬ КОРРЕКТНО ЗАКРЫТ) -->
-  <div id="authScreen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;">
-    <div style="background:var(--surface); padding:30px; border-radius:20px; width:90%; max-width:400px; border:1px solid var(--border);">
+  <<div id="authScreen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;">
+    <div style="background:var(--surface); padding:30px; border-radius:20px; width:90%; max-width:400px; border:1px solid var(--border); text-align: center;">
+      <h2 style="margin-bottom: 20px;">Вход в систему</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+        Для доступа к проекту авторизуйтесь через Telegram
+      </p>
       
-      <form id="authForm" style="display: flex; flex-direction: column; gap: 15px;">
-        <h2 id="authTitle" style="margin-bottom: 10px;">Вход</h2>
-        
-        <div class="input-group" style="width: 100%;">
-          <input type="text" id="authUsername" placeholder="Никнейм" required style="width: 100%;">
-        </div>
-        
-        <div class="input-group" style="width: 100%;">
-          <input type="password" id="authPassword" placeholder="Пароль" required style="width: 100%;">
-        </div>
-        
-        <button type="submit" class="btn" style="margin-top: 10px;">Войти</button>
-      </form>
-      
-      <div id="tgAdminBlock" style="display: none;">
-        <div id="tg-widget-wrapper" style="text-align: center; min-height: 50px; margin: 20px 0;"></div>
-      </div>
-
-      <div id="registerLinkBlock" style="margin-top: 20px; text-align: center;">
-        <a href="#" id="toggleAuthMode" style="color: var(--accent); text-decoration: none; font-size: 0.95rem;">Нет аккаунта? Зарегистрироваться</a>
+      <div id="tgAdminBlock">
+        <div id="tg-widget-wrapper" style="text-align: center; min-height: 50px; margin: 10px 0;"></div>
       </div>
     </div>
   </div>
