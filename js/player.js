@@ -1,6 +1,3 @@
-/**
- * Аудиоплеер с потоковой загрузкой и индикатором прогресса
- */
 const Player = {
   audio: null,
   cover: null,
@@ -111,8 +108,8 @@ const Player = {
     };
 
     this.audio.src = audioSource;
-    this.audio.preload = 'metadata';           // Важно: metadata + progressive download
-    this.audio.load();                         // Принудительно начинаем загрузку
+    this.audio.preload = 'metadata';
+    this.audio.load();
 
     this.cover.src = song.coverUrl ? fixDropboxUrl(song.coverUrl) : 
                     (song.coverBlob ? URL.createObjectURL(song.coverBlob) : '');
@@ -120,7 +117,6 @@ const Player = {
     this.artist.textContent = song.artist || 'Неизвестный исполнитель';
     this.bar.style.display = 'flex';
 
-    // Автоматически начинаем воспроизведение, как только можно
     this.audio.addEventListener('canplay', () => {
       this.audio.play().catch(err => {
         console.log('Autoplay prevented:', err);
@@ -133,3 +129,26 @@ const Player = {
     this.showLoading(true);
   },
 };
+
+let visualizer = null;
+
+window.addEventListener('DOMContentLoaded', () => {
+    visualizer = new AudioVisualizer({
+        canvasId: 'visualizerCanvas',
+        audioId: 'audioPlayer',
+        barWidth: 6,
+        barGap: 2,
+        colorStart: '#b366ff',
+        colorEnd: '#ff4d6d',
+        opacity: 0.4,
+        heightScale: 0.4
+    });
+});
+
+const audioPlayer = document.getElementById('audioPlayer');
+
+audioPlayer.addEventListener('play', () => {
+    if (visualizer) {
+        visualizer.init();
+    }
+});
