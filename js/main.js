@@ -10,7 +10,6 @@ const App = {
   // ========== ОБРАБОТЧИКИ СОБЫТИЙ ==========
 
   bindGlobalEvents() {
-    // Навигация (верхняя + нижняя)
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
         const view = e.currentTarget.dataset.view;
@@ -18,60 +17,53 @@ const App = {
       });
     });
 
-    // Аутентификация (выход)
-    document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
+    document.getElementById('logoutBtn')?.addEventListener('click', () => this.handleLogout());
 
-    // Настройки
-    document.getElementById('settingsBtn').addEventListener('click', () => this.openSettings());
-    document.querySelector('.close-settings').addEventListener('click', () => UI.closeModal(document.getElementById('modalSettings')));
-    document.getElementById('settingsForm').addEventListener('submit', (e) => this.handleSettingsSubmit(e));
+    document.getElementById('settingsBtn')?.addEventListener('click', () => this.openSettings());
+    document.querySelector('.close-settings')?.addEventListener('click', () => UI.closeModal(document.getElementById('modalSettings')));
+    document.getElementById('settingsForm')?.addEventListener('submit', (e) => this.handleSettingsSubmit(e));
 
-    // Добавление трека
-    document.getElementById('addBtn').addEventListener('click', () => UI.openAddModal());
-    document.querySelector('#modalAdd .close').addEventListener('click', () => UI.closeModal(document.getElementById('modalAdd')));
-    document.getElementById('addSongForm').addEventListener('submit', (e) => this.handleAddSong(e));
+    document.getElementById('addBtn')?.addEventListener('click', () => UI.openAddModal());
+    document.querySelector('#modalAdd .close')?.addEventListener('click', () => UI.closeModal(document.getElementById('modalAdd')));
+    document.getElementById('addSongForm')?.addEventListener('submit', (e) => this.handleAddSong(e));
 
-    // Редактирование трека
-    document.querySelector('.close-edit').addEventListener('click', () => UI.closeModal(document.getElementById('modalEdit')));
-    document.getElementById('editSongForm').addEventListener('submit', (e) => this.handleEditSong(e));
+    document.querySelector('.close-edit')?.addEventListener('click', () => UI.closeModal(document.getElementById('modalEdit')));
+    document.getElementById('editSongForm')?.addEventListener('submit', (e) => this.handleEditSong(e));
 
-    // Оценка альбома
-    document.querySelector('.close-album-rating').addEventListener('click', () => UI.closeModal(document.getElementById('modalAlbumRating')));
-    document.getElementById('albumRatingForm').addEventListener('submit', (e) => this.handleAlbumRatingSubmit(e));
+    document.querySelector('.close-album-rating')?.addEventListener('click', () => UI.closeModal(document.getElementById('modalAlbumRating')));
+    document.getElementById('albumRatingForm')?.addEventListener('submit', (e) => this.handleAlbumRatingSubmit(e));
 
-    // Синхронизация
-    document.getElementById('syncNowBtn').addEventListener('click', () => Sync.sync(true));
+    document.getElementById('syncNowBtn')?.addEventListener('click', () => Sync.sync(true));
 
-    // Поиск
-    document.getElementById('searchInput').addEventListener('input', (e) => {
+    document.getElementById('searchInput')?.addEventListener('input', (e) => {
       UI.currentSearch = e.target.value;
-      document.getElementById('clearSearchBtn').style.display = UI.currentSearch ? 'block' : 'none';
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (clearBtn) clearBtn.style.display = UI.currentSearch ? 'block' : 'none';
       this.refreshAll();
     });
-    document.getElementById('clearSearchBtn').addEventListener('click', () => {
-      document.getElementById('searchInput').value = '';
+    document.getElementById('clearSearchBtn')?.addEventListener('click', () => {
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) searchInput.value = '';
       UI.currentSearch = '';
-      document.getElementById('clearSearchBtn').style.display = 'none';
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (clearBtn) clearBtn.style.display = 'none';
       this.refreshAll();
     });
 
-    // Сортировка
-    document.getElementById('sortDateBtn').addEventListener('click', () => this.setSort('date'));
-    document.getElementById('sortNameBtn').addEventListener('click', () => this.setSort('name'));
-    document.getElementById('sortRatingBtn').addEventListener('click', () => this.setSort('rating'));
+    document.getElementById('sortDateBtn')?.addEventListener('click', () => this.setSort('date'));
+    document.getElementById('sortNameBtn')?.addEventListener('click', () => this.setSort('name'));
+    document.getElementById('sortRatingBtn')?.addEventListener('click', () => this.setSort('rating'));
 
-    // Закрытие модалок по клику на фон
     window.addEventListener('click', (e) => {
       document.querySelectorAll('.modal').forEach(m => {
         if (e.target === m) UI.closeModal(m);
       });
-      // Закрытие окна трека
-      if (e.target.id === 'trackView') {
-        document.getElementById('trackView').classList.remove('active');
+      const trackView = document.getElementById('trackView');
+      if (e.target.id === 'trackView' && trackView) {
+        trackView.classList.remove('active');
       }
     });
 
-    // Горячие клавиши
     document.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (e.key === ' ') { e.preventDefault(); Player.audio.paused ? Player.audio.play() : Player.audio.pause(); }
@@ -79,29 +71,24 @@ const App = {
       if (e.key === 'ArrowRight') Player.audio.currentTime += 5;
       if (e.key === 'Escape') {
         document.querySelectorAll('.modal.active').forEach(m => UI.closeModal(m));
-        document.getElementById('trackView').classList.remove('active');
+        document.getElementById('trackView')?.classList.remove('active');
       }
     });
 
-    // Контекстное меню
     this.bindContextMenu();
 
-    // Динамические поля аудио
     this.bindAudioUrlFields();
 
-    // Автозаполнение тегов
     this.bindTagReader();
   },
 
   // ========== ОБРАБОТЧИКИ ОКНА ТРЕКА ==========
 
   bindTrackViewEvents() {
-    // Закрытие окна трека
-    document.getElementById('trackViewClose').addEventListener('click', () => {
-      document.getElementById('trackView').classList.remove('active');
+    document.getElementById('trackViewClose')?.addEventListener('click', () => {
+      document.getElementById('trackView')?.classList.remove('active');
     });
 
-    // Переключение вкладок
     document.querySelectorAll('.track-view-tab').forEach(tab => {
       tab.addEventListener('click', (e) => {
         const tabName = e.currentTarget.dataset.tab;
@@ -109,14 +96,12 @@ const App = {
       });
     });
 
-    // Форма оценки внутри окна трека
-    document.getElementById('ratingForm').addEventListener('submit', (e) => {
+    document.getElementById('ratingForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
       this.handleTrackRatingSubmit();
     });
 
-    // Форма комментариев внутри окна трека
-    document.getElementById('addCommentBtn').addEventListener('click', () => {
+    document.getElementById('addCommentBtn')?.addEventListener('click', () => {
       this.handleTrackCommentSubmit();
     });
   },
