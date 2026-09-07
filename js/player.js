@@ -129,26 +129,3 @@ const Player = {
     this.showLoading(true);
   },
 };
-
-let visualizer = null;
-
-window.addEventListener('DOMContentLoaded', () => {
-    visualizer = new AudioVisualizer({
-        canvasId: 'visualizerCanvas',
-        audioId: 'audioPlayer',
-        barWidth: 6,
-        barGap: 2,
-        colorStart: '#b366ff',
-        colorEnd: '#ff4d6d',
-        opacity: 0.4,
-        heightScale: 0.4
-    });
-});
-
-const audioPlayer = document.getElementById('audioPlayer');
-
-audioPlayer.addEventListener('play', () => {
-    if (visualizer) {
-        visualizer.init();
-    }
-});
