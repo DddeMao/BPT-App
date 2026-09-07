@@ -531,7 +531,6 @@ const App = {
   async handleSettingsSubmit(e) {
     e.preventDefault();
     const newUsername = document.getElementById('newUsername').value.trim();
-    const password = document.getElementById('settingsPassword').value;
     if (!newUsername) return;
     const skipPasswordCheck = (Auth.currentUser.username === 'Letluvv' || Auth.currentUser.isAdmin || Auth.currentUser.passwordHash === 'tg_authorized');
     if (!skipPasswordCheck && !password) { UI.showNotification('Введите пароль для сохранения!', true); return; }

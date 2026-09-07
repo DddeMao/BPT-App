@@ -28,7 +28,6 @@ const Player = {
       this.updateProgress();
     });
 
-    // Обновление прогресс-бара загрузки
     this.audio.addEventListener('progress', () => this.updateProgress());
     this.audio.addEventListener('loadeddata', () => this.updateProgress());
     this.audio.addEventListener('canplay', () => this.updateProgress());
@@ -85,7 +84,6 @@ const Player = {
     this.audio.pause();
     this.audio.src = '';
 
-    // Сброс
     if (this.progressBar) {
       this.progressBar.style.width = '0%';
     }
