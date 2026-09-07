@@ -122,7 +122,6 @@ const Auth = {
       return;
     }
 
-    // 3. Регистрация нового обычного пользователя через Telegram
     const username = tgUser.username || tgUser.first_name || 'tg_user_' + tgUser.id;
     const existingByName = await DB.getUserByUsername(username);
     
@@ -145,5 +144,4 @@ const Auth = {
   },
 };
 
-// Глобальная функция для Telegram виджета
 window.onTelegramAuth = (tgUser) => Auth.onTelegramAuth(tgUser);
