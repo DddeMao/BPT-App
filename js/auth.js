@@ -29,13 +29,13 @@ const Auth = {
     const adminTgId = String(CONFIG.MY_TELEGRAM_ID);
     const expectedAdminId = 'tg_' + adminTgId;
 
-    let adminUser = users.find(u => u.tgId === adminTgId || u.id === expectedAdminId || u.username.toLowerCase() === 'letlu' || u.username.toLowerCase() === 'letluvv');
+    let adminUser = users.find(u => u.tgId === adminTgId || u.id === expectedAdminId);
 
     if (!adminUser) {
       const adminHash = await this.hashPassword('123123');
       adminUser = {
         id: expectedAdminId,
-        username: 'Letlu',
+        username: 'Letluvv',
         passwordHash: adminHash,
         isAdmin: true,
         tgId: adminTgId,
@@ -51,6 +51,7 @@ const Auth = {
         adminUser.tgId = adminTgId;
         needsUpdate = true;
       }
+
       if (adminUser.id !== expectedAdminId) {
         const oldId = adminUser.id;
         adminUser.id = expectedAdminId;
@@ -111,21 +112,7 @@ const Auth = {
     const allUsers = await DB.getAll(CONFIG.STORE_USERS);
     const isConfigAdmin = (tgId === String(CONFIG.MY_TELEGRAM_ID));
 
-    // Ищем существующего пользователя по tgId, фиксированному ID или старым никам
     let user = allUsers.find(u => u.tgId === tgId || u.id === deterministicId);
-
-    if (!user && isConfigAdmin) {
-      user = allUsers.find(u => u.isAdmin || u.username.toLowerCase() === 'letlu' || u.username.toLowerCase() === 'letluvv');
-    }
-
-    if (!user && tgUser.username) {
-      const tgHandle = tgUser.username.toLowerCase();
-      user = allUsers.find(u => !u.tgId && u.username.toLowerCase() === tgHandle);
-    }
-
-    if (!user) {
-      user = allUsers.find(u => !u.tgId && (u.username.toLowerCase() === 'letlu' || u.username.toLowerCase() === 'letluvv'));
-    }
 
     let oldIdsToMigrate = [];
 
@@ -136,18 +123,20 @@ const Auth = {
         user.id = deterministicId;
       }
       user.tgId = tgId;
+      
       if (isConfigAdmin) {
         user.isAdmin = true;
-        user.username = 'Letlu'; // Жестко фиксируем кастомный ник админа
+        user.username = 'Letluvv'; // Жестко фиксируем кастомный ник админа
       } else if (!user.username || user.username.toLowerCase().startsWith('tg_user_')) {
         user.username = tgUser.username || tgUser.first_name || 'User';
       }
+      
       if (tgUser.first_name) user.tgFirstName = tgUser.first_name;
       if (tgUser.photo_url) user.tgPhotoUrl = tgUser.photo_url;
 
-      await DB.add(CONFIG.STORE_USERS, user);
+      await DB.put(CONFIG.STORE_USERS, user);
     } else {
-      let baseName = isConfigAdmin ? 'Letlu' : (tgUser.username || tgUser.first_name || ('tg_user_' + tgId));
+      let baseName = isConfigAdmin ? 'Letluvv' : (tgUser.username || tgUser.first_name || ('tg_user_' + tgId));
       let finalUsername = baseName;
       let counter = 1;
       while (allUsers.some(u => u.username.toLowerCase() === finalUsername.toLowerCase() && u.id !== deterministicId)) {
@@ -165,10 +154,9 @@ const Auth = {
         tgPhotoUrl: tgUser.photo_url || '',
       };
 
-      await DB.add(CONFIG.STORE_USERS, user);
+      await DB.put(CONFIG.STORE_USERS, user);
     }
 
-    // Переносим старые оценки со всех старых/дублирующихся ID на текущий детерминированный ID
     for (const oldId of oldIdsToMigrate) {
       if (oldId !== user.id) {
         await Auth.migrateRatingsAndComments(oldId, user.id);
