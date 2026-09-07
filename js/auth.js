@@ -40,7 +40,7 @@ const Auth = {
         isAdmin: true,
         tgId: adminTgId,
       };
-      await DB.add(CONFIG.STORE_USERS, adminUser);
+      await DB.put(CONFIG.STORE_USERS, adminUser);
     } else {
       let needsUpdate = false;
       if (!adminUser.isAdmin) {
@@ -51,12 +51,10 @@ const Auth = {
         adminUser.tgId = adminTgId;
         needsUpdate = true;
       }
-      // Принудительно закрепляем фиксированный детерминированный ID для админа
       if (adminUser.id !== expectedAdminId) {
         const oldId = adminUser.id;
         adminUser.id = expectedAdminId;
-        adminUser.username = 'Letlu'; // Всегда держим кастомный ник Letlu
-        await DB.add(CONFIG.STORE_USERS, adminUser);
+        await DB.put(CONFIG.STORE_USERS, adminUser);
         await DB.delete(CONFIG.STORE_USERS, oldId);
         await Auth.migrateRatingsAndComments(oldId, expectedAdminId);
       } else if (needsUpdate) {
