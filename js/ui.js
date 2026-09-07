@@ -609,7 +609,7 @@ const UI = {
     this.saveFavorites(favs);
     this.refreshAll();
     Sync.onDataChanged();
-  }
+  },
   
   async updateAlbumDatalist() { const a = await DB.getAll(CONFIG.STORE_ALBUMS); document.getElementById('albumList').innerHTML = a.map(x => `<option value="${this.escapeHtml(x.name)}">`).join(''); },
 
