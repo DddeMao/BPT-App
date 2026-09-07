@@ -1,3 +1,6 @@
+/**
+ * Аутентификация и управление пользователями
+ */
 const Auth = {
   currentUser: null,
 
@@ -23,27 +26,41 @@ const Auth = {
 
   async initAdmin() {
     const users = await DB.getAll(CONFIG.STORE_USERS);
-    const existingAdmin = users.find(u => u.isAdmin || u.username.toLowerCase() === 'letlu' || u.username.toLowerCase() === 'letluvv');
-    if (!existingAdmin) {
+    const adminTgId = String(CONFIG.MY_TELEGRAM_ID);
+    const expectedAdminId = 'tg_' + adminTgId;
+
+    let adminUser = users.find(u => u.tgId === adminTgId || u.id === expectedAdminId || u.username.toLowerCase() === 'letlu' || u.username.toLowerCase() === 'letluvv');
+
+    if (!adminUser) {
       const adminHash = await this.hashPassword('123123');
-      await DB.add(CONFIG.STORE_USERS, {
+      adminUser = {
+        id: expectedAdminId,
         username: 'Letlu',
         passwordHash: adminHash,
         isAdmin: true,
-        tgId: String(CONFIG.MY_TELEGRAM_ID),
-      });
+        tgId: adminTgId,
+      };
+      await DB.add(CONFIG.STORE_USERS, adminUser);
     } else {
       let needsUpdate = false;
-      if (!existingAdmin.isAdmin) {
-        existingAdmin.isAdmin = true;
+      if (!adminUser.isAdmin) {
+        adminUser.isAdmin = true;
         needsUpdate = true;
       }
-      if (!existingAdmin.tgId) {
-        existingAdmin.tgId = String(CONFIG.MY_TELEGRAM_ID);
+      if (!adminUser.tgId) {
+        adminUser.tgId = adminTgId;
         needsUpdate = true;
       }
-      if (needsUpdate) {
-        await DB.put(CONFIG.STORE_USERS, existingAdmin);
+      // Принудительно закрепляем фиксированный детерминированный ID для админа
+      if (adminUser.id !== expectedAdminId) {
+        const oldId = adminUser.id;
+        adminUser.id = expectedAdminId;
+        adminUser.username = 'Letlu'; // Всегда держим кастомный ник Letlu
+        await DB.add(CONFIG.STORE_USERS, adminUser);
+        await DB.delete(CONFIG.STORE_USERS, oldId);
+        await Auth.migrateRatingsAndComments(oldId, expectedAdminId);
+      } else if (needsUpdate) {
+        await DB.put(CONFIG.STORE_USERS, adminUser);
       }
     }
   },
@@ -92,17 +109,15 @@ const Auth = {
     }
 
     const tgId = String(tgUser.id);
+    const deterministicId = 'tg_' + tgId;
     const allUsers = await DB.getAll(CONFIG.STORE_USERS);
-
-    let user = null;
     const isConfigAdmin = (tgId === String(CONFIG.MY_TELEGRAM_ID));
 
-    if (isConfigAdmin) {
-      user = allUsers.find(u => u.isAdmin || u.username.toLowerCase() === 'letluvv');
-    }
+    // Ищем существующего пользователя по tgId, фиксированному ID или старым никам
+    let user = allUsers.find(u => u.tgId === tgId || u.id === deterministicId);
 
-    if (!user) {
-      user = allUsers.find(u => u.tgId === tgId);
+    if (!user && isConfigAdmin) {
+      user = allUsers.find(u => u.isAdmin || u.username.toLowerCase() === 'letlu' || u.username.toLowerCase() === 'letluvv');
     }
 
     if (!user && tgUser.username) {
@@ -110,52 +125,40 @@ const Auth = {
       user = allUsers.find(u => !u.tgId && u.username.toLowerCase() === tgHandle);
     }
 
-    if (!user && isConfigAdmin) {
-      user = {
-        username: 'Letlu',
-        passwordHash: await this.hashPassword('123123'),
-        isAdmin: true,
-        tgId: tgId,
-      };
-      await DB.add(CONFIG.STORE_USERS, user);
+    if (!user) {
+      user = allUsers.find(u => !u.tgId && (u.username.toLowerCase() === 'letlu' || u.username.toLowerCase() === 'letluvv'));
     }
 
-    if (!user) {
-      const unlinked = allUsers.filter(u => !u.tgId);
-      if (unlinked.length === 1) {
-        user = unlinked[0];
-      }
-    }
+    let oldIdsToMigrate = [];
 
     if (user) {
-      const oldUserId = user.id;
+      if (user.id !== deterministicId) {
+        oldIdsToMigrate.push(user.id);
+        await DB.delete(CONFIG.STORE_USERS, user.id);
+        user.id = deterministicId;
+      }
       user.tgId = tgId;
-      if (isConfigAdmin) user.isAdmin = true;
+      if (isConfigAdmin) {
+        user.isAdmin = true;
+        user.username = 'Letlu'; // Жестко фиксируем кастомный ник админа
+      } else if (!user.username || user.username.toLowerCase().startsWith('tg_user_')) {
+        user.username = tgUser.username || tgUser.first_name || 'User';
+      }
       if (tgUser.first_name) user.tgFirstName = tgUser.first_name;
       if (tgUser.photo_url) user.tgPhotoUrl = tgUser.photo_url;
-      await DB.put(CONFIG.STORE_USERS, user);
 
-      const dummyId = 'tg_' + tgId;
-      if (oldUserId !== dummyId) {
-        await Auth.migrateRatingsAndComments(dummyId, user.id);
-        const dummyUser = allUsers.find(u => u.id === dummyId);
-        if (dummyUser) {
-          await DB.delete(CONFIG.STORE_USERS, dummyId);
-        }
-      }
-
-      console.log('[TG Auth] Аккаунт успешно синхронизирован с Telegram:', user);
+      await DB.add(CONFIG.STORE_USERS, user);
     } else {
-      let baseName = tgUser.username || tgUser.first_name || ('tg_user_' + tgId);
+      let baseName = isConfigAdmin ? 'Letlu' : (tgUser.username || tgUser.first_name || ('tg_user_' + tgId));
       let finalUsername = baseName;
       let counter = 1;
-      while (allUsers.some(u => u.username.toLowerCase() === finalUsername.toLowerCase())) {
+      while (allUsers.some(u => u.username.toLowerCase() === finalUsername.toLowerCase() && u.id !== deterministicId)) {
         finalUsername = `${baseName}_${counter}`;
         counter++;
       }
 
       user = {
-        id: 'tg_' + tgId,
+        id: deterministicId,
         username: finalUsername,
         passwordHash: 'tg_authorized',
         isAdmin: isConfigAdmin,
@@ -165,7 +168,19 @@ const Auth = {
       };
 
       await DB.add(CONFIG.STORE_USERS, user);
-      console.log('[TG Auth] Создан новый профиль:', user);
+    }
+
+    // Переносим старые оценки со всех старых/дублирующихся ID на текущий детерминированный ID
+    for (const oldId of oldIdsToMigrate) {
+      if (oldId !== user.id) {
+        await Auth.migrateRatingsAndComments(oldId, user.id);
+      }
+    }
+
+    const dummyUsers = allUsers.filter(u => u.tgId === tgId && u.id !== user.id);
+    for (const dummy of dummyUsers) {
+      await Auth.migrateRatingsAndComments(dummy.id, user.id);
+      await DB.delete(CONFIG.STORE_USERS, dummy.id);
     }
 
     this.currentUser = user;
@@ -203,10 +218,10 @@ const Auth = {
         }
       }
       if (changed) {
-        console.log(`[Auth] Успешно перенесены старые оценки/комментарии с ID ${oldUserId} на ID ${newUserId}`);
+        console.log(`[Auth] Успешно перенесены оценки/комментарии с ID ${oldUserId} на ID ${newUserId}`);
       }
     } catch (err) {
-      console.error('[Auth] Ошибка при миграции оценок:', err);
+      console.error('[Auth] Ошибка миграции:', err);
     }
   }
 };

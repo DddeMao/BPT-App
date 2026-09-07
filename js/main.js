@@ -521,10 +521,18 @@ const App = {
     if (!newUsername) return;
 
     try {
+      // Проверяем занятость никнейма, если он был изменен (сравнение без учета регистра)
+      if (newUsername.toLowerCase() !== Auth.currentUser.username.toLowerCase()) {
+        const allUsers = await DB.getAll(CONFIG.STORE_USERS);
+        const existing = allUsers.find(
+          u => u.username.toLowerCase() === newUsername.toLowerCase() && String(u.id) !== String(Auth.currentUser.id)
+        );
+        if (existing) {
+          throw new Error('Этот ник уже занят другим пользователем');
+        }
+      }
+
       if (newUsername !== Auth.currentUser.username) {
-        const existing = await DB.getUserByUsername(newUsername);
-        if (existing) throw new Error('Этот ник уже занят');
-        
         const updatedUser = { ...Auth.currentUser, username: newUsername };
         await DB.put(CONFIG.STORE_USERS, updatedUser);
         
