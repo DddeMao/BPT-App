@@ -95,58 +95,68 @@ const Auth = {
     }
 
     const tgId = String(tgUser.id);
+    const tgUsername = tgUser.username || tgUser.first_name || ('tg_user_' + tgId);
     const allUsers = await DB.getAll(CONFIG.STORE_USERS);
 
-    // 1. Проверяем существующего пользователя по сохраненному TG ID
-    let user = allUsers.find(u => u.tgId === tgId);
+    let user = null;
 
-    if (user) {
-      this.currentUser = user;
-      this.saveSession(user.id);
-      App.showApp();
-      App.refreshAll();
-      return;
+    // 1. Ищем пользователя по уже сохраненному Telegram ID (tgId)
+    user = allUsers.find(u => u.tgId === tgId);
+
+    // 2. Если по tgId не нашли, проверяем, является ли входящий администратором
+    if (!user) {
+      const isTargetAdmin = (tgId === String(CONFIG.MY_TELEGRAM_ID)) || 
+                            (tgUser.username && tgUser.username.toLowerCase() === 'letluvv') ||
+                            (tgUser.first_name && tgUser.first_name.toLowerCase() === 'letluvv');
+
+      if (isTargetAdmin) {
+        user = allUsers.find(u => u.isAdmin || u.username.toLowerCase() === 'letluvv');
+        if (user) {
+          user.tgId = tgId;
+          user.isAdmin = true;
+        }
+      }
     }
 
-    // 2. Надежный поиск администратора (проверка по ID из конфига, нику или имени в Telegram)
-    const usernameLower = (tgUser.username || '').toLowerCase();
-    const firstNameLower = (tgUser.first_name || '').toLowerCase();
-
-    const existingAdmin = allUsers.find(u => 
-      u.isAdmin && (
-        u.tgId === tgId || 
-        String(CONFIG.MY_TELEGRAM_ID) === tgId ||
-        u.username.toLowerCase() === 'letluvv' ||
-        usernameLower === 'letluvv' ||
-        firstNameLower === 'letluvv'
-      )
-    );
-
-    if (existingAdmin) {
-      existingAdmin.tgId = tgId; // Привязываем актуальный TG ID
-      await DB.put(CONFIG.STORE_USERS, existingAdmin);
-      this.currentUser = existingAdmin;
-      this.saveSession(existingAdmin.id);
-      App.showApp();
-      App.refreshAll();
-      return;
+    // 3. СВЯЗКА СО СТАРЫМИ АККАУНТАМИ: Если по tgId нет, ищем по никнейму 
+    // (для пользователей, которые ранее регистрировались по паролю, чтобы сохранить их старые оценки и комментарии)
+    if (!user) {
+      user = allUsers.find(u => u.username.toLowerCase() === tgUsername.toLowerCase());
+      if (user) {
+        // Привязываем tgId к старому аккаунту, сохраняя его неизменный id и всю историю оценок
+        user.tgId = tgId;
+      }
     }
 
-    const username = tgUser.username || tgUser.first_name || 'tg_user_' + tgUser.id;
-    const existingByName = await DB.getUserByUsername(username);
-    
-    user = {
-      id: 'tg_' + tgUser.id,
-      username: existingByName ? (username + '_' + tgUser.id) : username,
-      passwordHash: 'tg_authorized',
-      isAdmin: false,
-      tgId: tgId,
-      tgFirstName: tgUser.first_name || '',
-      tgPhotoUrl: tgUser.photo_url || '',
-    };
+    // 4. Если аккаунт не найден вообще — создаем новый с уникальным ID на базе Telegram ID
+    if (!user) {
+      let finalUsername = tgUsername;
+      const existingWithSameName = allUsers.find(u => u.username.toLowerCase() === finalUsername.toLowerCase());
+      if (existingWithSameName) {
+        finalUsername = tgUsername + '_' + tgId;
+      }
 
-    await DB.add(CONFIG.STORE_USERS, user);
-    console.log('[TG Auth] Зарегистрирован новый пользователь:', user);
+      user = {
+        id: 'tg_' + tgId,
+        username: finalUsername,
+        passwordHash: 'tg_authorized',
+        isAdmin: false,
+        tgId: tgId,
+        tgFirstName: tgUser.first_name || '',
+        tgPhotoUrl: tgUser.photo_url || '',
+      };
+
+      await DB.add(CONFIG.STORE_USERS, user);
+      console.log('[TG Auth] Зарегистрирован новый пользователь через Telegram:', user);
+    } else {
+      // Обновляем данные профиля (фото, имя), сохраняя при этом исходный ID, никнейм и все оценки
+      user.tgId = tgId;
+      if (tgUser.first_name) user.tgFirstName = tgUser.first_name;
+      if (tgUser.photo_url) user.tgPhotoUrl = tgUser.photo_url;
+      await DB.put(CONFIG.STORE_USERS, user);
+      console.log('[TG Auth] Пользователь успешно авторизован/синхронизирован:', user);
+    }
+
     this.currentUser = user;
     this.saveSession(user.id);
     App.showApp();
