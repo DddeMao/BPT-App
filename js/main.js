@@ -397,26 +397,6 @@ const App = {
     this.showAuthScreen();
   },
 
-  showAuthScreen() {
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('authScreen').style.display = 'flex';
-    
-    // Скрываем стандартную форму логина/пароля
-    const authForm = document.getElementById('authForm');
-    if (authForm) authForm.style.display = 'none';
-
-    // Также скрываем переключатель режима входа (если он был)
-    const toggleMode = document.getElementById('toggleAuthMode');
-    if (toggleMode) toggleMode.style.display = 'none';
-
-    // Показываем блок с Telegram-виджетом и сразу инициализируем его
-    const tgBlock = document.getElementById('tgAdminBlock');
-    if (tgBlock) {
-      tgBlock.style.display = 'block';
-      this.initTelegramWidget();
-    }
-  },
-
   showApp() {
     if (!Auth.currentUser) {
       console.error('Заблокирована попытка несанкционированного вызова showApp()!');
@@ -521,10 +501,17 @@ const App = {
   // ========== НАСТРОЙКИ ==========
 
   openSettings() {
-    document.getElementById('newUsername').value = Auth.currentUser.username;
+    const usernameInput = document.getElementById('newUsername');
+	if (usernameInput && Auth.currentUser) {
+      usernameInput.value = Auth.currentUser.username;
+    }
+	
     const tokenInput = document.getElementById('settingsGithubToken');
     if (tokenInput) tokenInput.value = localStorage.getItem('bpt_github_token') || '';
-    document.getElementById('modalSettings').classList.add('active');
+	
+    const modal = document.getElementById('modalSettings');
+    if (modal) modal.classList.add('active');
+	
     this.updateAdminUI();
   },
 
@@ -532,38 +519,64 @@ const App = {
     e.preventDefault();
     const newUsername = document.getElementById('newUsername').value.trim();
     if (!newUsername) return;
-    const skipPasswordCheck = (Auth.currentUser.username === 'Letluvv' || Auth.currentUser.isAdmin || Auth.currentUser.passwordHash === 'tg_authorized');
-    if (!skipPasswordCheck && !password) { UI.showNotification('Введите пароль для сохранения!', true); return; }
+
     try {
-      if (!skipPasswordCheck) { const hash = await Auth.hashPassword(password); if (hash !== Auth.currentUser.passwordHash) throw new Error('Неверный пароль'); }
       if (newUsername !== Auth.currentUser.username) {
         const existing = await DB.getUserByUsername(newUsername);
         if (existing) throw new Error('Этот ник уже занят');
+        
         const updatedUser = { ...Auth.currentUser, username: newUsername };
         await DB.put(CONFIG.STORE_USERS, updatedUser);
+        
         const songs = await DB.getAll(CONFIG.STORE_SONGS);
         for (const song of songs) {
           let changed = false;
-          if (song.ratings) { for (const r of song.ratings) { if (r.userId === Auth.currentUser.id) { r.username = newUsername; changed = true; } } }
-          if (song.comments) { for (const c of song.comments) { if (c.userId === Auth.currentUser.id) { c.username = newUsername; changed = true; } } }
+          if (song.ratings) { 
+            for (const r of song.ratings) { 
+              if (r.userId === Auth.currentUser.id) { r.username = newUsername; changed = true; } 
+            } 
+          }
+          if (song.comments) { 
+            for (const c of song.comments) { 
+              if (c.userId === Auth.currentUser.id) { c.username = newUsername; changed = true; } 
+            } 
+          }
           if (changed) await DB.put(CONFIG.STORE_SONGS, song);
         }
+        
         const albums = await DB.getAll(CONFIG.STORE_ALBUMS);
         for (const album of albums) {
-          if (album.ratings) { let changed = false; for (const r of album.ratings) { if (r.userId === Auth.currentUser.id) { r.username = newUsername; changed = true; } } if (changed) await DB.put(CONFIG.STORE_ALBUMS, album); }
+          if (album.ratings) { 
+            let changed = false; 
+            for (const r of album.ratings) { 
+              if (r.userId === Auth.currentUser.id) { r.username = newUsername; changed = true; } 
+            } 
+            if (changed) await DB.put(CONFIG.STORE_ALBUMS, album); 
+          }
         }
+        
         Auth.currentUser = updatedUser;
         const userDisplay = document.getElementById('currentUserDisplay');
         if (userDisplay) userDisplay.textContent = `👤 ${Auth.currentUser.username}`;
       }
+
       const tokenInput = document.getElementById('settingsGithubToken');
-      if (tokenInput) { const newTokenValue = tokenInput.value.trim(); localStorage.setItem('bpt_github_token', newTokenValue); Sync.token = newTokenValue; }
+      if (tokenInput) { 
+        const newTokenValue = tokenInput.value.trim(); 
+        localStorage.setItem('bpt_github_token', newTokenValue); 
+        Sync.token = newTokenValue; 
+      }
+
       UI.showNotification('Настройки успешно сохранены!');
       UI.closeModal(document.getElementById('modalSettings'));
       this.refreshAll();
       Sync.onDataChanged();
       if (Sync.token) Sync.sync();
-    } catch (error) { console.error('Ошибка изменения настроек:', error); UI.showNotification(error.message, true); }
+      
+    } catch (error) { 
+      console.error('Ошибка изменения настроек:', error); 
+      UI.showNotification(error.message, true); 
+    }
   },
 
   // ========== ДОБАВЛЕНИЕ ТРЕКА ==========
