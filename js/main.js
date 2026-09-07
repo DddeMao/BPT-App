@@ -598,7 +598,6 @@ const App = {
     const rawCoverUrl = document.getElementById('addCoverUrl').value.trim();
     const coverUrl = UI.fixDropboxUrl(rawCoverUrl);
     
-    // Получаем текст песни из формы добавления
     const lyrics = document.getElementById('addLyrics') ? document.getElementById('addLyrics').value.trim() : '';
 
     if (!artist) return alert('Введите исполнителя');
@@ -606,23 +605,51 @@ const App = {
     const tracks = rows.map(row => ({ url: UI.fixDropboxUrl(row.querySelector('.audio-url-input').value.trim()), title: row.querySelector('.audio-title-input').value.trim() })).filter(track => track.url !== '');
     if (tracks.length === 0) return alert('Добавьте хотя бы одну ссылку на аудиофайл');
     for (const track of tracks) { if (!track.title) return alert('Укажите название для каждого трека'); }
+    
     try {
       for (const track of tracks) {
-        // Добавляем lyrics: lyrics в объект трека
-        const newSong = { title: track.title, artist, producer: producer || '', album: album || '', date, audioUrl: track.url, coverUrl: coverUrl || '', lyrics: lyrics, ratings: [], comments: [] };
-        const addedSong = await DB.add(CONFIG.STORE_SONGS, newSong);
+        const songId = (window.crypto && crypto.randomUUID) 
+          ? crypto.randomUUID() 
+          : ('song_' + Date.now + '_' + Math.random().toString(36).substr(2, 9));
+
+        const newSong = { 
+          id: songId,
+          title: track.title, 
+          artist, 
+          producer: producer || '', 
+          album: album || '', 
+          date, 
+          audioUrl: track.url, 
+          coverUrl: coverUrl || '', 
+          lyrics: lyrics, 
+          ratings: [], 
+          comments: [] 
+        };
+
+        await DB.put(CONFIG.STORE_SONGS, newSong);
+
         if (album) {
           const albumData = await DB.get(CONFIG.STORE_ALBUMS, album);
-          if (albumData) { const currentOrder = albumData.trackOrder || []; currentOrder.push(addedSong.id); await DB.put(CONFIG.STORE_ALBUMS, { ...albumData, trackOrder: currentOrder }); }
-          else { await DB.put(CONFIG.STORE_ALBUMS, { name: album, ratings: [], trackOrder: [addedSong.id] }); }
+          if (albumData) { 
+            const currentOrder = albumData.trackOrder || []; 
+            if (!currentOrder.includes(songId)) {
+              currentOrder.push(songId); 
+              await DB.put(CONFIG.STORE_ALBUMS, { ...albumData, trackOrder: currentOrder }); 
+            }
+          } else { 
+            await DB.put(CONFIG.STORE_ALBUMS, { name: album, ratings: [], trackOrder: [songId] }); 
+          }
         }
       }
+
       UI.closeModal(document.getElementById('modalAdd'));
-      // Сбрасываем форму после успешного добавления
       document.getElementById('addSongForm').reset();
       this.refreshAll();
       Sync.onDataChanged();
-    } catch (err) { console.error(err); alert('Ошибка при сохранении треков'); }
+    } catch (err) { 
+      console.error(err); 
+      alert('Ошибка при сохранении треков: ' + err.message); 
+    }
   },
 
   // ========== РЕДАКТИРОВАНИЕ ТРЕКА ==========
