@@ -81,7 +81,7 @@ const Auth = {
     const user = { username, passwordHash, isAdmin: false };
 
     try {
-      await DB.add(CONFIG.STORE_USERS, user);
+      await DB.put(CONFIG.STORE_USERS, user);
     } catch (e) {
       if (e.name === 'ConstraintError' || e.message?.includes('unique') || e.message?.includes('already exists')) {
         throw new Error('Пользователь с таким ником уже существует. Попробуйте войти или выберите другой ник.');
