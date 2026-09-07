@@ -601,13 +601,15 @@ const UI = {
     c.innerHTML = comments.map((comment, index) => {
       const initials = comment.username ? comment.username.charAt(0).toUpperCase() : '?';
       return `<div class="comment-item">
-        <div class="comment-avatar">${initials}</div>
-        <div class="comment-content">
-          <div class="comment-header">
-            <span class="comment-username">${this.escapeHtml(comment.username)}</span>
-            <span class="comment-date">${comment.date}</span>
+        <div class="comment-main">
+          <div class="comment-avatar">${initials}</div>
+          <div class="comment-content">
+            <div class="comment-header">
+              <span class="comment-username">${this.escapeHtml(comment.username)}</span>
+              <span class="comment-date">${comment.date}</span>
+            </div>
+            <div class="comment-text">${this.escapeHtml(comment.text)}</div>
           </div>
-          <div class="comment-text">${this.escapeHtml(comment.text)}</div>
         </div>
         ${isAdmin || comment.userId === Auth.currentUser?.id ? `<button class="delete-comment-btn" data-index="${index}" style="background:none;border:none;color:#888;cursor:pointer;font-size:0.9rem;">✕</button>` : ''}
       </div>`;

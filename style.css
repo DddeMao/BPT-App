@@ -1790,6 +1790,25 @@ input[type=range]::-webkit-slider-thumb:hover {
   color: var(--primary);
 }
 
+.comment-user-row {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Отступ между буквой и никнеймом */
+}
+
+.comment-avatar {
+  /* Стили для кружка с буквой */
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #fff;
+}
+
 /* Адаптив окна трека */
 @media (max-width: 768px) {
   .track-view-container {
