@@ -181,8 +181,8 @@ const App = {
         const deleteItem = document.querySelector('.context-menu-delete');
         if (deleteItem) deleteItem.style.display = Auth.currentUser?.isAdmin ? 'block' : 'none';
         const menu = document.getElementById('contextMenu');
-        menu.style.left = e.pageX + 'px';
-        menu.style.top = e.pageY + 'px';
+        menu.style.left = e.clientX + 'px';
+        menu.style.top = e.clientY + 'px';
         menu.style.display = 'block';
       }
       const adminItems = document.querySelectorAll('.admin-only-item');
