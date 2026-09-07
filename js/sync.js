@@ -178,7 +178,7 @@ const Sync = {
 
         if (changed) await DB.put(CONFIG.STORE_SONGS, local, true);
       } else {
-        await DB.add(CONFIG.STORE_SONGS, { ...remoteSong, audioBlob: null, coverBlob: null }, true);
+        await DB.put(CONFIG.STORE_SONGS, { ...remoteSong, audioBlob: null, coverBlob: null }, true);
       }
     }
 
@@ -186,7 +186,7 @@ const Sync = {
       for (const remoteUser of remoteData.users) {
         const localUser = await DB.getUserByUsername(remoteUser.username);
         if (!localUser) {
-          await DB.add(CONFIG.STORE_USERS, remoteUser, true);
+          await DB.put(CONFIG.STORE_USERS, remoteUser, true);
           if (remoteUser.favorites) {
             localStorage.setItem(`bpt_favorites_${remoteUser.id}`, JSON.stringify(remoteUser.favorites));
           }
