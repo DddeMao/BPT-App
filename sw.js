@@ -59,6 +59,22 @@ self.addEventListener('fetch', (e) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseToCache));
         }
         return networkResponse;
+      }).catch((error) => {
+        // Перехватываем сетевую ошибку, чтобы Service Worker не падал с Uncaught (in promise)
+        console.warn('[Service Worker] Ошибка сети для:', e.request.url, error);
+
+        // Если это виджет Telegram, возвращаем статус 404, 
+        // чтобы на странице корректно сработал обработчик script.onerror
+        if (url.hostname.includes('telegram.org')) {
+          return new Response('/* Telegram widget unavailable */', { 
+            status: 404, 
+            statusText: 'Not Found',
+            headers: { 'Content-Type': 'application/javascript' }
+          });
+        }
+
+        // Для других недоступных ресурсов возвращаем стандартный ответ
+        return new Response('Network error', { status: 404, statusText: 'Not Found' });
       });
     })
   );
