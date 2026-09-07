@@ -123,31 +123,36 @@
     <audio id="audioPlayer" controls></audio>
   </div>
 
-  <!-- Экран входа / регистрации -->
-<div id="authScreen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;">
-  <div style="background:var(--surface); padding:30px; border-radius:20px; width:90%; max-width:400px; border:1px solid var(--border);">
-    
-    <form id="authForm" style="display: flex; flex-direction: column; gap: 15px;">
-      <h2 id="authTitle" style="margin-bottom: 10px;">Вход</h2>
+  <!-- Экран входа / регистрации (ТЕПЕРЬ КОРРЕКТНО ЗАКРЫТ) -->
+  <div id="authScreen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;">
+    <div style="background:var(--surface); padding:30px; border-radius:20px; width:90%; max-width:400px; border:1px solid var(--border);">
       
-      <div class="input-group" style="width: 100%;">
-        <input type="text" id="authUsername" placeholder="Никнейм" required style="width: 100%;">
-      </div>
+      <form id="authForm" style="display: flex; flex-direction: column; gap: 15px;">
+        <h2 id="authTitle" style="margin-bottom: 10px;">Вход</h2>
+        
+        <div class="input-group" style="width: 100%;">
+          <input type="text" id="authUsername" placeholder="Никнейм" required style="width: 100%;">
+        </div>
+        
+        <div class="input-group" style="width: 100%;">
+          <input type="password" id="authPassword" placeholder="Пароль" required style="width: 100%;">
+        </div>
+        
+        <button type="submit" class="btn" style="margin-top: 10px;">Войти</button>
+      </form>
       
-      <div class="input-group" style="width: 100%;">
-        <input type="password" id="authPassword" placeholder="Пароль" required style="width: 100%;">
-      </div>
-      
-      <button type="submit" class="btn" style="margin-top: 10px;">Войти</button>
-    </form>
-    
-    <div id="tgAdminBlock" style="display: none;">
+      <div id="tgAdminBlock" style="display: none;">
         <div id="tg-widget-wrapper" style="text-align: center; min-height: 50px; margin: 20px 0;"></div>
       </div>
 
       <div id="registerLinkBlock" style="margin-top: 20px; text-align: center;">
         <a href="#" id="toggleAuthMode" style="color: var(--accent); text-decoration: none; font-size: 0.95rem;">Нет аккаунта? Зарегистрироваться</a>
       </div>
+    </div>
+  </div>
+
+
+  <!-- ВСЕ МОДАЛЬНЫЕ ОКНА НАХОДЯТСЯ СТРОГО ЗДЕСЬ (ВНЕ #authScreen) -->
 
   <!-- Модальное окно добавления трека -->
   <div id="modalAdd" class="modal">
@@ -251,7 +256,8 @@
         <button class="track-view-tab active" data-tab="ratings">⭐ Оценки</button>
         <button class="track-view-tab" data-tab="lyrics">📝 Текст</button>
         <button class="track-view-tab" data-tab="comments">💬 Комментарии</button>
-        <button class="track-view-tab" data-tab="info">📊 Инфо</button><button class="track-view-tab" data-tab="ratingsList">👥 Список оценок</button>
+        <button class="track-view-tab" data-tab="info">📊 Инфо</button>
+        <button class="track-view-tab" data-tab="ratingsList">👥 Список оценок</button>
       </div>
       <div class="track-view-body">
         <div class="track-view-tab-content active" id="tabRatings">
@@ -319,31 +325,31 @@
   </div>
 
   <div id="modalSettings" class="modal">
-  <div class="modal-content" style="max-width:400px;">
-    <span class="close-settings">&times;</span>
-    <h2>Настройки профиля</h2>
-    <form id="settingsForm">
-      <div class="form-group">
-        <label>Новый никнейм</label>
-        <input type="text" id="newUsername" required>
-      </div>
-      <div class="form-group">
-        <label>Текущий пароль</label>
-        <input type="password" id="settingsPassword">
-      </div>
+    <div class="modal-content" style="max-width:400px;">
+      <span class="close-settings">&times;</span>
+      <h2>Настройки профиля</h2>
+      <form id="settingsForm">
+        <div class="form-group">
+          <label>Новый никнейм</label>
+          <input type="text" id="newUsername" required>
+        </div>
+        <div class="form-group">
+          <label>Текущий пароль</label>
+          <input type="password" id="settingsPassword">
+        </div>
 
-      <div class="form-group">
-        <label>GitHub PAT (Токен синхронизации)</label>
-        <input type="password" id="settingsGithubToken" placeholder="ghp_..." autocomplete="off">
-        <small style="color: var(--text-secondary); font-size: 0.75rem; display: block; margin-top: 4px;">
-          Токен сохраняется только локально в вашем браузере.
-        </small>
-      </div>
+        <div class="form-group">
+          <label>GitHub PAT (Токен синхронизации)</label>
+          <input type="password" id="settingsGithubToken" placeholder="ghp_..." autocomplete="off">
+          <small style="color: var(--text-secondary); font-size: 0.75rem; display: block; margin-top: 4px;">
+            Токен сохраняется только локально в вашем браузере.
+          </small>
+        </div>
 
-      <button type="submit" style="width:100%;">Сохранить</button>
-    </form>
+        <button type="submit" style="width:100%;">Сохранить</button>
+      </form>
+    </div>
   </div>
-</div>
   
   <div id="modalConfirm" class="modal">
     <div class="modal-content" style="max-width:400px;">
@@ -363,10 +369,11 @@
     <div class="context-menu-item" data-action="comment">💬 Комментировать</div>
     <div class="context-menu-item context-menu-favorite" data-action="favorite">❤️ В избранное</div>
     <div class="context-menu-separator"></div>
-	<div class="context-menu-item admin-only-item" data-action="edit" style="display:none; color: #b366ff; font-weight: bold;">✏️ Редактировать</div>
+    <div class="context-menu-item admin-only-item" data-action="edit" style="display:none; color: #b366ff; font-weight: bold;">✏️ Редактировать</div>
     <div class="context-menu-item context-menu-delete" data-action="delete">🗑 Удалить</div>
   </div>
 
+  <!-- Подключение скриптов[cite: 3] -->
   <script src="js/config.js"></script>
   <script src="js/db.js"></script>
   <script src="js/auth.js"></script>
@@ -378,9 +385,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').then(reg => {
-        // Проверяем обновления каждые 60 секунд
         setInterval(() => reg.update(), 60000);
-        // При обновлении — перезагружаем страницу
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
           newWorker.addEventListener('statechange', () => {
@@ -396,3 +401,4 @@
   </script>
   
 </body>
+</html>
