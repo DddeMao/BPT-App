@@ -22,17 +22,6 @@ const App = {
     document.getElementById('authForm').addEventListener('submit', (e) => this.handleAuthSubmit(e));
     document.getElementById('toggleAuthMode').addEventListener('click', (e) => this.toggleAuthMode(e));
     document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
-    
-    // Показ/скрытие Telegram виджета при вводе username
-    document.getElementById('authUsername').addEventListener('input', (e) => {
-      const tgBlock = document.getElementById('tgAdminBlock');
-      const username = e.target.value.trim().toLowerCase();
-      if (tgBlock && this.authMode === 'login') {
-        const shouldShow = username === 'letluvv';
-        tgBlock.style.display = shouldShow ? 'block' : 'none';
-        if (shouldShow) this.initTelegramWidget();
-      }
-    });
 
     // Настройки
     document.getElementById('settingsBtn').addEventListener('click', () => this.openSettings());
@@ -378,8 +367,21 @@ const App = {
   showAuthScreen() {
     document.getElementById('app').style.display = 'none';
     document.getElementById('authScreen').style.display = 'flex';
-    document.getElementById('authUsername').value = '';
-    document.getElementById('authPassword').value = '';
+    
+    // Скрываем стандартную форму логина/пароля
+    const authForm = document.getElementById('authForm');
+    if (authForm) authForm.style.display = 'none';
+
+    // Также скрываем переключатель режима входа (если он был)
+    const toggleMode = document.getElementById('toggleAuthMode');
+    if (toggleMode) toggleMode.style.display = 'none';
+
+    // Показываем блок с Telegram-виджетом и сразу инициализируем его
+    const tgBlock = document.getElementById('tgAdminBlock');
+    if (tgBlock) {
+      tgBlock.style.display = 'block';
+      this.initTelegramWidget();
+    }
   },
 
   showApp() {

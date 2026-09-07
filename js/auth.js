@@ -1,5 +1,5 @@
 /**
- * Аутентификация и управление пользователями
+ * Аутентификация и управление пользователями[cite: 7]
  */
 const Auth = {
   currentUser: null,
@@ -26,7 +26,7 @@ const Auth = {
 
   async initAdmin() {
     const users = await DB.getAll(CONFIG.STORE_USERS);
-    const existingAdmin = users.find(u => u.username === 'Letluvv');
+    const existingAdmin = users.find(u => u.username.toLowerCase() === 'letluvv');
     if (!existingAdmin) {
       const adminHash = await this.hashPassword('123123');
       await DB.add(CONFIG.STORE_USERS, {
@@ -85,13 +85,12 @@ const Auth = {
     }
 
     const tgId = String(tgUser.id);
-
-    // Проверяем существующего пользователя по TG ID
     const allUsers = await DB.getAll(CONFIG.STORE_USERS);
+
+    // 1. Проверяем существующего пользователя по сохраненному TG ID
     let user = allUsers.find(u => u.tgId === tgId);
 
     if (user) {
-      // Существующий пользователь — просто входим
       this.currentUser = user;
       this.saveSession(user.id);
       App.showApp();
@@ -99,47 +98,43 @@ const Auth = {
       return;
     }
 
-    // Проверяем админа по username
-    const adminUsername = tgUser.username || tgUser.first_name || '';
-    if (adminUsername) {
-      const existingAdmin = allUsers.find(u => u.username === adminUsername && u.isAdmin);
-      if (existingAdmin) {
-        // Привязываем TG ID к существующему админу
-        existingAdmin.tgId = tgId;
-        await DB.put(CONFIG.STORE_USERS, existingAdmin);
-        this.currentUser = existingAdmin;
-        this.saveSession(existingAdmin.id);
-        App.showApp();
-        App.refreshAll();
-        return;
-      }
+    // 2. Надежный поиск администратора (проверка по ID из конфига, нику или имени в Telegram)
+    const usernameLower = (tgUser.username || '').toLowerCase();
+    const firstNameLower = (tgUser.first_name || '').toLowerCase();
+
+    const existingAdmin = allUsers.find(u => 
+      u.isAdmin && (
+        u.tgId === tgId || 
+        String(CONFIG.MY_TELEGRAM_ID) === tgId ||
+        u.username.toLowerCase() === 'letluvv' ||
+        usernameLower === 'letluvv' ||
+        firstNameLower === 'letluvv'
+      )
+    );
+
+    if (existingAdmin) {
+      existingAdmin.tgId = tgId; // Привязываем актуальный TG ID
+      await DB.put(CONFIG.STORE_USERS, existingAdmin);
+      this.currentUser = existingAdmin;
+      this.saveSession(existingAdmin.id);
+      App.showApp();
+      App.refreshAll();
+      return;
     }
 
-    // Новый пользователь — регистрируем
+    // 3. Регистрация нового обычного пользователя через Telegram
     const username = tgUser.username || tgUser.first_name || 'tg_user_' + tgUser.id;
     const existingByName = await DB.getUserByUsername(username);
-    if (existingByName) {
-      const uniqueUsername = username + '_' + tgUser.id;
-      user = {
-        id: 'tg_' + tgUser.id,
-        username: uniqueUsername,
-        passwordHash: 'tg_authorized',
-        isAdmin: false,
-        tgId: tgId,
-        tgFirstName: tgUser.first_name || '',
-        tgPhotoUrl: tgUser.photo_url || '',
-      };
-    } else {
-      user = {
-        id: 'tg_' + tgUser.id,
-        username: username,
-        passwordHash: 'tg_authorized',
-        isAdmin: false,
-        tgId: tgId,
-        tgFirstName: tgUser.first_name || '',
-        tgPhotoUrl: tgUser.photo_url || '',
-      };
-    }
+    
+    user = {
+      id: 'tg_' + tgUser.id,
+      username: existingByName ? (username + '_' + tgUser.id) : username,
+      passwordHash: 'tg_authorized',
+      isAdmin: false,
+      tgId: tgId,
+      tgFirstName: tgUser.first_name || '',
+      tgPhotoUrl: tgUser.photo_url || '',
+    };
 
     await DB.add(CONFIG.STORE_USERS, user);
     console.log('[TG Auth] Зарегистрирован новый пользователь:', user);
