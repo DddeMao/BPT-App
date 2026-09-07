@@ -522,7 +522,6 @@ const App = {
 
   openSettings() {
     document.getElementById('newUsername').value = Auth.currentUser.username;
-    document.getElementById('settingsPassword').value = '';
     const tokenInput = document.getElementById('settingsGithubToken');
     if (tokenInput) tokenInput.value = localStorage.getItem('bpt_github_token') || '';
     document.getElementById('modalSettings').classList.add('active');

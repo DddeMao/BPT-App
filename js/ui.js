@@ -680,17 +680,28 @@ const UI = {
     const ss = await DB.getAll(CONFIG.STORE_SONGS);
     const s = ss.find(x => x.id === songId);
     if (!s) return;
-    document.getElementById('editSongId').value = s.id;
-    document.getElementById('editSongTitle').value = s.title || '';
-    document.getElementById('editSongArtist').value = s.artist || '';
-    document.getElementById('editSongProducer').value = s.producer || '';
-    document.getElementById('editSongAlbum').value = s.album || '';
-	document.getElementById('editSongDate').value = song.date || '';
-    document.getElementById('editSongAudioUrl').value = s.audioUrl || '';
-    document.getElementById('editSongCoverUrl').value = s.coverUrl || '';
-    document.getElementById('editSongAudioFile').value = '';
-    document.getElementById('editSongCoverFile').value = '';
-    document.getElementById('editSongLyrics').value = s.lyrics || '';
-    document.getElementById('modalEdit').classList.add('active');
+	
+	const setFieldValue = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.value = value || '';
+    };
+	
+    setFieldValue('editSongId', s.id);
+    setFieldValue('editSongTitle', s.title);
+    setFieldValue('editSongArtist', s.artist);
+    setFieldValue('editSongProducer', s.producer);
+    setFieldValue('editSongAlbum', s.album);
+    setFieldValue('editSongDate', s.date);
+    setFieldValue('editSongAudioUrl', s.audioUrl);
+    setFieldValue('editSongCoverUrl', s.coverUrl);
+    setFieldValue('editSongLyrics', s.lyrics);
+
+    setFieldValue('editSongAudioFile', '');
+    setFieldValue('editSongCoverFile', '');
+
+    const modal = document.getElementById('modalEdit');
+    if (modal) {
+      modal.classList.add('active');
+    }
   }
 };
