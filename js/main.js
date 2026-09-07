@@ -344,22 +344,33 @@ const App = {
     const wrapper = document.getElementById('tg-widget-wrapper');
     if (!wrapper) return;
 
-   // Очищаем предыдущий виджет
-   wrapper.innerHTML = '';
+    // Очищаем предыдущий виджет
+    wrapper.innerHTML = '';
 
     // Создаём новый скрипт с data-атрибутами
     const script = document.createElement('script');
-   script.src = 'https://telegram.org/js/telegram-widget.js?22';
-   script.async = true;
+    script.src = 'https://telegram.org/js/telegram-widget.js?22';
+    script.async = true;
     
-   script.setAttribute('data-telegram-login', 'bvst_auth_bot');
+    script.setAttribute('data-telegram-login', 'bvst_auth_bot');
     script.setAttribute('data-size', 'large');
-   script.setAttribute('data-radius', '8');
-   script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-   script.setAttribute('data-request-access', 'write');
-   script.setAttribute('data-user-photo', 'true'); // опционально — показывать аватарку
+    script.setAttribute('data-radius', '8');
+    script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+    script.setAttribute('data-request-access', 'write');
+    script.setAttribute('data-user-photo', 'true');
 
-   wrapper.appendChild(script);
+    // Перехват ошибки соединения (тайм-аут, блокировка, нет интернета)
+    script.onerror = () => {
+      console.error('[TG Auth] Не удалось загрузить скрипт виджета Telegram');
+      wrapper.innerHTML = `
+        <div style="color: #cf6679; font-size: 0.9rem; padding: 15px; text-align: center; background: rgba(207, 102, 121, 0.1); border-radius: 8px; border: 1px solid #cf6679;">
+          ⚠️ <b>Ошибка соединения с Telegram</b><br>
+          Не удалось загрузить виджет авторизации. Проверьте интернет-соединение или настройки VPN.
+        </div>
+      `;
+    };
+
+    wrapper.appendChild(script);
   },
 
   toggleAuthMode(e) {
