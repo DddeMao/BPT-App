@@ -9,7 +9,6 @@ const DB = {
     if (this._initPromise) return this._initPromise;
     
     this._initPromise = new Promise((resolve, reject) => {
-      // Открываем без указания версии — IndexedDB сам определит текущую
       const request = indexedDB.open(CONFIG.DB_NAME);
       
       request.onupgradeneeded = (e) => {
@@ -22,7 +21,9 @@ const DB = {
         }
         if (!db.objectStoreNames.contains(CONFIG.STORE_USERS)) {
           const userStore = db.createObjectStore(CONFIG.STORE_USERS, { keyPath: 'id' });
-          userStore.createIndex('username', 'username', { unique: true });
+          if (!userStore.indexNames.contains('username')) {
+            userStore.createIndex('username', 'username', { unique: true });
+          }
         }
       };
       
@@ -33,19 +34,13 @@ const DB = {
       
       request.onerror = (e) => {
         console.error('DB open error:', e.target.error);
-        // Если VersionError — база повреждена, удаляем и создаём заново
-        if (e.target.error?.name === 'VersionError' || e.target.error?.message?.includes('version')) {
-          console.warn('VersionError detected, deleting and recreating database...');
-          this._initPromise = null;
-          const deleteReq = indexedDB.deleteDatabase(CONFIG.DB_NAME);
-          deleteReq.onsuccess = () => {
-            console.log('Old database deleted, reopening...');
-            this.open().then(resolve).catch(reject);
-          };
-          deleteReq.onerror = () => reject(e.target.error);
-        } else {
-          reject(e.target.error);
-        }
+        this._initPromise = null;
+        const deleteReq = indexedDB.deleteDatabase(CONFIG.DB_NAME);
+        deleteReq.onsuccess = () => {
+          console.log('Database deleted due to error, reopening...');
+          this.open().then(resolve).catch(reject);
+        };
+        deleteReq.onerror = () => reject(e.target.error);
       };
     });
     
