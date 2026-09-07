@@ -611,8 +611,11 @@ const UI = {
     Sync.onDataChanged();
   },
   
-  async updateAlbumDatalist() { const a = await DB.getAll(CONFIG.STORE_ALBUMS); document.getElementById('albumList').innerHTML = a.map(x => `<option value="${this.escapeHtml(x.name)}">`).join(''); },
-
+  async updateAlbumDatalist() { 
+    const a = await DB.getAll(CONFIG.STORE_ALBUMS); 
+    document.getElementById('albumList').innerHTML = a.map(x => `<option value="${this.escapeHtml(x.name)}">`).join(''); 
+  },
+  
   openAddModal() {
     document.getElementById('addSongForm').reset();
     document.getElementById('audioUrlsContainer').innerHTML = '<div class="audio-track-row" style="margin-bottom:12px;"><input type="text" class="audio-url-input" placeholder="Ссылка на трек" style="width:100%;"><input type="text" class="audio-title-input" placeholder="Название трека" style="width:100%;margin-top:4px;"></div>';
