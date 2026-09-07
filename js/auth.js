@@ -1,5 +1,5 @@
 /**
- * Аутентификация и управление пользователями[cite: 7]
+ * Аутентификация и управление пользователями
  */
 const Auth = {
   currentUser: null,
@@ -95,15 +95,14 @@ const Auth = {
     }
 
     const tgId = String(tgUser.id);
-    const tgUsername = tgUser.username || tgUser.first_name || ('tg_user_' + tgId);
     const allUsers = await DB.getAll(CONFIG.STORE_USERS);
 
     let user = null;
 
-    // 1. Ищем пользователя по уже сохраненному Telegram ID (tgId)
+    // 1. Ищем пользователя по уже привязанному Telegram ID (основной способ входа)
     user = allUsers.find(u => u.tgId === tgId);
 
-    // 2. Если по tgId не нашли, проверяем, является ли входящий администратором
+    // 2. Проверяем администратора
     if (!user) {
       const isTargetAdmin = (tgId === String(CONFIG.MY_TELEGRAM_ID)) || 
                             (tgUser.username && tgUser.username.toLowerCase() === 'letluvv') ||
@@ -114,26 +113,58 @@ const Auth = {
         if (user) {
           user.tgId = tgId;
           user.isAdmin = true;
+          await DB.put(CONFIG.STORE_USERS, user);
         }
       }
     }
 
-    // 3. СВЯЗКА СО СТАРЫМИ АККАУНТАМИ: Если по tgId нет, ищем по никнейму 
-    // (для пользователей, которые ранее регистрировались по паролю, чтобы сохранить их старые оценки и комментарии)
-    if (!user) {
-      user = allUsers.find(u => u.username.toLowerCase() === tgUsername.toLowerCase());
+    // 3. Автоматическое сопоставление по юзернейму Telegram (@username)
+    if (!user && tgUser.username) {
+      const tgHandle = tgUser.username.toLowerCase();
+      user = allUsers.find(u => u.username.toLowerCase() === tgHandle && !u.tgId);
       if (user) {
-        // Привязываем tgId к старому аккаунту, сохраняя его неизменный id и всю историю оценок
         user.tgId = tgId;
+        await DB.put(CONFIG.STORE_USERS, user);
       }
     }
 
-    // 4. Если аккаунт не найден вообще — создаем новый с уникальным ID на базе Telegram ID
+    // 4. СВЯЗЫВАНИЕ ПО КАСТОМНОМУ НИКНЕЙМУ: 
+    // Если аккаунт еще не нашелся, ищем старые аккаунты без tgId и запрашиваем ник у пользователя
     if (!user) {
-      let finalUsername = tgUsername;
-      const existingWithSameName = allUsers.find(u => u.username.toLowerCase() === finalUsername.toLowerCase());
-      if (existingWithSameName) {
-        finalUsername = tgUsername + '_' + tgId;
+      const unlinkedAccounts = allUsers.filter(u => !u.tgId && u.passwordHash && u.passwordHash !== 'tg_authorized');
+      
+      if (unlinkedAccounts.length > 0) {
+        const enteredNick = prompt(
+          `Вход через Telegram (@${tgUser.username || tgUser.first_name}).\n\n` +
+          `Если у вас уже был аккаунт на сайте с кастомным никнеймом, введите его точное название здесь, чтобы перенести все ваши оценки и комментарии на этот Telegram-профиль:\n\n` +
+          `(Если старого аккаунта не было, просто нажмите «Отмена» или оставьте поле пустым)`
+        );
+
+        if (enteredNick) {
+          const matchedOldUser = unlinkedAccounts.find(u => u.username.toLowerCase() === enteredNick.trim().toLowerCase());
+          if (matchedOldUser) {
+            matchedOldUser.tgId = tgId;
+            if (tgUser.first_name) matchedOldUser.tgFirstName = tgUser.first_name;
+            if (tgUser.photo_url) matchedOldUser.tgPhotoUrl = tgUser.photo_url;
+            await DB.put(CONFIG.STORE_USERS, matchedOldUser);
+            user = matchedOldUser;
+            alert(`Аккаунт "${matchedOldUser.username}" успешно привязан к вашему Telegram!`);
+          } else {
+            alert('Аккаунт с таким ником не найден. Будет создан новый профиль.');
+          }
+        }
+      }
+    }
+
+    // 5. Если аккаунт всё ещё не найден — создаем новый с уникальным именем
+    if (!user) {
+      let baseName = tgUser.username || tgUser.first_name || ('tg_user_' + tgId);
+      let finalUsername = baseName;
+
+      let counter = 1;
+      while (allUsers.some(u => u.username.toLowerCase() === finalUsername.toLowerCase())) {
+        finalUsername = `${baseName}_${counter}`;
+        counter++;
       }
 
       user = {
@@ -147,14 +178,14 @@ const Auth = {
       };
 
       await DB.add(CONFIG.STORE_USERS, user);
-      console.log('[TG Auth] Зарегистрирован новый пользователь через Telegram:', user);
+      console.log('[TG Auth] Создан новый пользователь:', user);
     } else {
-      // Обновляем данные профиля (фото, имя), сохраняя при этом исходный ID, никнейм и все оценки
+      // Обновляем служебные данные (фото, имя), сохраняя кастомный никнейм и оригинальный ID
       user.tgId = tgId;
       if (tgUser.first_name) user.tgFirstName = tgUser.first_name;
       if (tgUser.photo_url) user.tgPhotoUrl = tgUser.photo_url;
       await DB.put(CONFIG.STORE_USERS, user);
-      console.log('[TG Auth] Пользователь успешно авторизован/синхронизирован:', user);
+      console.log('[TG Auth] Пользователь успешно авторизован по tgId:', user);
     }
 
     this.currentUser = user;
