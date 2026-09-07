@@ -316,12 +316,27 @@ const App = {
     } catch (err) {
       alert(err.message);
     }
-  
+  },
+
+  showAuthScreen() {
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('authScreen').style.display = 'flex';
+    
+    // Скрываем стандартную форму логина/пароля
+    const authForm = document.getElementById('authForm');
+    if (authForm) authForm.style.display = 'none';
+
+    // Скрываем переключатель режима
+    const toggleMode = document.getElementById('toggleAuthMode');
+    if (toggleMode) toggleMode.style.display = 'none';
+
+    // Гарантированно показываем и инициализируем Telegram-виджет для всех
+    const tgBlock = document.getElementById('tgAdminBlock');
     if (tgBlock) {
       tgBlock.style.display = 'block';
       setTimeout(() => {
-     this.initTelegramWidget();
-    }, 100);
+        this.initTelegramWidget();
+      }, 50);
     }
   },
 
