@@ -350,32 +350,62 @@ const UI = {
 
   openTrackView(songId, defaultTab = 'ratings') {
     DB.getAll(CONFIG.STORE_SONGS).then(songs => {
-      const song = songs.find(s => s.id === songId);
-      if (!song) return;
-      this.currentTrackSongId = songId; this.currentRatingSongId = songId; this.currentCommentSongId = songId;
+      // Используем String() с обеих сторон, чтобы типы точно совпали
+      const song = songs.find(s => String(s.id) === String(songId));
+      
+      if (!song) {
+        console.warn('Трек с ID не найден в базе:', songId);
+        return;
+      }
+
+      this.currentTrackSongId = songId; 
+      this.currentRatingSongId = songId; 
+      this.currentCommentSongId = songId;
+
       const coverUrl = song.coverUrl || (song.coverBlob ? URL.createObjectURL(song.coverBlob) : '');
-      document.getElementById('trackViewCover').src = coverUrl;
-      document.getElementById('trackViewTitle').textContent = song.title;
-      document.getElementById('trackViewArtist').textContent = song.artist;
+      
+      const titleEl = document.getElementById('trackViewTitle');
+      if (titleEl) titleEl.textContent = song.title;
+      
+      const artistEl = document.getElementById('trackViewArtist');
+      if (artistEl) artistEl.textContent = song.artist;
+      
+      const coverEl = document.getElementById('trackViewCover');
+      if (coverEl) coverEl.src = coverUrl;
+
       const avg = this.getAverageRating(song);
-      document.getElementById('trackViewMeta').innerHTML = `${song.album ? `<span>💿 ${this.escapeHtml(song.album)}</span>` : ''}${song.date ? `<span>📅 ${song.date}</span>` : ''}${avg !== null ? `<span>⭐ ${avg} средний</span>` : ''}<span>📊 ${song.ratings?.length || 0} оценок</span><span>💬 ${song.comments?.length || 0} комментариев</span>`;
+      const metaEl = document.getElementById('trackViewMeta');
+      if (metaEl) {
+        metaEl.innerHTML = `${song.album ? `<span>💿 ${this.escapeHtml(song.album)}</span>` : ''}${song.date ? `<span>📅 ${song.date}</span>` : ''}${avg !== null ? `<span>⭐ ${avg} средний</span>` : ''}<span>📊 ${song.ratings?.length || 0} оценок</span><span>💬 ${song.comments?.length || 0} комментариев</span>`;
+      }
+
       const producerContainer = document.getElementById('trackViewProducer');
-      if (song.producer && song.producer.trim() !== '') {
-        producerContainer.textContent = `prod. ${song.producer}`;
-        producerContainer.style.display = 'block';
-      } else {
-        producerContainer.style.display = 'none';
+      if (producerContainer) {
+        if (song.producer && song.producer.trim() !== '') {
+          producerContainer.textContent = `prod. ${song.producer}`;
+          producerContainer.style.display = 'block';
+        } else {
+          producerContainer.style.display = 'none';
+        }
       }
 
       const lyricsContainer = document.getElementById('trackLyrics');
-      if (song.lyrics && song.lyrics.trim() !== '') {
-        lyricsContainer.textContent = song.lyrics;
-      } else {
-        lyricsContainer.innerHTML = '<div class="empty-state">Текст трека пока не добавлен.</div>';
+      if (lyricsContainer) {
+        if (song.lyrics && song.lyrics.trim() !== '') {
+          lyricsContainer.textContent = song.lyrics;
+        } else {
+          lyricsContainer.innerHTML = '<div class="empty-state">Текст трека пока не добавлен.</div>';
+        }
       }
 
       this.switchTrackTab(defaultTab);
-      document.getElementById('trackView').classList.add('active');
+      
+      const trackViewModal = document.getElementById('trackView');
+      if (trackViewModal) {
+        trackViewModal.classList.add('active');
+      } else {
+        console.warn('Элемент #trackView не найден в HTML!');
+      }
     });
   },
 
