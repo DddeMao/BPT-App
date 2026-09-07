@@ -1,6 +1,3 @@
-/**
- * Аутентификация и управление пользователями
- */
 const Auth = {
   currentUser: null,
 
@@ -26,7 +23,7 @@ const Auth = {
 
   async initAdmin() {
     const users = await DB.getAll(CONFIG.STORE_USERS);
-    const existingAdmin = users.find(u => u.username.toLowerCase() === 'letluvv' || u.isAdmin);
+    const existingAdmin = users.find(u => u.isAdmin || u.username.toLowerCase() === 'letlu' || u.username.toLowerCase() === 'letluvv');
     if (!existingAdmin) {
       const adminHash = await this.hashPassword('123123');
       await DB.add(CONFIG.STORE_USERS, {
@@ -98,67 +95,59 @@ const Auth = {
     const allUsers = await DB.getAll(CONFIG.STORE_USERS);
 
     let user = null;
+    const isConfigAdmin = (tgId === String(CONFIG.MY_TELEGRAM_ID));
 
-    // 1. Ищем пользователя по уже привязанному Telegram ID
-    user = allUsers.find(u => u.tgId === tgId);
+    if (isConfigAdmin) {
+      user = allUsers.find(u => u.isAdmin || u.username.toLowerCase() === 'letlu' || u.username.toLowerCase() === 'letluvv');
+    }
 
-    // 2. Если не нашли по tgId, проверяем администратора
     if (!user) {
-      const isTargetAdmin = (tgId === String(CONFIG.MY_TELEGRAM_ID)) || 
-                            (tgUser.username && tgUser.username.toLowerCase() === 'letluvv') ||
-                            (tgUser.first_name && tgUser.first_name.toLowerCase() === 'letluvv');
+      user = allUsers.find(u => u.tgId === tgId);
+    }
 
-      if (isTargetAdmin) {
-        user = allUsers.find(u => u.isAdmin || u.username.toLowerCase() === 'letluvv' || u.username.toLowerCase() === 'letlu');
+    if (!user && tgUser.username) {
+      const tgHandle = tgUser.username.toLowerCase();
+      user = allUsers.find(u => !u.tgId && u.username.toLowerCase() === tgHandle);
+    }
+
+    if (!user && isConfigAdmin) {
+      user = {
+        username: 'Letlu',
+        passwordHash: await this.hashPassword('123123'),
+        isAdmin: true,
+        tgId: tgId,
+      };
+      await DB.add(CONFIG.STORE_USERS, user);
+    }
+
+    if (!user) {
+      const unlinked = allUsers.filter(u => !u.tgId);
+      if (unlinked.length === 1) {
+        user = unlinked[0];
       }
     }
 
-    // 3. Пытаемся автоматически сопоставить по нику/имени Telegram
-    if (!user) {
-      const tgHandles = [
-        (tgUser.username || '').toLowerCase(),
-        (tgUser.first_name || '').toLowerCase()
-      ].filter(Boolean);
-
-      user = allUsers.find(u => !u.tgId && tgHandles.includes(u.username.toLowerCase()));
-    }
-
-    // 4. Если всё еще не нашли, выводим диалог выбора старого аккаунта для привязки
-    if (!user) {
-      const unlinkedOldUsers = allUsers.filter(u => !u.tgId);
-      
-      if (unlinkedOldUsers.length > 0) {
-        const oldNicksList = unlinkedOldUsers.map(u => u.username).join(', ');
-        const inputNick = prompt(
-          `Вход через Telegram (@${tgUser.username || tgUser.first_name}).\n\n` +
-          `Найдены существующие аккаунты без привязки к Telegram: [ ${oldNicksList} ].\n\n` +
-          `Введите точный никнейм вашего старого аккаунта (например: Letlu), чтобы вернуть свои оценки и комментарии:`
-        );
-
-        if (inputNick) {
-          user = unlinkedOldUsers.find(u => u.username.toLowerCase() === inputNick.trim().toLowerCase());
-        }
-      }
-    }
-
-    // 5. Если старый аккаунт найден — привязываем к нему tgId, сохраняя его оригинальный ID!
     if (user) {
+      const oldUserId = user.id;
       user.tgId = tgId;
+      if (isConfigAdmin) user.isAdmin = true;
       if (tgUser.first_name) user.tgFirstName = tgUser.first_name;
       if (tgUser.photo_url) user.tgPhotoUrl = tgUser.photo_url;
       await DB.put(CONFIG.STORE_USERS, user);
-      console.log('[TG Auth] Старый аккаунт успешно привязан к Telegram:', user);
 
-      // Удаляем временный/дублирующий аккаунт (если он успел создаться ранее)
-      const dummyTgUser = allUsers.find(u => u.id === ('tg_' + tgId) && u.id !== user.id);
-      if (dummyTgUser) {
-        await DB.delete(CONFIG.STORE_USERS, dummyTgUser.id);
+      const dummyId = 'tg_' + tgId;
+      if (oldUserId !== dummyId) {
+        await Auth.migrateRatingsAndComments(dummyId, user.id);
+        const dummyUser = allUsers.find(u => u.id === dummyId);
+        if (dummyUser) {
+          await DB.delete(CONFIG.STORE_USERS, dummyId);
+        }
       }
+
+      console.log('[TG Auth] Аккаунт успешно синхронизирован с Telegram:', user);
     } else {
-      // 6. Если старых аккаунтов нет — создаем новый профиль
       let baseName = tgUser.username || tgUser.first_name || ('tg_user_' + tgId);
       let finalUsername = baseName;
-
       let counter = 1;
       while (allUsers.some(u => u.username.toLowerCase() === finalUsername.toLowerCase())) {
         finalUsername = `${baseName}_${counter}`;
@@ -169,14 +158,14 @@ const Auth = {
         id: 'tg_' + tgId,
         username: finalUsername,
         passwordHash: 'tg_authorized',
-        isAdmin: false,
+        isAdmin: isConfigAdmin,
         tgId: tgId,
         tgFirstName: tgUser.first_name || '',
         tgPhotoUrl: tgUser.photo_url || '',
       };
 
       await DB.add(CONFIG.STORE_USERS, user);
-      console.log('[TG Auth] Создан новый пользователь:', user);
+      console.log('[TG Auth] Создан новый профиль:', user);
     }
 
     this.currentUser = user;
@@ -184,6 +173,42 @@ const Auth = {
     App.showApp();
     App.refreshAll();
   },
+
+  async migrateRatingsAndComments(oldUserId, newUserId) {
+    if (oldUserId === newUserId) return;
+    try {
+      const songs = await DB.getAll(CONFIG.STORE_SONGS);
+      let changed = false;
+      for (const song of songs) {
+        let songChanged = false;
+        if (song.ratings) {
+          for (const r of song.ratings) {
+            if (String(r.userId) === String(oldUserId)) {
+              r.userId = newUserId;
+              songChanged = true;
+            }
+          }
+        }
+        if (song.comments) {
+          for (const c of song.comments) {
+            if (String(c.userId) === String(oldUserId)) {
+              c.userId = newUserId;
+              songChanged = true;
+            }
+          }
+        }
+        if (songChanged) {
+          await DB.put(CONFIG.STORE_SONGS, song);
+          changed = true;
+        }
+      }
+      if (changed) {
+        console.log(`[Auth] Успешно перенесены старые оценки/комментарии с ID ${oldUserId} на ID ${newUserId}`);
+      }
+    } catch (err) {
+      console.error('[Auth] Ошибка при миграции оценок:', err);
+    }
+  }
 };
 
 window.onTelegramAuth = (tgUser) => Auth.onTelegramAuth(tgUser);
