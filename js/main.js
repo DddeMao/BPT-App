@@ -726,15 +726,15 @@
 
 // ========== СТАРТ ==========
 document.addEventListener('DOMContentLoaded', async () => {
-  UI.init();
-  Player.init();
-  App.init();
-
   try {
     await DB.open();
     await Auth.initAdmin();
 
-    const savedId = Auth.getSavedUserId();
+    UI.init();
+    Player.init();
+    App.init();
+
+const savedId = Auth.getSavedUserId();
     if (savedId) {
       const user = await DB.get(CONFIG.STORE_USERS, savedId);
       if (user) {
@@ -749,9 +749,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         Auth.clearSession();
       }
     }
+    
     App.showAuthScreen();
+    
   } catch (err) {
-    console.error(err);
+    console.error('Ошибка инициализации:', err);
     alert('Ошибка инициализации базы данных');
   }
 });
