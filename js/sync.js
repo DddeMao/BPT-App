@@ -40,6 +40,7 @@
       title: song.title,
       artist: song.artist,
       album: song.album,
+      producer: song.producer || '',
       date: song.date,
       ratings: song.ratings,
       comments: song.comments,
@@ -151,6 +152,7 @@
           local.title = remoteSong.title;
           local.artist = remoteSong.artist;
           local.album = remoteSong.album;
+		  local.producer = remoteSong.producer;
           local.audioUrl = remoteSong.audioUrl;
           local.coverUrl = remoteSong.coverUrl;
           local.date = remoteSong.date;

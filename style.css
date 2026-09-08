@@ -74,10 +74,13 @@ body::before {
 }
 
 @keyframes bgFloat {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(30px, -20px) scale(1.02); }
-  50% { transform: translate(-20px, 20px) scale(0.98); }
-  75% { transform: translate(10px, 10px) scale(1.01); }
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(15px, -15px); }
+}
+
+body::before {
+  animation: bgFloat 40s ease-in-out infinite;
+  will-change: transform;
 }
 
 /* === НАВИГАЦИЯ СВЕРХУ (ДЕСКТОП) === */
@@ -707,11 +710,6 @@ button:hover {
   text-shadow: 0 0 10px var(--gold-glow);
 }
 
-/* ========================================
-   ПЛЕЕР — APPLE MUSIC STYLE
-   Скруглённый, по центру внизу, glassmorphism
-   ======================================== */
-
 .player-bar {
   position: fixed;
   bottom: 12px;
@@ -720,8 +718,8 @@ button:hover {
   width: calc(100% - 24px);
   max-width: 600px;
   background: rgba(30, 30, 40, 0.85);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
   border-radius: 20px;
   padding: 10px 16px;
   display: flex;
@@ -1898,4 +1896,14 @@ input[type=range]::-webkit-slider-thumb:hover {
   z-index: -1;
   pointer-events: none;
   opacity: 0.5;
+}
+
+.player-bar,
+.top-nav,
+.bottom-nav,
+.modal,
+.track-view-overlay,
+.top-sidebar {
+  transform: translateZ(0);
+  will-change: transform, opacity;
 }
